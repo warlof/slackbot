@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSlackRelationTable extends Migration
+class CreateSlackRelationsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -27,6 +27,6 @@ class CreateSlackRelationTable extends Migration
      */
     public function down()
     {
-        Schema::table('slack_relations');
+        Schema::drop('slack_relations');
     }
 }

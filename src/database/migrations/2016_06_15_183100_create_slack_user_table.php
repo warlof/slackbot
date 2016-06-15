@@ -26,6 +26,6 @@ class CreateSlackUserTable extends Migration
      */
     public function down()
     {
-        Schema::table('slack_user');
+        Schema::drop('slack_user');
     }
 }
