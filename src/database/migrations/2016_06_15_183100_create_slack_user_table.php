@@ -10,7 +10,7 @@ class CreateSlackUserTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function create()
     {
         Schema::table('slack_user', function (Blueprint $table) {
             $table->integer('user_id');

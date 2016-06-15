@@ -10,7 +10,7 @@ class CreateSlackRelationTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function create()
     {
         Schema::table('slack_relations', function (Blueprint $table) {
             $table->integer('role_id');
