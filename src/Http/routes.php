@@ -7,8 +7,6 @@
 
 Route::group([
     'namespace' => 'Seat\Slackbot\Http\Controllers',
-    'middleware' => 'bouncer:superuser',
-    'prefix' => 'slack-admin'
 ], function(){
     Route::get('/relations', [
         'as' => 'slack-admin.relations',

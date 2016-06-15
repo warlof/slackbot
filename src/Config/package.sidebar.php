@@ -7,15 +7,15 @@
 
 return [
     'slackbot' => [
-        'permission'    => 'slackbot.view',
+        'permission'    => 'Superuser',
         'name'          => 'Slackbot',
         'icon'          => 'fa-slack',
         'route_segment' => 'slack-admin',
         'route'         => 'slack-admin.relations',
-        /*'entries'       => [
+        'entries'       => [
             'name'  => 'Relations',
             'icon'  => 'fa-exchange',
             'route' => 'slack-admin.relations'
-        ]*/
+        ]
     ]
 ];
