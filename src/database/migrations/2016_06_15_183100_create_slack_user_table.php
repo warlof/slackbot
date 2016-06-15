@@ -10,9 +10,9 @@ class CreateSlackUserTable extends Migration
      *
      * @return void
      */
-    public function create()
+    public function up()
     {
-        Schema::table('slack_user', function (Blueprint $table) {
+        Schema::create('slack_user', function (Blueprint $table) {
             $table->integer('user_id');
             $table->string('slack_id');
             $table->timestamps();

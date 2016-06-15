@@ -10,9 +10,9 @@ class CreateSlackChannelTable extends Migration
      *
      * @return void
      */
-    public function create()
+    public function up()
     {
-        Schema::table('slack_channel', function (Blueprint $table) {
+        Schema::create('slack_channel', function (Blueprint $table) {
             $table->string('id');
             $table->string('name');
             $table->timestamps();
