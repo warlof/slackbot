@@ -6,7 +6,7 @@
  */
 
 return [
-    'notes' => [
+    'slackbot' => [
         'view',
         'create'
     ]

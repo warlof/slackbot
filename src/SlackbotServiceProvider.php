@@ -2,6 +2,7 @@
 
 namespace Seat\Slackbot;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
 class SlackbotServiceProvider extends ServiceProvider
