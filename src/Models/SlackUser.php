@@ -10,7 +10,7 @@ class SlackUser extends Model
     protected $table = 'slack_user';
 
     protected $fillable = [
-        'user_id', 'slack_id'
+        'user_id', 'slack_id', 'invited'
     ];
 
     protected $primaryKey = [

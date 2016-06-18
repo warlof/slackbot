@@ -8,14 +8,14 @@
 namespace Seat\Slackbot\Http\Controllers;
 
 
-use Seat\Slackbot\Models\SlackRelations;
+use Seat\Slackbot\Models\SlackChannelsRoles;
 
 class SlackbotAdminController
 {
 
     public function listRelations()
     {
-        $slack_relations = SlackRelations::all();
+        $slack_relations = SlackChannelsRoles::all();
         
         return view('slackbot::list', compact('slack_relations'));
     }

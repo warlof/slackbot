@@ -8,6 +8,7 @@
         }
     },
     "require": {
+        "eveseat/services": "^1.0",
         "eveseat/eveapi": "^1.0",
         "eveseat/web": "^1.0"
     },

@@ -4,6 +4,8 @@ namespace Seat\Slackbot;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Seat\Slackbot\Commands\Corp\SlackInvite;
+use Seat\Slackbot\Commands\Corp\SlackKick;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -14,8 +16,8 @@ class SlackbotServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
+        $this->add_commands();
         $this->add_routes();
-        $this->add_middleware($router);
         $this->add_views();
         $this->add_publications();
         $this->add_translations();
@@ -34,6 +36,14 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/Config/slackbot.permissions.php', 'web.permissions');
     }
+
+    public function add_commands()
+    {
+        $this->commands([
+            SlackInvite::class,
+            SlackKick::class
+        ]);
+    }
     
     public function add_translations()
     {
@@ -45,11 +55,6 @@ class SlackbotServiceProvider extends ServiceProvider
         if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
-    }
-    
-    public function add_middleware(Router $router)
-    {
-        
     }
     
     public function add_views()

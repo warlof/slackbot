@@ -3,28 +3,28 @@
 namespace Seat\Slackbot\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Seat\Web\Models\Acl\Role;
+use Seat\Web\Models\User;
 
-class SlackRelations extends Model
+class SlackChannelsUsers extends Model
 {
-    protected $table = 'slack_relations';
+    protected $table = 'slack_channels_users';
 
     protected $fillable = [
-        'role_id', 'channel_id', 'status'
+        'user_id', 'channel_id', 'enable'
     ];
 
     protected $primaryKey = [
-        'role_id', 'channel_id'
+        'user_id', 'channel_id'
     ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function role()
+    public function user()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(User::class, 'id', 'user_id');
     }
-
+    
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
