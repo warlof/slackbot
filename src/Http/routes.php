@@ -7,6 +7,7 @@
 
 Route::group([
     'namespace' => 'Seat\Slackbot\Http\Controllers',
+    'middleware' => 'bouncer:superuser',
     'prefix' => 'slackbot'
 ], function(){
     Route::get('/', [
