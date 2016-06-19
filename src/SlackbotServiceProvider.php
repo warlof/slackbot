@@ -36,7 +36,7 @@ class SlackbotServiceProvider extends ServiceProvider
             __DIR__ . '/Config/slackbot.permissions.php', 'web.permissions');
         
         $this->mergeConfigFrom(
-            __DIR__ . '/Config/package.sidebar.php', 'slackbot.config');
+            __DIR__ . '/Config/package.sidebar.php', 'package.sidebar');
     }
 
     public function addCommands()
