@@ -13,7 +13,7 @@ use Seat\Slackbot\Bot\SlackReceptionist;
 
 class SlackInvite extends Command
 {
-    protected $signature = 'slack:white-list:invite';
+    protected $signature = 'slack:invite';
 
     protected $description = 'Auto invite member based on white list/slack relation';
 

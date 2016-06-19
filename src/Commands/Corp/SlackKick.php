@@ -13,7 +13,7 @@ use Seat\Slackbot\Bot\SlackAssKicker;
 
 class SlackKick extends Command
 {
-    protected $signature = 'slack:white-list:invite';
+    protected $signature = 'slack:kick';
 
     protected $description = 'Auto invite member based on white list/slack relation';
 
