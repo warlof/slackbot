@@ -14,13 +14,13 @@ class SlackbotServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(Router $router)
+    public function boot()
     {
-        $this->add_commands();
-        $this->add_routes();
-        $this->add_views();
-        $this->add_publications();
-        $this->add_translations();
+        $this->addCommands();
+        $this->addRoutes();
+        $this->addViews();
+        $this->addPublications();
+        $this->addTranslations();
     }
 
     /**
@@ -37,7 +37,7 @@ class SlackbotServiceProvider extends ServiceProvider
             __DIR__ . '/Config/slackbot.permissions.php', 'web.permissions');
     }
 
-    public function add_commands()
+    public function addCommands()
     {
         $this->commands([
             SlackInvite::class,
@@ -45,24 +45,24 @@ class SlackbotServiceProvider extends ServiceProvider
         ]);
     }
     
-    public function add_translations()
+    public function addTranslations()
     {
         $this->loadTranslationsFrom(__DIR__ . '/lang', 'slackbot');
     }
     
-    public function add_routes()
+    public function addRoutes()
     {
         if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
     }
     
-    public function add_views()
+    public function addViews()
     {
         $this->loadViewsFrom(__DIR__ . '/resources/views', 'slackbot');
     }
     
-    public function add_publications()
+    public function addPublications()
     {
         $this->publishes([
             __DIR__ . '/database/migrations/' => database_path('migrations')
