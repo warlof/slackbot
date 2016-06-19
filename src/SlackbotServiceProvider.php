@@ -2,7 +2,6 @@
 
 namespace Seat\Slackbot;
 
-use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Seat\Slackbot\Commands\Corp\SlackInvite;
 use Seat\Slackbot\Commands\Corp\SlackKick;
@@ -31,10 +30,13 @@ class SlackbotServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/Config/package.sidebar.php', 'slackbot.config');
+            __DIR__ . '/Config/slackbot.config.php', 'slackbot.config');
 
         $this->mergeConfigFrom(
             __DIR__ . '/Config/slackbot.permissions.php', 'web.permissions');
+        
+        $this->mergeConfigFrom(
+            __DIR__ . '/Config/package.sidebar.php', 'slackbot.config');
     }
 
     public function addCommands()
