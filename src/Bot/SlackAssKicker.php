@@ -26,7 +26,7 @@ class SlackAssKicker extends AbstractSlack
 
             if ($this->isInvited($user)) {
                 
-                $channels = $this->member_of_channels($slack_user);
+                $channels = $this->memberOfChannels($slack_user);
                 
                 if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
                     $this->processChannelsKick($slack_user, $channels);
@@ -52,12 +52,12 @@ class SlackAssKicker extends AbstractSlack
      * @throws SlackChannelException
      * @return array
      */
-    function member_of_channels(SlackUser $slack_user)
+    function memberOfChannels(SlackUser $slack_user)
     {
-        $in_channels = [];
+        $inChannels = [];
 
         $params = [
-            'token' => $this->slack_token_api,
+            'token' => $this->slackTokenApi,
         ];
 
         // get all channels from the attached slack team
@@ -67,39 +67,35 @@ class SlackAssKicker extends AbstractSlack
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-        if (!$result = curl_exec($curl)) {
+        $result = json_decode(curl_exec($curl));
+
+        if ($result == null || $result['ok'] == false) {
             throw new SlackChannelException("An error occurred while trying to kick the member.\r\n" .
                 curl_error($curl));
-        } else {
-            $json = json_decode($result);
-            if ($json['ok'] != true) {
-                throw new SlackChannelException("An error occurred while trying to kick the member.\r\n" .
-                    $json['error']);
-            }
-
-            // iterate over channels and check if the current slack user is part of channel
-            foreach ($json['channels'] as $channel) {
-                if (in_array($slack_user->slack_id, $channel['members']))
-                    $in_channels[] = $channel['id'];
-            }
         }
 
-        return $in_channels;
+        // iterate over channels and check if the current slack user is part of channel
+        foreach ($result['channels'] as $channel) {
+            if (in_array($slack_user->slack_id, $channel['members']))
+                $inChannels[] = $channel['id'];
+        }
+
+        return $inChannels;
     }
 
     /**
      * Kick an user from each channel
      *
      * @param SlackUser $slack_user
-     * @param $channel_ids
+     * @param $channels
      * @throws SlackChannelException
      */
-    function processChannelsKick(SlackUser $slack_user, $channel_ids)
+    function processChannelsKick(SlackUser $slack_user, $channels)
     {
-        foreach ($channel_ids as $channel_id) {
+        foreach ($channels as $channel) {
             $params = [
-                'channel' => $channel_id,
-                'token' => $this->slack_token_api,
+                'channel' => $channel,
+                'token' => $this->slackTokenApi,
                 'user' => $slack_user->slack_id
             ];
 
@@ -109,15 +105,11 @@ class SlackAssKicker extends AbstractSlack
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-            if (!$result = curl_exec($curl)) {
+            $result = json_decode(curl_exec($curl));
+
+            if ($result == null || $result['ok'] == false) {
                 throw new SlackChannelException("An error occurred while trying to kick the member.\r\n" .
                     curl_error($curl));
-            } else {
-                $json = json_decode($result);
-                if ($json['ok'] != true) {
-                    throw new SlackChannelException("An error occurred while trying to kick the member.\r\n" .
-                        $json['error']);
-                }
             }
         }
     }
@@ -126,15 +118,15 @@ class SlackAssKicker extends AbstractSlack
      * Kick an user from each group
      *
      * @param SlackUser $slack_user
-     * @param $group_ids
+     * @param $groups
      * @throws SlackGroupException
      */
-    function processGroupsKick(SlackUser $slack_user, $group_ids)
+    function processGroupsKick(SlackUser $slack_user, $groups)
     {
-        foreach ($group_ids as $group_id) {
+        foreach ($groups as $group) {
             $params = [
-                'channel' => $group_id,
-                'token' => $this->slack_token_api,
+                'channel' => $group,
+                'token' => $this->slackTokenApi,
                 'user' => $slack_user->slack_id
             ];
 
@@ -144,15 +136,11 @@ class SlackAssKicker extends AbstractSlack
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-            if (!$result = curl_exec($curl)) {
+            $result = json_decode(curl_exec($curl));
+
+            if ($result == null || $result['ok'] == false) {
                 throw new SlackGroupException("An error occurred while trying to kick the member.\r\n" .
                     curl_error($curl));
-            } else {
-                $json = json_decode($result);
-                if ($json['ok'] != true) {
-                    throw new SlackGroupException("An error occurred while trying to kick the member.\r\n" .
-                        $json['error']);
-                }
             }
         }
     }

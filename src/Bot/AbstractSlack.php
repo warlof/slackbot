@@ -19,16 +19,17 @@ abstract class AbstractSlack
 {
     const SLACK_URI_PATTERN = "https://slack.com/api";
     
-    protected $slack_token_api;
+    protected $slackTokenApi;
 
     function load()
     {
         // load token and team uri from settings
-        if (($setting = GlobalSetting::where('name', 'slack_token')->first()) != null) {
-            $this->slack_token_api = $setting->value;
-        } else {
+        $setting = GlobalSetting::where('name', 'slack_token')->first();
+        
+        if ($setting == null)
             throw new SlackSettingException("missing slack_token");
-        }
+        
+        $this->slackTokenApi = $setting->value;
     }
 
     /**

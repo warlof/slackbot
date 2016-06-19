@@ -25,14 +25,14 @@ class SlackReceptionist extends AbstractSlack
         foreach (User::where('active', true)->get() as $user) {
             
             $keys = ApiKey::where('user_id', $user->id)->get();
-            $slack_user = SlackUser::where('user_id', $user->id)->get();
+            $slackUser = SlackUser::where('user_id', $user->id)->get();
 
             if ($this->isEnabledKey($keys) && $this->isActive($keys)) {
-                $allowed_channels = $this->allowed_channels($slack_user);
+                $allowedChannels = $this->allowed_channels($slackUser);
                 if (!$this->isInvited($user)) {
                     $this->processMemberInvitation($user);
                 }
-                $this->processChannelsInvitation($slack_user, $allowed_channels);
+                $this->processChannelsInvitation($slackUser, $allowedChannels);
             }
         }
 
@@ -50,7 +50,7 @@ class SlackReceptionist extends AbstractSlack
     {
         $params = [
             'email' => $user->email,
-            'token' => $this->slack_token_api,
+            'token' => $this->slackTokenApi,
             'set_active' => true
         ];
 
@@ -64,37 +64,35 @@ class SlackReceptionist extends AbstractSlack
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-        if (!$result = curl_exec($curl)) {
+        $result = json_decode(curl_exec($curl));
+
+        if ($result == null || $result['ok'] == false) {
             throw new SlackTeamInvitationException("An error occurred while trying to invite the member.\r\n" .
                 curl_error($curl));
-        } else {
-            $json = json_decode($result);
-            if ($json['ok'] == true) {
-                $slack_user = new SlackUser();
-                $slack_user->user_id = $user->id;
-                $slack_user->invited = true;
-                $user->save();
-            } else {
-                throw new SlackTeamInvitationException("An error occurred while trying to invite the member.\r\n" .
-                    $json['error']);
-            }
+        }
+
+        if ($result['ok'] == true) {
+            $slackUser = new SlackUser();
+            $slackUser->user_id = $user->id;
+            $slackUser->invited = true;
+            $user->save();
         }
     }
 
     /**
      * Invite an user to each channel
      * 
-     * @param SlackUser $slack_user
-     * @param $channel_ids
+     * @param SlackUser $slackUser
+     * @param $channels
      * @throws SlackChannelException
      */
-    function processChannelsInvitation(SlackUser $slack_user, $channel_ids)
+    function processChannelsInvitation(SlackUser $slackUser, $channels)
     {
-        foreach ($channel_ids as $channel_id) {
+        foreach ($channels as $channel) {
             $params = [
-                'channel' => $channel_id,
-                'token' => $this->slack_token_api,
-                'user' => $slack_user->slack_id
+                'channel' => $channel,
+                'token' => $this->slackTokenApi,
+                'user' => $slackUser->slack_id
             ];
 
             $curl = curl_init();
@@ -103,15 +101,11 @@ class SlackReceptionist extends AbstractSlack
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-            if (!$result = curl_exec($curl)) {
+            $result = json_decode(curl_exec($curl));
+
+            if ($result == null || $result['ok'] == false) {
                 throw new SlackChannelException("An error occurred while trying to invite the member.\r\n" .
                     curl_error($curl));
-            } else {
-                $json = json_decode($result);
-                if ($json['ok'] != true) {
-                    throw new SlackChannelException("An error occurred while trying to invite the member.\r\n" .
-                        $json['error']);
-                }
             }
         }
     }
@@ -120,15 +114,15 @@ class SlackReceptionist extends AbstractSlack
      * Invite an user to each group
      * 
      * @param SlackUser $slack_user
-     * @param $group_ids
+     * @param $groups
      * @throws SlackGroupException
      */
-    function processGroupsInvitation(SlackUser $slack_user, $group_ids)
+    function processGroupsInvitation(SlackUser $slack_user, $groups)
     {
-        foreach ($group_ids as $group_id) {
+        foreach ($groups as $group) {
             $params = [
-                'channel' => $group_id,
-                'token' => $this->slack_token_api,
+                'channel' => $group,
+                'token' => $this->slackTokenApi,
                 'user' => $slack_user->slack_id
             ];
 
@@ -138,15 +132,11 @@ class SlackReceptionist extends AbstractSlack
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-            if (!$result = curl_exec($curl)) {
+            $result = json_decode(curl_exec($curl));
+            
+            if ($result == null || $result['ok'] == false) {
                 throw new SlackGroupException("An error occurred while trying to invite the member.\r\n" .
                     curl_error($curl));
-            } else {
-                $json = json_decode($result);
-                if ($json['ok'] != true) {
-                    throw new SlackGroupException("An error occurred while trying to invite the member.\r\n" .
-                        $json['error']);
-                }
             }
         }
     }
