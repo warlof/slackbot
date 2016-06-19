@@ -13,7 +13,7 @@ use Seat\Slackbot\Models\SlackChannelsCorporations;
 use Seat\Slackbot\Models\SlackChannelsRoles;
 use Seat\Slackbot\Models\SlackChannelsUsers;
 
-class SlackbotAdminController
+class SlackbotController
 {
 
     public function list()
