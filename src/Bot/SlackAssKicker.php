@@ -22,22 +22,22 @@ class SlackAssKicker extends AbstractSlack
         foreach (User::where('active', true)->get() as $user) {
 
             $keys = ApiKey::where('user_id', $user->id)->get();
-            $slack_user = SlackUser::where('user_id', $user->id)->get();
+            $slackUser = SlackUser::where('user_id', $user->id)->get();
 
             if ($this->isInvited($user)) {
                 
-                $channels = $this->memberOfChannels($slack_user);
+                $channels = $this->memberOfChannels($slackUser);
                 
                 if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
-                    $this->processChannelsKick($slack_user, $channels);
-                    $this->processGroupsKick($slack_user, $channels);
+                    $this->processChannelsKick($slackUser, $channels);
+                    $this->processGroupsKick($slackUser, $channels);
                 } else {
-                    $allowed_channels = $this->allowedChannels($slack_user);
+                    $allowedChannels = $this->allowedChannels($slackUser);
 
                     // remove channels in which user is already in from all granted channels and invite him
-                    $this->processChannelsKick($slack_user, array_diff($channels, $allowed_channels));
+                    $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
                     // remove granted channels from channels in which user is already in and kick him
-                    $this->processGroupsKick($slack_user, array_diff($channels, $allowed_channels));
+                    $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
                 }
             }
         }

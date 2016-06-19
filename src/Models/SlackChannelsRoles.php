@@ -28,8 +28,8 @@ class SlackChannelsRoles extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function channels()
+    public function channel()
     {
-        return $this->hasMany(SlackChannel::class, 'id', 'channel_id');
+        return $this->belongsTo(SlackChannel::class, 'id', 'channel_id');
     }
 }

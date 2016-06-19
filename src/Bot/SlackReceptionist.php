@@ -99,15 +99,15 @@ class SlackReceptionist extends AbstractSlack
     /**
      * Invite an user to each group
      * 
-     * @param SlackUser $slack_user
+     * @param SlackUser $slackUser
      * @param $groups
      * @throws SlackGroupException
      */
-    function processGroupsInvitation(SlackUser $slack_user, $groups)
+    function processGroupsInvitation(SlackUser $slackUser, $groups)
     {
         $params = [
             'channel' => '',
-            'user' => $slack_user->slack_id
+            'user' => $slackUser->slack_id
         ];
 
         foreach ($groups as $group) {

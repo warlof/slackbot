@@ -7,14 +7,9 @@
 
 Route::group([
     'namespace' => 'Seat\Slackbot\Http\Controllers',
+    'prefix' => 'slackbot'
 ], function(){
-    Route::get('/relations', [
-        'as' => 'slack-admin.relations',
-        'uses' => 'SlackbotAdminController@listRelations']);
-    Route::get('/relation', [
-        'as' => 'slack-admin.relation.create',
-        'uses' => 'SlackbotAdminController@getRelation']);
-    Route::post('/relation', [
-        'as' => 'slack-admin.relation.create',
-        'uses' => 'SlackbotAdminController@postRelation']);
+    Route::get('/', [
+        'as' => 'slackbot.list',
+        'uses' => 'SlackbotController@list']);
 });
