@@ -7,7 +7,7 @@ use Seat\Web\Models\Acl\Role;
 
 class SlackChannel extends Model
 {
-    protected $table = 'slack_channel';
+    protected $table = 'slack_channels';
 
     protected $fillable = [
         'id', 'name'

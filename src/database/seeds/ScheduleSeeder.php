@@ -16,7 +16,7 @@ class ScheduleSeeder extends Seeder
     protected $schedule = [
         [
             'command'           => 'slack:invite',
-            'expression'        => '0 0 * * * *',
+            'expression'        => '*/5 * * * * *',
             'allow_overlap'     => false,
             'allow_maintenance' => false,
             'ping_before'       => null,
@@ -24,7 +24,7 @@ class ScheduleSeeder extends Seeder
         ],
         [
             'command'           => 'slack:kick',
-            'expression'        => '0 0 * * * *',
+            'expression'        => '*/5 * * * * *',
             'allow_overlap'     => false,
             'allow_maintenance' => false,
             'ping_before'       => null,

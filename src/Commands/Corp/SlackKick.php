@@ -9,7 +9,7 @@ namespace Seat\Slackbot\Commands\Corp;
 
 
 use Illuminate\Console\Command;
-use Seat\Slackbot\Bot\SlackAssKicker;
+use Seat\Slackbot\Jobs\SlackAssKicker;
 
 class SlackKick extends Command
 {

@@ -23,5 +23,6 @@ return [
     'role' => 'Role',
     'corporation' => 'Corporation',
     'alliance' => 'Alliance',
-    'remove' => 'Remove'
+    'remove' => 'Remove',
+    'enabled' => 'Enabled'
 ];

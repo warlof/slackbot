@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSlackChannelTable extends Migration
+class CreateSlackChannelsRolesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,13 @@ class CreateSlackChannelTable extends Migration
      */
     public function up()
     {
-        Schema::create('slack_channel', function (Blueprint $table) {
-            $table->string('id');
-            $table->string('name');
+        Schema::create('slack_channels_roles', function (Blueprint $table) {
+            $table->integer('role_id');
+            $table->string('channel_id');
+            $table->boolean('enable');
             $table->timestamps();
+            
+            $table->primary(['role_id', 'channel_id']);
         });
     }
 
@@ -26,6 +29,6 @@ class CreateSlackChannelTable extends Migration
      */
     public function down()
     {
-        Schema::drop('slack_channel');
+        Schema::drop('slack_channels_roles');
     }
 }

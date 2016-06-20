@@ -22,7 +22,7 @@ class SlackChannelsRoles extends Model
      */
     public function role()
     {
-        return $this->belongsTo(Role::class, 'id', 'role_id');
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
     /**
@@ -30,6 +30,6 @@ class SlackChannelsRoles extends Model
      */
     public function channel()
     {
-        return $this->belongsTo(SlackChannel::class, 'id', 'channel_id');
+        return $this->belongsTo(SlackChannel::class, 'channel_id', 'id');
     }
 }

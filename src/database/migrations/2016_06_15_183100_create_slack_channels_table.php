@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSlackUserTable extends Migration
+class CreateSlackChannelsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,12 @@ class CreateSlackUserTable extends Migration
      */
     public function up()
     {
-        Schema::create('slack_user', function (Blueprint $table) {
-            $table->integer('user_id');
-            $table->string('slack_id');
+        Schema::create('slack_channels', function (Blueprint $table) {
+            $table->string('id');
+            $table->string('name');
             $table->timestamps();
+            
+            $table->primary('id');
         });
     }
 
@@ -26,6 +28,6 @@ class CreateSlackUserTable extends Migration
      */
     public function down()
     {
-        Schema::drop('slack_user');
+        Schema::drop('slack_channels');
     }
 }

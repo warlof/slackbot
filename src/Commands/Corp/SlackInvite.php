@@ -9,7 +9,7 @@ namespace Seat\Slackbot\Commands\Corp;
 
 
 use Illuminate\Console\Command;
-use Seat\Slackbot\Bot\SlackReceptionist;
+use Seat\Slackbot\Jobs\SlackReceptionist;
 
 class SlackInvite extends Command
 {

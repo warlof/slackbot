@@ -10,6 +10,6 @@ return [
         'name'          => 'Slackbot',
         'icon'          => 'fa-slack',
         'route_segment' => 'slackbot',
-        'route'         => 'slackbot.list'
+        'route' => 'slackbot.list'
     ]
 ];

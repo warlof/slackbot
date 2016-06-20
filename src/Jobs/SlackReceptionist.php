@@ -5,7 +5,7 @@
  * Time: 19:01
  */
 
-namespace Seat\Slackbot\Bot;
+namespace Seat\Slackbot\Jobs;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
@@ -25,13 +25,14 @@ class SlackReceptionist extends AbstractSlack
         foreach (User::where('active', true)->get() as $user) {
             
             $keys = ApiKey::where('user_id', $user->id)->get();
-            $slackUser = SlackUser::where('user_id', $user->id)->get();
-
+            
             if ($this->isEnabledKey($keys) && $this->isActive($keys)) {
-                $allowedChannels = $this->allowedChannels($slackUser);
                 if (!$this->isInvited($user)) {
                     $this->processMemberInvitation($user);
                 }
+                
+                $slackUser = SlackUser::where('user_id', $user->id)->first();
+                $allowedChannels = $this->allowedChannels($slackUser);
                 $this->processChannelsInvitation($slackUser, $allowedChannels);
             }
         }

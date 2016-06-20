@@ -5,8 +5,9 @@
  * Time: 21:01
  */
 
-namespace Seat\Slackbot\Bot;
+namespace Seat\Slackbot\Jobs;
 
+use Illuminate\Database\Eloquent\Collection;
 use Seat\Eveapi\Models\Account\AccountStatus;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
@@ -36,10 +37,10 @@ abstract class AbstractSlack
     /**
      * Return true if all API Key are still enable
      *
-     * @param ApiKey $keys[]
+     * @param Collection $keys
      * @return bool
      */
-    function isEnabledKey(ApiKey $keys)
+    function isEnabledKey(Collection $keys)
     {
         $success = 0;
 
@@ -57,10 +58,10 @@ abstract class AbstractSlack
     /**
      * Return true if at least one API Key is still paid until now
      *
-     * @param ApiKey $keys[]
+     * @param Collection $keys
      * @return bool
      */
-    function isActive(ApiKey $keys)
+    function isActive(Collection $keys)
     {
         foreach ($keys as $key) {
             return (boolean) AccountStatus::where('keyID', $key->key_id)

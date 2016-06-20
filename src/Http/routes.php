@@ -12,5 +12,30 @@ Route::group([
 ], function(){
     Route::get('/', [
         'as' => 'slackbot.list',
-        'uses' => 'SlackbotController@list']);
+        'uses' => 'SlackbotController@getRelations']);
+
+    Route::get('/users/{user_id}/{channel_id}/remove', [
+        'as' => 'slackbot.users.remove',
+        'uses' => 'SlackbotController@getRemoveUser'
+    ]);
+
+    Route::get('/roles/{role_id}/{channel_id}/remove', [
+        'as' => 'slackbot.role.remove',
+        'uses' => 'SlackbotController@getRemoveRole'
+    ]);
+
+    Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
+        'as' => 'slackbot.corporations.remove',
+        'uses' => 'SlackbotController@getRemoveCorporation'
+    ]);
+
+    Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
+        'as' => 'slackbot.alliances.remove',
+        'uses' => 'SlackbotController@getRemoveAlliance'
+    ]);
+
+    Route::post('/', [
+        'as' => 'slackbot.add',
+        'uses' => 'SlackbotController@postRelation'
+    ]);
 });

@@ -5,7 +5,7 @@
  * Time: 19:04
  */
 
-namespace Seat\Slackbot\Bot;
+namespace Seat\Slackbot\Jobs;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
@@ -22,22 +22,24 @@ class SlackAssKicker extends AbstractSlack
         foreach (User::where('active', true)->get() as $user) {
 
             $keys = ApiKey::where('user_id', $user->id)->get();
-            $slackUser = SlackUser::where('user_id', $user->id)->get();
+            $slackUser = SlackUser::where('user_id', $user->id)->first();
 
-            if ($this->isInvited($user)) {
-                
-                $channels = $this->memberOfChannels($slackUser);
-                
-                if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
-                    $this->processChannelsKick($slackUser, $channels);
-                    $this->processGroupsKick($slackUser, $channels);
-                } else {
-                    $allowedChannels = $this->allowedChannels($slackUser);
+            if ($slackUser != null) {
+                if ($this->isInvited($user)) {
+                    
+                    $channels = $this->memberOfChannels($slackUser);
 
-                    // remove channels in which user is already in from all granted channels and invite him
-                    $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
-                    // remove granted channels from channels in which user is already in and kick him
-                    $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
+                    if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
+                        $this->processChannelsKick($slackUser, $channels);
+                        $this->processGroupsKick($slackUser, $channels);
+                    } else {
+                        $allowedChannels = $this->allowedChannels($slackUser);
+
+                        // remove channels in which user is already in from all granted channels and invite him
+                        $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
+                        // remove granted channels from channels in which user is already in and kick him
+                        $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
+                    }
                 }
             }
         }

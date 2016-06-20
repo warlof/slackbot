@@ -8,6 +8,7 @@
 return [
     'slackbot' => [
         'view',
-        'create'
+        'create',
+        'setup'
     ]
 ];

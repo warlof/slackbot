@@ -22,6 +22,6 @@ class SlackChannelsAlliances extends Model
      */
     public function channel()
     {
-        return $this->belongsTo(SlackChannel::class, 'id', 'channel_id');
+        return $this->belongsTo(SlackChannel::class, 'channel_id', 'id');
     }
 }
