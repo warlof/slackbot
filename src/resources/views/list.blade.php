@@ -91,17 +91,17 @@
                 <div role="tabpanel" class="tab-pane active" id="slackbot-username">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
-                            <tr>
-                                <th>{{ trans('slackbot::seat.username') }}</th>
-                                <th>{{ trans('slackbot::seat.channel') }}</th>
-                                <th>{{ trans('slackbot::seat.created') }}</th>
-                                <th>{{ trans('slackbot::seat.updated') }}</th>
-                                <th>{{ trans('slackbot::seat.status') }}</th>
-                                <th></th>
-                            </tr>
+                        <tr>
+                            <th>{{ trans('slackbot::seat.username') }}</th>
+                            <th>{{ trans('slackbot::seat.channel') }}</th>
+                            <th>{{ trans('slackbot::seat.created') }}</th>
+                            <th>{{ trans('slackbot::seat.updated') }}</th>
+                            <th>{{ trans('slackbot::seat.status') }}</th>
+                            <th></th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @foreach($channels_users as $channel)
+                        @foreach($channel_users as $channel)
                             <tr>
                                 <td>{{ $channel->user->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -116,7 +116,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                        @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -133,7 +133,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channels_roles as $channel)
+                        @foreach($channel_roles as $channel)
                             <tr>
                                 <td>{{ $channel->role->title }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -165,7 +165,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channels_corporations as $channel)
+                        @foreach($channel_corporations as $channel)
                             <tr>
                                 <td>{{ $channel->corporation_id }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -197,7 +197,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channels_alliances as $channel)
+                        @foreach($channel_alliances as $channel)
                             <tr>
                                 <td>{{ $channel->alliance_id }}</td>
                                 <td>{{ $channel->channel->name }}</td>
