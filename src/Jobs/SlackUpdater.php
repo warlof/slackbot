@@ -44,17 +44,16 @@ class SlackUpdater extends Job implements SelfHandling, ShouldQueue
             (new SlackReceptionist())->setUser($this->jobPayload->user)->call();
             (new SlackAssKicker())->setUser($this->jobPayload->user)->call();
 
-            $jobContainer->scope = 'Slack';
             $jobContainer->api = 'Slack';
+            $jobContainer->scope = 'Update';
             $jobContainer->owner_id = $this->jobPayload->owner_id;
+
+            $jobTracker->status = 'Done';
+            $jobTracker->output = null;
+            $jobTracker->save();
 
         } catch (\Exception $e) {
             $this->reportJobError($jobTracker, $e);
-            return;
         }
-
-        $jobTracker->status = 'Done';
-        $jobTracker->output = null;
-        $jobTracker->save();
     }
 }

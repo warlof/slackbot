@@ -10,64 +10,49 @@ namespace Seat\Slackbot\Jobs;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
+use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractSlack
 {
     function call()
     {
-        $this->load();
+        // call the parent call method in order to load the Slack Api Token
+        parent::call();
 
+        // get all Api Key owned by the user
         $keys = ApiKey::where('user_id', $this->user->id)->get();
-        $slackUser = SlackUser::where('user_id', $this->user->id)->first();
+        // get the Slack Api User
+        $slackUser = SlackUser::where('user_id', $this->user->id)
+            ->where('invited', true)
+            ->whereNotNull('slack_id')
+            ->first();
 
         if ($slackUser != null) {
-            if ($this->isInvited($this->user)) {
-                
-                $channels = $this->memberOfChannels($slackUser);
 
-                if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
-                    $this->processChannelsKick($slackUser, $channels);
-                    $this->processGroupsKick($slackUser, $channels);
-                } else {
-                    $allowedChannels = $this->allowedChannels($slackUser);
+            // get channels into which current user is already member
+            $channels = $this->memberOfChannels($slackUser);
 
-                    // remove channels in which user is already in from all granted channels and invite him
-                    $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
-                    // remove granted channels from channels in which user is already in and kick him
-                    $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
-                }
+            // if key are not valid OR account no longer paid
+            // kick the user from all channels to which he's member
+            if ($this->isEnabledKey($keys) == false || $this->isActive($keys) == false) {
+
+                $this->processChannelsKick($slackUser, $channels);
+                //$this->processGroupsKick($slackUser, $channels);
+
+            // in other way, compute the gap and kick only the user
+            // to channel from which he's no longer granted to be in
+            } else {
+                $allowedChannels = $this->allowedChannels($slackUser);
+
+                // remove channels in which user is already in from all granted channels and invite him
+                $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
+                // remove granted channels from channels in which user is already in and kick him
+                //$this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
             }
         }
 
         return;
-    }
-
-    /**
-     * Determine in which channels an user is in
-     *
-     * @param SlackUser $slackUser
-     * @throws SlackChannelException
-     * @return array
-     */
-    function memberOfChannels(SlackUser $slackUser)
-    {
-        $inChannels = [];
-        
-        // get all channels from the attached slack team
-        $result = $this->processSlackApiPost('/channels.list');
-
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
-        }
-        
-        // iterate over channels and check if the current slack user is part of channel
-        foreach ($result['channels'] as $channel) {
-            if (in_array($slackUser->slack_id, $channel['members']))
-                $inChannels[] = $channel['id'];
-        }
-
-        return $inChannels;
     }
 
     /**
@@ -84,10 +69,11 @@ class SlackAssKicker extends AbstractSlack
             'user' => $slackUser->slack_id
         ];
 
+        // iterate channel ID and call kick method from Slack Api
         foreach ($channels as $channel) {
             $params['channel'] = $channel;
 
-            $result = $this->processSlackApiPost('/channels.kick', $params);
+            $result = SlackApi::post('/channels.kick', $params);
 
             if ($result['ok'] == false) {
                 throw new SlackChannelException($result['error']);
@@ -109,10 +95,11 @@ class SlackAssKicker extends AbstractSlack
             'user' => $slackUser->slack_id
         ];
 
+        // iterate group ID and call kick method from Slack Api
         foreach ($groups as $group) {
             $params['channel'] = $group;
 
-            $result = $this->processSlackApiPost('/groups.kick', $params);
+            $result = SlackApi::post('/groups.kick', $params);
 
             if ($result['ok'] == false) {
                 throw new SlackGroupException($result['error']);

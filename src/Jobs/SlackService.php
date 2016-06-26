@@ -30,7 +30,7 @@ class SlackService extends Job implements SelfHandling, ShouldQueue
         $this->jobPayload = $jobPayload;
     }
 
-    public function handle(JobContainer $jobContainer)
+    public function handle()
     {
         $jobTracker = $this->trackOrDismiss();
 
@@ -43,7 +43,6 @@ class SlackService extends Job implements SelfHandling, ShouldQueue
 
         try {
             (new SlackRtmDaemon())->call();
-            $this->decrementErrorCounters();
         } catch (Exception $e) {
             $this->reportJobError($jobTracker, $e);
             return;

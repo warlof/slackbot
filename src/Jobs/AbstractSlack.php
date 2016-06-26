@@ -7,35 +7,44 @@
 
 namespace Seat\Slackbot\Jobs;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Seat\Eveapi\Models\Account\AccountStatus;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
-use Seat\Services\Models\GlobalSetting;
-use Seat\Slackbot\Exceptions\SlackApiException;
-use Seat\Slackbot\Exceptions\SlackSettingException;
+use Seat\Slackbot\Exceptions\SlackChannelException;
+use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
-use Seat\Web\Models\Acl\RoleUser;
 use Seat\Web\Models\User;
 
 abstract class AbstractSlack
 {
-    const SLACK_URI_PATTERN = "https://slack.com/api";
-    
-    protected $slackTokenApi;
+    /**
+     * @var User the user we're checking access
+     */
     protected $user;
 
-    function load()
+    /**
+     * @var string The Slack Token API
+     */
+    protected $slackTokenApi;
+
+    /**
+     * Set the Slack token API
+     *
+     * @throws \Seat\Slackbot\Exceptions\SlackSettingException
+     */
+    function call()
     {
-        // load token and team uri from settings
-        $setting = GlobalSetting::where('name', 'slack_token')->first();
-        
-        if ($setting == null)
-            throw new SlackSettingException("missing slack_token in settings");
-        
-        $this->slackTokenApi = $setting->value;
+        $this->slackTokenApi = SlackApi::getSlackToken();
     }
-    
+
+    /**
+     * Enable to affect an User object to the current Job
+     *
+     * @param User $user
+     * @return $this
+     */
     function setUser(User $user)
     {
         $this->user = $user;
@@ -51,27 +60,22 @@ abstract class AbstractSlack
      */
     function isEnabledKey(Collection $keys)
     {
-        $success = 0;
-
-        foreach ($keys as $key) {
-            if ($key->enabled)
-                $success++;
-        }
-
-        if ($success == count($keys))
+        // count keys with enable value and compare it to total keys number
+        if ($keys->where('enabled', true)->count() == $keys->count())
             return true;
 
         return false;
     }
 
     /**
-     * Return true if at least one API Key is still paid until now
+     * Return true if at least one account is still paid until now
      *
      * @param Collection $keys
      * @return bool
      */
     function isActive(Collection $keys)
     {
+        // iterate over keys and compare the paidUntil field value to current date
         foreach ($keys as $key) {
             return (boolean) AccountStatus::where('keyID', $key->key_id)
                 ->whereDate('paidUntil', '>=', date('Y-m-d'))
@@ -104,27 +108,25 @@ abstract class AbstractSlack
     {
         $channels = [];
 
-        $rows = User::join('slack_channel_users', 'slack_channel_users.user_id', 'users.id')
+        $rows = User::join('slack_channel_users', 'slack_channel_users.user_id', '=', 'users.id')
             ->select('channel_id')
-            ->where('users.id', $slackUser->slack_id)
+            ->where('users.id', $slackUser->user_id)
             ->union(
-                RoleUser::join('slack_channel_roles', 'slack_channel_roles.role_id', 'role_user.role_id')
-                    ->where('role_user.user_id', $slackUser->slack_id)
+                // fix model declaration calling the table directly
+                DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=', 'role_user.role_id')
+                    ->where('role_user.user_id', $slackUser->user_id)
                     ->select('channel_id')
-                    ->get()
             )->union(
-                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', 'eve_api_keys.key_id')
-                    ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', 'account_api_key_info_characters.corporationID')
-                    ->where('eve_api_keys.user_id', $slackUser->slack_id)
+                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=', 'eve_api_keys.key_id')
+                    ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=', 'account_api_key_info_characters.corporationID')
+                    ->where('eve_api_keys.user_id', $slackUser->user_id)
                     ->select('channel_id')
-                    ->get()
             )->union(
-                CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', 'character_character_sheets.allianceID')
-                    ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', 'character_character_sheets.characterID')
-                    ->join('eve_api_keys', 'eve_api_keys.key_id', 'account_api_key_info_characters.keyID')
-                    ->where('eve_api_keys.user_id', $slackUser->slack_id)
+                CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=', 'character_character_sheets.allianceID')
+                    ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', '=', 'character_character_sheets.characterID')
+                    ->join('eve_api_keys', 'eve_api_keys.key_id', '=', 'account_api_key_info_characters.keyID')
+                    ->where('eve_api_keys.user_id', $slackUser->user_id)
                     ->select('channel_id')
-                    ->get()
             )->get();
 
         foreach ($rows as $row) {
@@ -134,24 +136,31 @@ abstract class AbstractSlack
         return $channels;
     }
 
-    function processSlackApiPost($endpoint, $parameters = [])
+    /**
+     * Determine in which channels an user is currently in
+     *
+     * @param SlackUser $slackUser
+     * @throws SlackChannelException
+     * @return array
+     */
+    function memberOfChannels(SlackUser $slackUser)
     {
-        // add slack token to the post parameters
-        $parameters['token'] = $this->slackTokenApi;
+        $channels = [];
 
-        // prepare curl request using passed parameters and endpoint
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, AbstractSlack::SLACK_URI_PATTERN . $endpoint);
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($parameters));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        // get all channels from the attached slack team
+        $result = SlackApi::post('/channels.list');
 
-        $result = json_decode(curl_exec($curl), true);
-
-        if ($result == null) {
-            throw new SlackApiException("An error occurred while calling the Slack API\r\n" . curl_error($curl));
+        if ($result['ok'] == false) {
+            throw new SlackChannelException($result['error']);
         }
-        
-        return $result;
+
+        // iterate over channels and check if the current slack user is part of channel
+        foreach ($result['channels'] as $channel) {
+            if (in_array($slackUser->slack_id, $channel['members']))
+                $channels[] = $channel['id'];
+        }
+
+        return $channels;
     }
+
 }

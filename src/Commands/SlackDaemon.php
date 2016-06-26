@@ -28,8 +28,8 @@ class SlackDaemon extends Command
 
     public function handle(JobContainer $job)
     {
-        $job->scope = 'Slack';
-        $job->api = 'Scheduler';
+        $job->api = 'Slack';
+        $job->scope = 'Slack Daemon';
         $job->owner_id = 0;
 
         $jobId = $this->addUniqueJob(

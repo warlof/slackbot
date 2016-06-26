@@ -30,6 +30,8 @@ class SlackbotController extends Controller
 
     public function postRelation(AddRelation $request)
     {
+        // use a single post route in order to create any kind of relation
+        // value are user, role, corporation or alliance
         switch ($request->input('slack-type')) {
             case 'user':
                 $relation = new SlackChannelUser();
@@ -63,8 +65,12 @@ class SlackbotController extends Controller
 
                 return redirect()->back()
                     ->with('success', 'New slack alliance relation has been created');
+            default:
+                return redirect()->back()
+                    ->with('error', 'Unknown relation type');
         }
 
+        // Success Splash Screen
         return redirect()->back()
             ->with('success', 'No slack relation has been created');
     }

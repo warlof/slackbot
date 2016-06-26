@@ -32,8 +32,8 @@ class SlackUpdate extends Command
         User::where('active', true)->chunk(10, function($users) use ($job) {
 
             foreach ($users as $user) {
-                $job->scope = 'Slack';
-                $job->api = 'Scheduler';
+                $job->api = 'Slack';
+                $job->scope = 'Update';
                 $job->owner_id = $user->id;
                 $job->user = $user;
 
