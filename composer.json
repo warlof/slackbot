@@ -11,7 +11,8 @@
         "eveseat/seat": "^1.0",
         "eveseat/services": "^1.0",
         "eveseat/eveapi": "^1.0",
-        "eveseat/web": "^1.0"
+        "eveseat/web": "^1.0",
+        "jclg/php-slack-bot": "dev-master"
     },
     "license": "GPL-2.0",
     "authors": [

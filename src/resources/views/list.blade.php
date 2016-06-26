@@ -101,7 +101,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channel_users as $channel)
+                        @foreach($channelUsers as $channel)
                             <tr>
                                 <td>{{ $channel->user->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -133,7 +133,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channel_roles as $channel)
+                        @foreach($channelRoles as $channel)
                             <tr>
                                 <td>{{ $channel->role->title }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -165,7 +165,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channel_corporations as $channel)
+                        @foreach($channelCorporations as $channel)
                             <tr>
                                 <td>{{ $channel->corporation_id }}</td>
                                 <td>{{ $channel->channel->name }}</td>
@@ -197,7 +197,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channel_alliances as $channel)
+                        @foreach($channelAlliances as $channel)
                             <tr>
                                 <td>{{ $channel->alliance_id }}</td>
                                 <td>{{ $channel->channel->name }}</td>

@@ -19,13 +19,13 @@ class SlackbotController extends Controller
 
     public function getRelations()
     {
-        $channel_users = SlackChannelUser::all();
-        $channel_roles = SlackChannelRole::all();
-        $channel_corporations = SlackChannelCorporation::all();
-        $channel_alliances = SlackChannelAlliance::all();
+        $channelUsers = SlackChannelUser::all();
+        $channelRoles = SlackChannelRole::all();
+        $channelCorporations = SlackChannelCorporation::all();
+        $channelAlliances = SlackChannelAlliance::all();
 
         return view('slackbot::list',
-            compact('channel_users', 'channel_roles', 'channel_corporations', 'channel_alliances'));
+            compact('channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances'));
     }
 
     public function postRelation(AddRelation $request)
@@ -69,22 +69,22 @@ class SlackbotController extends Controller
             ->with('success', 'No slack relation has been created');
     }
 
-    public function getRemoveUser($user_id, $channel_id)
+    public function getRemoveUser($userId, $channelId)
     {
 
     }
 
-    public function getRemoveRole($role_id, $channel_id)
+    public function getRemoveRole($roleId, $channelId)
     {
 
     }
 
-    public function getRemoveCorporation($corporation_id, $channel_id)
+    public function getRemoveCorporation($corporationId, $channelId)
     {
 
     }
 
-    public function getRemoveAlliance($alliance_id, $channel_id)
+    public function getRemoveAlliance($allianceId, $channelId)
     {
         
     }

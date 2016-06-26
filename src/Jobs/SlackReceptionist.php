@@ -20,18 +20,15 @@ class SlackReceptionist extends AbstractSlack
 
     function call()
     {
-        // todo load team and token
+        $this->load();
 
-        foreach (User::where('active', true)->get() as $user) {
+        $keys = ApiKey::where('user_id', $this->user)->get();
             
-            $keys = ApiKey::where('user_id', $user->id)->get();
-            
-            if ($this->isEnabledKey($keys) && $this->isActive($keys)) {
-                if (!$this->isInvited($user)) {
-                    $this->processMemberInvitation($user);
-                }
-                
-                $slackUser = SlackUser::where('user_id', $user->id)->first();
+        if ($this->isEnabledKey($keys) && $this->isActive($keys)) {
+            if (!$this->isInvited($this->user)) {
+                $this->processMemberInvitation($this->user);
+            } else {
+                $slackUser = SlackUser::where('user_id', $this->user->id)->first();
                 $allowedChannels = $this->allowedChannels($slackUser);
                 $this->processChannelsInvitation($slackUser, $allowedChannels);
             }
@@ -59,17 +56,15 @@ class SlackReceptionist extends AbstractSlack
         }
 
         $result = $this->processSlackApiPost('/users.admin.invite', $params);
-
-        if ($result == null || $result['ok'] == false) {
-            throw new SlackTeamInvitationException("An error occurred while trying to invite the member.");
+        
+        if ($result['ok'] == false) {
+            throw new SlackTeamInvitationException($result['error']);
         }
 
-        if ($result['ok'] == true) {
-            $slackUser = new SlackUser();
-            $slackUser->user_id = $user->id;
-            $slackUser->invited = true;
-            $user->save();
-        }
+        $slackUser = new SlackUser();
+        $slackUser->user_id = $user->id;
+        $slackUser->invited = true;
+        $user->save();
     }
 
     /**
@@ -91,8 +86,8 @@ class SlackReceptionist extends AbstractSlack
             
             $result = $this->processSlackApiPost('/channels.invite', $params);
 
-            if ($result == null || $result['ok'] == false) {
-                throw new SlackChannelException("An error occurred while trying to invite the member.");
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
             }
         }
     }
@@ -116,8 +111,8 @@ class SlackReceptionist extends AbstractSlack
 
             $result = $this->processSlackApiPost('/groups.invite', $params);
             
-            if ($result == null || $result['ok'] == false) {
-                throw new SlackGroupException("An error occurred while trying to invite the member.");
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
             }
         }
     }

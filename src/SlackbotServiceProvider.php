@@ -3,8 +3,8 @@
 namespace Seat\Slackbot;
 
 use Illuminate\Support\ServiceProvider;
-use Seat\Slackbot\Commands\Corp\SlackInvite;
-use Seat\Slackbot\Commands\Corp\SlackKick;
+use Seat\Slackbot\Commands\SlackDaemon;
+use Seat\Slackbot\Commands\SlackUpdate;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -42,8 +42,8 @@ class SlackbotServiceProvider extends ServiceProvider
     public function addCommands()
     {
         $this->commands([
-            SlackInvite::class,
-            SlackKick::class
+            SlackUpdate::class,
+            SlackDaemon::class
         ]);
     }
     

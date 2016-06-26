@@ -11,35 +11,31 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
 use Seat\Slackbot\Models\SlackUser;
-use Seat\Web\Models\User;
 
 class SlackAssKicker extends AbstractSlack
 {
     function call()
     {
-        // todo load team and token
+        $this->load();
 
-        foreach (User::where('active', true)->get() as $user) {
+        $keys = ApiKey::where('user_id', $this->user->id)->get();
+        $slackUser = SlackUser::where('user_id', $this->user->id)->first();
 
-            $keys = ApiKey::where('user_id', $user->id)->get();
-            $slackUser = SlackUser::where('user_id', $user->id)->first();
+        if ($slackUser != null) {
+            if ($this->isInvited($this->user)) {
+                
+                $channels = $this->memberOfChannels($slackUser);
 
-            if ($slackUser != null) {
-                if ($this->isInvited($user)) {
-                    
-                    $channels = $this->memberOfChannels($slackUser);
+                if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
+                    $this->processChannelsKick($slackUser, $channels);
+                    $this->processGroupsKick($slackUser, $channels);
+                } else {
+                    $allowedChannels = $this->allowedChannels($slackUser);
 
-                    if (!$this->isEnabledKey($keys) || !$this->isActive($keys)) {
-                        $this->processChannelsKick($slackUser, $channels);
-                        $this->processGroupsKick($slackUser, $channels);
-                    } else {
-                        $allowedChannels = $this->allowedChannels($slackUser);
-
-                        // remove channels in which user is already in from all granted channels and invite him
-                        $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
-                        // remove granted channels from channels in which user is already in and kick him
-                        $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
-                    }
+                    // remove channels in which user is already in from all granted channels and invite him
+                    $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
+                    // remove granted channels from channels in which user is already in and kick him
+                    $this->processGroupsKick($slackUser, array_diff($channels, $allowedChannels));
                 }
             }
         }
@@ -61,8 +57,8 @@ class SlackAssKicker extends AbstractSlack
         // get all channels from the attached slack team
         $result = $this->processSlackApiPost('/channels.list');
 
-        if ($result == null || $result['ok'] == false) {
-            throw new SlackChannelException("An error occurred while trying to kick the member.");
+        if ($result['ok'] == false) {
+            throw new SlackChannelException($result['error']);
         }
         
         // iterate over channels and check if the current slack user is part of channel
@@ -93,8 +89,8 @@ class SlackAssKicker extends AbstractSlack
 
             $result = $this->processSlackApiPost('/channels.kick', $params);
 
-            if ($result == null || $result['ok'] == false) {
-                throw new SlackChannelException("An error occurred while trying to kick the member.");
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
             }
         }
     }
@@ -119,7 +115,7 @@ class SlackAssKicker extends AbstractSlack
             $result = $this->processSlackApiPost('/groups.kick', $params);
 
             if ($result['ok'] == false) {
-                throw new SlackGroupException("An error occurred while trying to kick the member.");
+                throw new SlackGroupException($result['error']);
             }
         }
     }
