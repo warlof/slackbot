@@ -38,9 +38,14 @@ class SlackReceptionist extends AbstractSlack
                 $slackUser = SlackUser::where('user_id', $this->user->id)->first();
                 // control that we already know it's slack ID (mean that he creates his account
                 if ($slackUser->slack_id != null) {
-                    $channels = $this->memberOfChannels($slackUser);
+                    $channels = SlackApi::memberOfChannels($slackUser->slack_id);
+                    $groups = SlackApi::memberOfGroups($slackUser->slack_id);
+
                     $allowedChannels = $this->allowedChannels($slackUser);
+                    $allowedGroups = $this->allowedGroups($slackUser);
+
                     $this->processChannelsInvitation($slackUser, array_diff($allowedChannels, $channels));
+                    $this->processGroupsInvitation($slackUser, array_diff($allowedGroups, $groups));
                 }
             }
         }
@@ -57,22 +62,7 @@ class SlackReceptionist extends AbstractSlack
      */
     function processMemberInvitation(User $user)
     {
-        $params = [
-            'email' => $user->email,
-            'set_active' => true
-        ];
-
-        // check that the user mail is not a "random" mail
-        if (preg_match('/seat.local/i', $user->email) === 1) {
-            throw new SlackMailException();
-        }
-
-        // call invite endpoint from Slack Api in order to invite the user to the team
-        $result = SlackApi::post('/users.admin.invite', $params);
-        
-        if ($result['ok'] == false) {
-            throw new SlackTeamInvitationException($result['error']);
-        }
+        SlackApi::inviteToTeam($user->email);
 
         // update Slack user relation
         $slackUser = new SlackUser();
@@ -90,20 +80,9 @@ class SlackReceptionist extends AbstractSlack
      */
     function processChannelsInvitation(SlackUser $slackUser, $channels)
     {
-        $params = [
-            'channel' => '',
-            'user' => $slackUser->slack_id
-        ];
-        
         // iterate over each channel ID and invite the user
-        foreach ($channels as $channel) {
-            $params['channel'] = $channel;
-            
-            $result = SlackApi::post('/channels.invite', $params);
-
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
-            }
+        foreach ($channels as $channelId) {
+            SlackApi::inviteToChannel($slackUser->slack_id, $channelId);
         }
     }
 
@@ -111,25 +90,14 @@ class SlackReceptionist extends AbstractSlack
      * Invite an user to each group
      * 
      * @param SlackUser $slackUser
-     * @param $groups
+     * @param array $groups
      * @throws SlackGroupException
      */
     function processGroupsInvitation(SlackUser $slackUser, $groups)
     {
-        $params = [
-            'channel' => '',
-            'user' => $slackUser->slack_id
-        ];
-
         // iterate over each group ID and invite the user
-        foreach ($groups as $group) {
-            $params['channel'] = $group;
-
-            $result = SlackApi::post('/groups.invite', $params);
-            
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
-            }
+        foreach ($groups as $groupId) {
+            SlackApi::inviteToGroup($slackUser->slack_id, $groupId);
         }
     }
 }

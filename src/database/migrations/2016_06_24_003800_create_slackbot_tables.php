@@ -15,6 +15,7 @@ class CreateSlackbotTables extends Migration
         Schema::create('slack_channels', function (Blueprint $table) {
             $table->string('id');
             $table->string('name');
+            $table->boolean('is_group')->default(false);
             $table->timestamps();
             
             $table->primary('id');
@@ -113,6 +114,7 @@ class CreateSlackbotTables extends Migration
         Schema::drop('slack_channel_roles');
         Schema::drop('slack_channel_users');
         Schema::drop('slack_users');
+        Schema::drop('slack_groups');
         Schema::drop('slack_channels');
     }
 }

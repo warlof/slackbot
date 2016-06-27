@@ -9,7 +9,7 @@ namespace Seat\Slackbot\Services {
     
     use PhpSlackBot\Bot;
     use Seat\Slackbot\Helpers\SlackApi;
-    use Seat\Slackbot\Services\Commands\SlackTeamJoin;
+    use Seat\Slackbot\Services\Commands\SlackEventHandler;
 
     class SlackRtmDaemon
     {
@@ -19,7 +19,7 @@ namespace Seat\Slackbot\Services {
             $bot->setToken(SlackApi::getSlackToken());
             
             // catch all event and return them to SlackTeamJoin
-            $bot->loadCatchAllCommand(new SlackTeamJoin());
+            $bot->loadCatchAllCommand(new SlackEventHandler());
             $bot->run();
 
             return;

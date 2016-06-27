@@ -1,7 +1,7 @@
 @extends('web::layouts.grids.3-9')
 
-@section('title', trans('slackbot::seat.slackbot'))
-@section('page_header', trans('slackbot::seat.slackbot'))
+@section('title', trans('slackbot::seat.management'))
+@section('page_header', trans('slackbot::seat.management'))
 
 @section('left')
     <div class="panel panel-default">
@@ -26,27 +26,47 @@
 
                     <div class="form-group">
                         <label for="slack-user-id">{{ trans('slackbot::seat.username') }}</label>
-                        <input type="text" name="slack-user-id" id="slack-user-id" class="form-control" placeholder="{{ trans('') }}" />
+                        <select name="slack-user-id" id="slack-user-id" class="col-md-12">
+                            @foreach($users as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="slack-role-id">{{ trans('slackbot::seat.role') }}</label>
-                        <input type="text" name="slack-role-id" id="slack-role-id" class="form-control" placeholder="{{ trans('') }}" disabled="disabled" />
+                        <select name="slack-role-id" id="slack-role-id" class="col-md-12" disabled="disabled">
+                            @foreach($roles as $role)
+                            <option value="{{ $role->id }}">{{ $role->title }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="slack-corporation-id">{{ trans('slackbot::seat.corporation') }}</label>
-                        <input type="text" name="slack-corporation-id" id="slack-corporation-id" class="form-control" placeholder="{{ trans('') }}" disabled="disabled" />
+                        <select name="slack-corporation-id" id="slack-corporation-id" class="col-md-12" disabled="disabled">
+                            @foreach($corporations as $corporation)
+                            <option value="{{ $corporation->corporationID }}">{{ $corporation->corporationName }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="slack-alliance-id">{{ trans('slackbot::seat.alliance') }}</label>
-                        <input type="text" name="slack-alliance-id" id="slack-alliance-id" class="form-control" placeholder="{{ trans('') }}" disabled="disabled" />
+                        <select name="slack-alliance-id" id="slack-alliance-id" class="col-md-12" disabled="disabled">
+                            @foreach($alliances as $alliance)
+                            <option value="{{ $alliance->allianceId }}">{{ $alliance->allianceName }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="slack-channel-id">{{ trans('slackbot::seat.channel') }}</label>
-                        <input type="text" name="slack-channel-id" id="slack-channel-id" class="form-control" placeholder="{{ trans('') }}" />
+                        <select name="slack-channel-id" id="slack-channel-id" class="col-md-12">
+                            @foreach($channels as $channel)
+                            <option value="{{ $channel->id }}">{{ $channel->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -110,7 +130,7 @@
                                 <td>{{ $channel->enable }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('slackbot.users.remove', ['user_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-6">
+                                        <a href="{{ route('slackbot.user.remove', ['user_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                                             {{ trans('web::seat.remove') }}
                                         </a>
                                     </div>
@@ -142,7 +162,7 @@
                                 <td>{{ $channel->enable }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('slackbot.roles.remove', ['role_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-6">
+                                        <a href="{{ route('slackbot.role.remove', ['role_id' => $channel->role_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                                             {{ trans('web::seat.remove') }}
                                         </a>
                                     </div>
@@ -167,14 +187,14 @@
                         <tbody>
                         @foreach($channelCorporations as $channel)
                             <tr>
-                                <td>{{ $channel->corporation_id }}</td>
+                                <td>{{ $channel->corporation->corporationName }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
                                 <td>{{ $channel->enable }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('slackbot.corporations.remove', ['corporation_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-6">
+                                        <a href="{{ route('slackbot.corporation.remove', ['corporation_id' => $channel->corporation_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                                             {{ trans('web::seat.remove') }}
                                         </a>
                                     </div>
@@ -199,14 +219,14 @@
                         <tbody>
                         @foreach($channelAlliances as $channel)
                             <tr>
-                                <td>{{ $channel->alliance_id }}</td>
+                                <td>{{ $channel->alliance->allianceName }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
                                 <td>{{ $channel->enable }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('slackbot.alliances.remove', ['alliance_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-6">
+                                        <a href="{{ route('slackbot.alliance.remove', ['alliance_id' => $channel->alliance_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                                             {{ trans('web::seat.remove') }}
                                         </a>
                                     </div>
@@ -232,6 +252,8 @@
                 }
             });
         }).select2();
+
+        $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-alliance-id, #slack-channel-id').select2();
 
         $('#slack-tabs a').click(function(e){
             e.preventDefault();

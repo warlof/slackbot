@@ -6,7 +6,7 @@
  */
 
 return [
-    'slackbot' => 'Slackbot Management',
+    'management' => 'Slackbot Access Management',
     'quick_create' => 'Quick create',
     'type' => 'Type',
     'username' => 'Username',
@@ -24,5 +24,6 @@ return [
     'corporation' => 'Corporation',
     'alliance' => 'Alliance',
     'remove' => 'Remove',
-    'enabled' => 'Enabled'
+    'enabled' => 'Enabled',
+    'settings' => 'Slackbot Settings'
 ];

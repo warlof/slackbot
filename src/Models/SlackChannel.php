@@ -10,10 +10,8 @@ use Seat\Web\Models\User;
 class SlackChannel extends Model
 {
     protected $fillable = [
-        'id', 'name'
+        'id', 'name', 'is_group'
     ];
 
-    protected $primaryKey = [
-        'id'
-    ];
+    protected $primaryKey = 'id';
 }

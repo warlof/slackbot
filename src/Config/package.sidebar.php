@@ -10,6 +10,17 @@ return [
         'name'          => 'Slackbot',
         'icon'          => 'fa-slack',
         'route_segment' => 'slackbot',
-        'route' => 'slackbot.list'
+        'entries' => [
+            [
+                'name'  => 'Slack Access Management',
+                'icon'  => 'fa-shield',
+                'route' => 'slackbot.list'
+            ],
+            [
+                'name'  => 'Slackbot Settings',
+                'icon'  => 'fa-cogs',
+                'route' => 'slackbot.configuration'
+            ]
+        ]
     ]
 ];

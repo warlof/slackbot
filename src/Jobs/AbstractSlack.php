@@ -7,12 +7,12 @@
 
 namespace Seat\Slackbot\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Seat\Eveapi\Models\Account\AccountStatus;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
-use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
@@ -61,7 +61,7 @@ abstract class AbstractSlack
     function isEnabledKey(Collection $keys)
     {
         // count keys with enable value and compare it to total keys number
-        if ($keys->where('enabled', true)->count() == $keys->count())
+        if ($keys->where('enabled', 1)->count() == $keys->count() && $keys->count() != 0)
             return true;
 
         return false;
@@ -77,9 +77,13 @@ abstract class AbstractSlack
     {
         // iterate over keys and compare the paidUntil field value to current date
         foreach ($keys as $key) {
-            return (boolean) AccountStatus::where('keyID', $key->key_id)
+            if (AccountStatus::where('keyID', $key->key_id)
                 ->whereDate('paidUntil', '>=', date('Y-m-d'))
-                ->count();
+                ->count()) {
+
+                return true;
+
+            }
         }
 
         return false;
@@ -109,23 +113,31 @@ abstract class AbstractSlack
         $channels = [];
 
         $rows = User::join('slack_channel_users', 'slack_channel_users.user_id', '=', 'users.id')
+            ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.id')
             ->select('channel_id')
             ->where('users.id', $slackUser->user_id)
+            ->where('slack_channels.is_group', 0)
             ->union(
                 // fix model declaration calling the table directly
                 DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=', 'role_user.role_id')
+                    ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
                     ->where('role_user.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 0)
                     ->select('channel_id')
             )->union(
                 ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=', 'eve_api_keys.key_id')
                     ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=', 'account_api_key_info_characters.corporationID')
+                    ->join('slack_channels', 'slack_channel_corporations.channel_id', '=', 'slack_channels.id')
                     ->where('eve_api_keys.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 0)
                     ->select('channel_id')
             )->union(
                 CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=', 'character_character_sheets.allianceID')
+                    ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
                     ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', '=', 'character_character_sheets.characterID')
                     ->join('eve_api_keys', 'eve_api_keys.key_id', '=', 'account_api_key_info_characters.keyID')
                     ->where('eve_api_keys.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 0)
                     ->select('channel_id')
             )->get();
 
@@ -137,30 +149,48 @@ abstract class AbstractSlack
     }
 
     /**
-     * Determine in which channels an user is currently in
+     * Determine all channels in which an user is allowed to be
      *
      * @param SlackUser $slackUser
-     * @throws SlackChannelException
      * @return array
      */
-    function memberOfChannels(SlackUser $slackUser)
+    function allowedGroups(SlackUser $slackUser)
     {
         $channels = [];
 
-        // get all channels from the attached slack team
-        $result = SlackApi::post('/channels.list');
+        $rows = User::join('slack_channel_users', 'slack_channel_users.user_id', '=', 'users.id')
+            ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.id')
+            ->select('channel_id')
+            ->where('users.id', $slackUser->user_id)
+            ->where('slack_channels.is_group', 1)
+            ->union(
+            // fix model declaration calling the table directly
+                DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=', 'role_user.role_id')
+                    ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
+                    ->where('role_user.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 1)
+                    ->select('channel_id')
+            )->union(
+                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=', 'eve_api_keys.key_id')
+                    ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=', 'account_api_key_info_characters.corporationID')
+                    ->join('slack_channels', 'slack_channel_corporations.channel_id', '=', 'slack_channels.id')
+                    ->where('eve_api_keys.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 1)
+                    ->select('channel_id')
+            )->union(
+                CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=', 'character_character_sheets.allianceID')
+                    ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
+                    ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', '=', 'character_character_sheets.characterID')
+                    ->join('eve_api_keys', 'eve_api_keys.key_id', '=', 'account_api_key_info_characters.keyID')
+                    ->where('eve_api_keys.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', 1)
+                    ->select('channel_id')
+            )->get();
 
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
-        }
-
-        // iterate over channels and check if the current slack user is part of channel
-        foreach ($result['channels'] as $channel) {
-            if (in_array($slackUser->slack_id, $channel['members']))
-                $channels[] = $channel['id'];
+        foreach ($rows as $row) {
+            $channels[] = $row->channel_id;
         }
 
         return $channels;
     }
-
 }

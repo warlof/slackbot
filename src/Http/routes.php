@@ -15,7 +15,7 @@ Route::group([
         'uses' => 'SlackbotController@getRelations']);
 
     Route::get('/users/{user_id}/{channel_id}/remove', [
-        'as' => 'slackbot.users.remove',
+        'as' => 'slackbot.user.remove',
         'uses' => 'SlackbotController@getRemoveUser'
     ]);
 
@@ -25,17 +25,27 @@ Route::group([
     ]);
 
     Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
-        'as' => 'slackbot.corporations.remove',
+        'as' => 'slackbot.corporation.remove',
         'uses' => 'SlackbotController@getRemoveCorporation'
     ]);
 
     Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
-        'as' => 'slackbot.alliances.remove',
+        'as' => 'slackbot.alliance.remove',
         'uses' => 'SlackbotController@getRemoveAlliance'
     ]);
 
     Route::post('/', [
         'as' => 'slackbot.add',
         'uses' => 'SlackbotController@postRelation'
+    ]);
+
+    Route::get('/configuration', [
+        'as' => 'slackbot.configuration',
+        'uses' => 'SlackbotController@getConfiguration'
+    ]);
+
+    Route::post('/configuration', [
+        'as' => 'slackbot.configuration.post',
+        'uses' => 'SlackbotController@postConfiguration'
     ]);
 });

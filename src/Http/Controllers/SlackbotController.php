@@ -8,11 +8,17 @@
 namespace Seat\Slackbot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Seat\Eveapi\Models\Corporation\CorporationSheet;
+use Seat\Services\Models\GlobalSetting;
+use Seat\Slackbot\Models\SlackChannel;
 use Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Slackbot\Models\SlackChannelCorporation;
 use Seat\Slackbot\Models\SlackChannelAlliance;
 use Seat\Slackbot\Validation\AddRelation;
+use Seat\Slackbot\Validation\ValidateConfiguration;
+use Seat\Web\Models\Acl\Role;
+use Seat\Web\Models\User;
 
 class SlackbotController extends Controller
 {
@@ -24,8 +30,22 @@ class SlackbotController extends Controller
         $channelCorporations = SlackChannelCorporation::all();
         $channelAlliances = SlackChannelAlliance::all();
 
+        $users = User::all();
+        $roles = Role::all();
+        $corporations = CorporationSheet::all();
+        $alliances = $corporations->unique('allianceID');
+        $channels = SlackChannel::all();
+
         return view('slackbot::list',
-            compact('channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances'));
+            compact('channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances',
+                'users', 'roles', 'corporations', 'alliances', 'channels'));
+    }
+
+    public function getConfiguration()
+    {
+        $token = GlobalSetting::where('name', 'slack_token')->first();
+        
+        return view('slackbot::configuration', compact('token'));
     }
 
     public function postRelation(AddRelation $request)
@@ -69,30 +89,83 @@ class SlackbotController extends Controller
                 return redirect()->back()
                     ->with('error', 'Unknown relation type');
         }
+    }
+    
+    public function postConfiguration(ValidateConfiguration $request)
+    {
+        $token = GlobalSetting::where('name', 'slack_token')->first();
 
-        // Success Splash Screen
+        if ($token != null) {
+            $token = new GlobalSetting();
+            $token->name = 'slack_token';
+            $token->value = $request->input('slack-configuration-token');
+            $token->save();
+        } else {
+            $token->update(['value' => $request->input('slack-configuration-token')]);
+        }
+
         return redirect()->back()
-            ->with('success', 'No slack relation has been created');
+            ->with('success', 'Slackbot setting has been updated.');
     }
 
     public function getRemoveUser($userId, $channelId)
     {
+        $channelUser = SlackChannelUser::where('user_id', $userId)
+            ->where('channel_id', $channelId);
 
+        if ($channelUser != null) {
+            $channelUser->delete();
+            return redirect()->back()
+                ->with('success', 'The slack relation for the user has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occurs while trying to remove the Slack relation for the user.');
     }
 
     public function getRemoveRole($roleId, $channelId)
     {
+        $channelRole = SlackChannelRole::where('role_id', $roleId)
+            ->where('channel_id', $channelId);
 
+        if ($channelRole != null) {
+            $channelRole->delete();
+            return redirect()->back()
+                ->with('success', 'The slack relation for the role has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occurs while trying to remove the Slack relation for the role.');
     }
 
     public function getRemoveCorporation($corporationId, $channelId)
     {
+        $channelCorporation = SlackChannelCorporation::where('corporation_id', $corporationId)
+            ->where('channel_id', $channelId);
 
+        if ($channelCorporation != null) {
+            $channelCorporation->delete();
+            return redirect()->back()
+                ->with('success', 'The slack relation for the corporation has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occurs while trying to remove the Slack relation for the corporation.');
     }
 
     public function getRemoveAlliance($allianceId, $channelId)
     {
-        
+        $channelAlliance = SlackChannelCorporation::where('role_id', $allianceId)
+            ->where('channel_id', $channelId);
+
+        if ($channelAlliance != null) {
+            $channelAlliance->delete();
+            return redirect()->back()
+                ->with('success', 'The slack relation for the alliance has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occurs while trying to remove the Slack relation for the alliance.');
     }
 
 }
