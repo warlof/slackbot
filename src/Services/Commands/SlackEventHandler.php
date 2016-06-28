@@ -9,6 +9,8 @@ namespace Seat\Slackbot\Services\Commands;
 
 
 use PhpSlackBot\Command\BaseCommand;
+use Seat\Services\Settings\Seat;
+use Seat\Slackbot\Exceptions\SlackSettingException;
 use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackChannel;
 use Seat\Slackbot\Models\SlackUser;
@@ -69,7 +71,15 @@ class SlackEventHandler extends BaseCommand
                 
                 break;
             case 'group_unarchive':
-                $apiGroup = SlackApi::groupInfo($data['channel']);
+                // load token and team uri from settings
+                $token = Seat::get('slack_token');
+
+                if ($token == null)
+                    throw new SlackSettingException("missing slack_token in settings");
+
+                $slackApi = new SlackApi($token);
+                $apiGroup = $slackApi->groupInfo($data['channel']);
+
                 $group = new SlackChannel();
                 $group->id = $apiGroup['group']['id'];
                 $group->name = $apiGroup['group']['name'];

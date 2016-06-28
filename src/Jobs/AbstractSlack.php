@@ -7,12 +7,13 @@
 
 namespace Seat\Slackbot\Jobs;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Seat\Eveapi\Models\Account\AccountStatus;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
+use Seat\Services\Settings\Seat;
+use Seat\Slackbot\Exceptions\SlackSettingException;
 use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
@@ -27,7 +28,7 @@ abstract class AbstractSlack
     /**
      * @var string The Slack Token API
      */
-    protected $slackTokenApi;
+    private $_slackApi;
 
     /**
      * Set the Slack token API
@@ -36,7 +37,13 @@ abstract class AbstractSlack
      */
     function call()
     {
-        $this->slackTokenApi = SlackApi::getSlackToken();
+        // load token and team uri from settings
+        $token = Seat::get('slack_token');
+
+        if ($token == null)
+            throw new SlackSettingException("missing slack_token in settings");
+
+        $this->_slackApi = new SlackApi($token);
     }
 
     /**
@@ -50,6 +57,14 @@ abstract class AbstractSlack
         $this->user = $user;
         
         return $this;
+    }
+
+    /**
+     * @return SlackApi
+     */
+    function getSlackApi()
+    {
+        return $this->_slackApi;
     }
 
     /**

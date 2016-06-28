@@ -7,8 +7,6 @@
 
 namespace Seat\Slackbot\Helpers;
 
-
-use Seat\Services\Models\GlobalSetting;
 use Seat\Slackbot\Exceptions\SlackApiException;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
@@ -23,23 +21,13 @@ class SlackApi
      */
     const SLACK_URI_PATTERN = "https://slack.com/api";
 
-    /**
-     * Return the Slack Api Token set in SeAT configuration
-     * 
-     * @return string
-     * @throws SlackSettingException
-     */
-    public static function getSlackToken()
+    private $_token;
+
+    public function __construct($token)
     {
-        // load token and team uri from settings
-        $setting = GlobalSetting::where('name', 'slack_token')->first();
-
-        if ($setting == null)
-            throw new SlackSettingException("missing slack_token in settings");
-
-        return $setting->value;
+        $this->_token = $token;
     }
-
+    
     /**
      * Make a post action to the Slack API
      * 
@@ -49,10 +37,10 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackSettingException
      */
-    public static function post($endpoint, $parameters = [])
+    public function post($endpoint, $parameters = [])
     {
         // add slack token to the post parameters
-        $parameters['token'] = self::getSlackToken();
+        $parameters['token'] = $this->_token;
 
         // prepare curl request using passed parameters and endpoint
         $curl = curl_init();
@@ -78,7 +66,7 @@ class SlackApi
      * @throws SlackMailException
      * @throws SlackTeamInvitationException
      */
-    public static function inviteToTeam($mail)
+    public function inviteToTeam($mail)
     {
         $params = [
             'email' => $mail,
@@ -105,7 +93,7 @@ class SlackApi
      * @throws SlackChannelException
      * @return array
      */
-    public static function memberOfChannels($slackId)
+    public function memberOfChannels($slackId)
     {
         $channels = [];
 
@@ -133,7 +121,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackChannelException
      */
-    public static function channelInfo($channelId)
+    public function channelInfo($channelId)
     {
         $params = [
             'channel' => $channelId
@@ -156,7 +144,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackChannelException
      */
-    public static function inviteToChannel($userId, $channelId)
+    public function inviteToChannel($userId, $channelId)
     {
         $params = [
             'channel' => $channelId,
@@ -178,7 +166,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackChannelException
      */
-    public static function kickFromChannel($userId, $channelId)
+    public function kickFromChannel($userId, $channelId)
     {
         $params = [
             'channel' => $channelId,
@@ -204,7 +192,7 @@ class SlackApi
      * @throws SlackGroupException
      * @return array
      */
-    public static function memberOfGroups($slackId)
+    public function memberOfGroups($slackId)
     {
         $groups = [];
 
@@ -232,7 +220,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackGroupException
      */
-    public static function groupInfo($groupId)
+    public function groupInfo($groupId)
     {
         $params = [
             'channel' => $groupId
@@ -255,7 +243,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackGroupException
      */
-    public static function inviteToGroup($userId, $groupId)
+    public function inviteToGroup($userId, $groupId)
     {
         $params = [
             'channel' => $groupId,
@@ -277,7 +265,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackGroupException
      */
-    public static function kickFromGroup($userId, $groupId)
+    public function kickFromGroup($userId, $groupId)
     {
         $params = [
             'channel' => $groupId,

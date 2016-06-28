@@ -8,7 +8,6 @@
 namespace Seat\Slackbot\Jobs;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
-use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractSlack
@@ -29,8 +28,8 @@ class SlackAssKicker extends AbstractSlack
         if ($slackUser != null) {
 
             // get channels into which current user is already member
-            $channels = SlackApi::memberOfChannels($slackUser->slack_id);
-            $groups = SlackApi::memberOfGroups($slackUser->slack_id);
+            $channels = $this->getSlackApi()->memberOfChannels($slackUser->slack_id);
+            $groups = $this->getSlackApi()->memberOfGroups($slackUser->slack_id);
 
             // if key are not valid OR account no longer paid
             // kick the user from all channels to which he's member
@@ -65,7 +64,7 @@ class SlackAssKicker extends AbstractSlack
     {
         // iterate channel ID and call kick method from Slack Api
         foreach ($channels as $channelId) {
-            SlackApi::kickFromChannel($slackUser->slack_id, $channelId);
+            $this->getSlackApi()->kickFromChannel($slackUser->slack_id, $channelId);
         }
     }
 
@@ -80,7 +79,7 @@ class SlackAssKicker extends AbstractSlack
     {
         // iterate group ID and call kick method from Slack Api
         foreach ($groups as $groupId) {
-            SlackApi::kickFromGroup($slackUser->slack_id, $groupId);
+            $this->getSlackApi()->kickFromGroup($slackUser->slack_id, $groupId);
         }
     }
 

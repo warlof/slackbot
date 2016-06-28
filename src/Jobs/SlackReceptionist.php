@@ -11,7 +11,6 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
 use Seat\Slackbot\Exceptions\SlackMailException;
-use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Web\Models\User;
 use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Seat\Slackbot\Models\SlackUser;
@@ -38,8 +37,8 @@ class SlackReceptionist extends AbstractSlack
                 $slackUser = SlackUser::where('user_id', $this->user->id)->first();
                 // control that we already know it's slack ID (mean that he creates his account
                 if ($slackUser->slack_id != null) {
-                    $channels = SlackApi::memberOfChannels($slackUser->slack_id);
-                    $groups = SlackApi::memberOfGroups($slackUser->slack_id);
+                    $channels = $this->getSlackApi()->memberOfChannels($slackUser->slack_id);
+                    $groups = $this->getSlackApi()->memberOfGroups($slackUser->slack_id);
 
                     $allowedChannels = $this->allowedChannels($slackUser);
                     $allowedGroups = $this->allowedGroups($slackUser);
@@ -62,7 +61,7 @@ class SlackReceptionist extends AbstractSlack
      */
     function processMemberInvitation(User $user)
     {
-        SlackApi::inviteToTeam($user->email);
+        $this->getSlackApi()->inviteToTeam($user->email);
 
         // update Slack user relation
         $slackUser = new SlackUser();
@@ -82,7 +81,7 @@ class SlackReceptionist extends AbstractSlack
     {
         // iterate over each channel ID and invite the user
         foreach ($channels as $channelId) {
-            SlackApi::inviteToChannel($slackUser->slack_id, $channelId);
+            $this->getSlackApi()->inviteToChannel($slackUser->slack_id, $channelId);
         }
     }
 
@@ -97,7 +96,7 @@ class SlackReceptionist extends AbstractSlack
     {
         // iterate over each group ID and invite the user
         foreach ($groups as $groupId) {
-            SlackApi::inviteToGroup($slackUser->slack_id, $groupId);
+            $this->getSlackApi()->inviteToGroup($slackUser->slack_id, $groupId);
         }
     }
 }
