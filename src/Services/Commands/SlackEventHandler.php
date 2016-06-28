@@ -65,7 +65,7 @@ class SlackEventHandler extends BaseCommand
                     throw new SlackSettingException("missing slack_token in settings");
 
                 $slackApi = new SlackApi($token);
-                $apiGroup = $slackApi->groupInfo($data['channel']);
+                $apiGroup = $slackApi->info($data['channel'], true);
 
                 $group = new SlackChannel();
                 $group->id = $apiGroup['group']['id'];

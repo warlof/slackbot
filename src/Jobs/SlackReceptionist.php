@@ -78,7 +78,7 @@ class SlackReceptionist extends AbstractSlack
     {
         // iterate over each channel ID and invite the user
         foreach ($channels as $channelId) {
-            $this->getSlackApi()->inviteToChannel($slackUser->slack_id, $channelId);
+            $this->getSlackApi()->invite($slackUser->slack_id, $channelId, false);
         }
     }
 
@@ -93,7 +93,7 @@ class SlackReceptionist extends AbstractSlack
     {
         // iterate over each group ID and invite the user
         foreach ($groups as $groupId) {
-            $this->getSlackApi()->inviteToGroup($slackUser->slack_id, $groupId);
+            $this->getSlackApi()->invite($slackUser->slack_id, $groupId, true);
         }
     }
 }

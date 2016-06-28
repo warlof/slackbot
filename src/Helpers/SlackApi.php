@@ -95,7 +95,7 @@ class SlackApi
      * @throws SlackChannelException
      * @return array
      */
-    public function memberOf($slackId, $type)
+    public function member($slackId, $type)
     {
         $channels = [];
         
@@ -127,23 +127,35 @@ class SlackApi
      * Get information from a specific channel
      *
      * @param string $channelId Slack channel id (ie: C465478)
+     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @return array
      * @throws SlackApiException
+     * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function channelInfo($channelId)
+    public function info($channelId, $private)
     {
         $params = [
             'channel' => $channelId
         ];
 
-        $result = $this->post('/channels.info', $params);
+        if ($private) {
+            $result = $this->post('/groups.info', $params);
 
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
+            }
+            
+            return $result['group'];
+        } else {
+            $result = $this->post('/channels.info', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
+            }
+            
+            return $result['channel'];
         }
-
-        return $result['channel'];
     }
 
     /**
@@ -151,23 +163,38 @@ class SlackApi
      *
      * @param string $userId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
+     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
+     * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function inviteToChannel($userId, $channelId)
+    public function invite($userId, $channelId, $private)
     {
         $params = [
             'channel' => $channelId,
             'user' => $userId
         ];
-
-        $channel = $this->channelInfo($channelId);
         
-        if (in_array($userId, $channel['members']) == false) {
-            $result = $this->post('/channels.invite', $params);
+        if ($private) {
+            $group = $this->info($channelId, $private);
 
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
+            if (in_array($userId, $group['members']) == false) {
+
+                $result = $this->post('/groups.invite', $params);
+
+                if ($result['ok'] == false) {
+                    throw new SlackGroupException($result['error']);
+                }
+            }
+        } else {
+            $channel = $this->info($channelId, $private);
+
+            if (in_array($userId, $channel['members']) == false) {
+                $result = $this->post('/channels.invite', $params);
+
+                if ($result['ok'] == false) {
+                    throw new SlackChannelException($result['error']);
+                }
             }
         }
     }
@@ -177,101 +204,38 @@ class SlackApi
      * 
      * @param string $userId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
+     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
+     * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function kickFromChannel($userId, $channelId)
+    public function kick($userId, $channelId, $private)
     {
         $params = [
             'channel' => $channelId,
             'user' => $userId
         ];
-
-        $channel = $this->channelInfo($channelId);
-
-        // user can only be kicked from non general channel and if it is already member of it (legit)
-        if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
-            $result = $this->post('/channels.kick', $params);
-
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
-            }
-        }
-    }
-    
-    /**
-     * Get information from a specific group
-     *
-     * @param string $groupId Slack group id (ie: G979754)
-     * @return array
-     * @throws SlackApiException
-     * @throws SlackGroupException
-     */
-    public function groupInfo($groupId)
-    {
-        $params = [
-            'channel' => $groupId
-        ];
-
-        $result = $this->post('/groups.info', $params);
-
-        if ($result['ok'] == false) {
-            throw new SlackGroupException($result['error']);
-        }
-
-        return $result['group'];
-    }
-
-    /**
-     * Invite an user into a specific group
-     *
-     * @param string $userId Slack user id (ie: U3216587)
-     * @param string $groupId Slack group id (ie: G7975464)
-     * @throws SlackApiException
-     * @throws SlackGroupException
-     */
-    public function inviteToGroup($userId, $groupId)
-    {
-        $params = [
-            'channel' => $groupId,
-            'user' => $userId
-        ];
-
-        $group = $this->groupInfo($groupId);
         
-        if (in_array($userId, $group['members']) == false) {
+        if ($private) {
+            $group = $this->info($channelId, $private);
 
-            $result = $this->post('/groups.invite', $params);
-
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
+            if (in_array($userId, $group['members']) == true) {
+                $result = $this->post('/groups.kick', $params);
+                
+                if ($result['ok'] == false) {
+                    throw new SlackGroupException($result['error']);
+                }
             }
-        }
-    }
+        } else {
+            $channel = $this->info($channelId, $private);
 
-    /**
-     * Kick an user from a specific group
-     *
-     * @param string $userId Slack user id (ie: U3216587)
-     * @param string $groupId Slack group id (ie: G7975464)
-     * @throws SlackApiException
-     * @throws SlackGroupException
-     */
-    public function kickFromGroup($userId, $groupId)
-    {
-        $params = [
-            'channel' => $groupId,
-            'user' => $userId
-        ];
+            // user can only be kicked from non general channel and if it is already member of it (legit)
+            if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
+                $result = $this->post('/channels.kick', $params);
 
-        $group = $this->groupInfo($groupId);
-
-        if (in_array($userId, $group['members']) == true) {
-
-            $result = $this->post('/groups.kick', $params);
-
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
+                if ($result['ok'] == false) {
+                    throw new SlackChannelException($result['error']);
+                }
             }
         }
     }

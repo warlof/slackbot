@@ -28,8 +28,8 @@ class SlackAssKicker extends AbstractSlack
         if ($slackUser != null) {
 
             // get channels into which current user is already member
-            $channels = $this->getSlackApi()->memberOf($slackUser->slack_id, 'channels');
-            $groups = $this->getSlackApi()->memberOf($slackUser->slack_id, 'groups');
+            $channels = $this->getSlackApi()->member($slackUser->slack_id, 'channels');
+            $groups = $this->getSlackApi()->member($slackUser->slack_id, 'groups');
 
             // if key are not valid OR account no longer paid
             // kick the user from all channels to which he's member
@@ -64,7 +64,7 @@ class SlackAssKicker extends AbstractSlack
     {
         // iterate channel ID and call kick method from Slack Api
         foreach ($channels as $channelId) {
-            $this->getSlackApi()->kickFromChannel($slackUser->slack_id, $channelId);
+            $this->getSlackApi()->kick($slackUser->slack_id, $channelId, false);
         }
     }
 
@@ -79,7 +79,7 @@ class SlackAssKicker extends AbstractSlack
     {
         // iterate group ID and call kick method from Slack Api
         foreach ($groups as $groupId) {
-            $this->getSlackApi()->kickFromGroup($slackUser->slack_id, $groupId);
+            $this->getSlackApi()->kick($slackUser->slack_id, $groupId, true);
         }
     }
 
