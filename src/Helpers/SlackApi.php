@@ -90,26 +90,23 @@ class SlackApi
      * Determine in which channels an user is currently in
      *
      * @param string $slackId Slack user id (ie: U3216587)
-     * @param string $type channel or group
+     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
      * @throws SlackChannelException
      * @return array
      */
-    public function member($slackId, $type)
+    public function member($slackId, $private)
     {
         $channels = [];
-        
-        switch ($type) {
-            case 'channels':
-                // get all channels from the attached slack team
-                $result = $this->post('/channels.list');
-                break;
-            case 'groups':
-                $result = $this->post('/groups.list');
-                break;
-            default:
-                throw new SlackApiException('Unsupported call type for memberOf method');
+
+        if ($private) {
+            $type = 'groups';
+        } else {
+            $type = 'channels';
         }
+
+        $endpoint = '/' . $type . '.list';
+        $result = $this->post($endpoint);
 
         if ($result['ok'] == false) {
             throw new SlackChannelException($result['error']);

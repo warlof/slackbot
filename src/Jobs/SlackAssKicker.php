@@ -28,8 +28,8 @@ class SlackAssKicker extends AbstractSlack
         if ($slackUser != null) {
 
             // get channels into which current user is already member
-            $channels = $this->getSlackApi()->member($slackUser->slack_id, 'channels');
-            $groups = $this->getSlackApi()->member($slackUser->slack_id, 'groups');
+            $channels = $this->getSlackApi()->member($slackUser->slack_id, false);
+            $groups = $this->getSlackApi()->member($slackUser->slack_id, true);
 
             // if key are not valid OR account no longer paid
             // kick the user from all channels to which he's member
