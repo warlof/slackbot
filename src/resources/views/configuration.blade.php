@@ -20,11 +20,7 @@
                         <label for="slack-configuration-token" class="col-md-4">Slack Token</label>
                         <div class="col-md-7">
                             <div class="input-group input-group-sm">
-                                @if ($token->value == '')
-                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" />
-                                @else
-                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ $token->value }}" />
-                                @endif
+                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ $token }}" />
                                 <span class="input-group-btn">
                                     <button type="button" class="btn btn-danger btn-flat" id="token-eraser">
                                         <i class="fa fa-eraser"></i>
@@ -41,7 +37,7 @@
 
                     <div class="form-group">
                         <div class="col-md-12">
-                            @if($token->value == '')
+                            @if($token == '')
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack Channel and groups</a>
                             @else
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack Channel and groups</a>
@@ -54,7 +50,7 @@
 
                     <div class="form-group">
                         <div class="col-md-12">
-                            @if($token->value == '')
+                            @if($token == '')
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Invite SeAT User</a>
                             @else
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12" role="button">Invite SeAT User</a>
@@ -68,7 +64,7 @@
 
                     <div class="form-group">
                         <div class="col-md-12">
-                            @if($token->value == '')
+                            @if($token == '')
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
                             @else
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12" role="button">Update Slack Member</a>
@@ -82,7 +78,7 @@
 
                     <div class="form-group">
                         <div class="col-md-12">
-                            @if($token->value == '')
+                            @if($token == '')
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
                             @else
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12" role="button">Kick SeAT User</a>

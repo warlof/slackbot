@@ -37,37 +37,24 @@ class SlackEventHandler extends BaseCommand
                 
                 break;
             // if the event is of type "channel_created", then update our Slack channel table using new slack channel id
+            case 'group_joined':
             case 'channel_created':
-                $slackChannel = new SlackChannel();
-                $slackChannel->id = $data['channel']['id'];
-                $slackChannel->name = $data['channel']['name'];
-                $slackChannel->save();
+                $channel = SlackChannel::find($data['channel']);
+
+                if ($channel == null) {
+                    $channel = new SlackChannel();
+                    $channel->id = $data['channel']['id'];
+                    $channel->name = $data['channel']['name'];
+                    $channel->save();
+                }
                 break;
             // if the event is of type "channel_delete", then remove the record from our Slack channel table
             case 'channel_deleted':
+            case 'group_archive':
                 $channel = SlackChannel::find($data['channel']);
 
                 if ($channel != null)
                     $channel->delete();
-                
-                break;
-            case 'group_joined':
-                $group = SlackChannel::find($data['channel']);
-                
-                if ($group == null) {
-                    $group = new SlackChannel();
-                    $group->id = $data['channel']['id'];
-                    $group->name = $data['channel']['name'];
-                    $group->is_group = true;
-                    $group->save();
-                }
-                
-                break;
-            case 'group_archive':
-                $group = SlackChannel::find($data['channel']);
-
-                if ($group != null)
-                    $group->delete();
                 
                 break;
             case 'group_unarchive':

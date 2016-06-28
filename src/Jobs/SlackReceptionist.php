@@ -37,14 +37,11 @@ class SlackReceptionist extends AbstractSlack
                 $slackUser = SlackUser::where('user_id', $this->user->id)->first();
                 // control that we already know it's slack ID (mean that he creates his account
                 if ($slackUser->slack_id != null) {
-                    $channels = $this->getSlackApi()->memberOfChannels($slackUser->slack_id);
-                    $groups = $this->getSlackApi()->memberOfGroups($slackUser->slack_id);
+                    $allowedChannels = $this->allowedChannels($slackUser, false);
+                    $allowedGroups = $this->allowedChannels($slackUser, true);
 
-                    $allowedChannels = $this->allowedChannels($slackUser);
-                    $allowedGroups = $this->allowedGroups($slackUser);
-
-                    $this->processChannelsInvitation($slackUser, array_diff($allowedChannels, $channels));
-                    $this->processGroupsInvitation($slackUser, array_diff($allowedGroups, $groups));
+                    $this->processChannelsInvitation($slackUser, $allowedChannels);
+                    $this->processGroupsInvitation($slackUser, $allowedGroups);
                 }
             }
         }

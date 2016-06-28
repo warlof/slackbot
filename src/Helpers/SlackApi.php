@@ -21,11 +21,11 @@ class SlackApi
      */
     const SLACK_URI_PATTERN = "https://slack.com/api";
 
-    private $_token;
+    private $token;
 
     public function __construct($token)
     {
-        $this->_token = $token;
+        $this->token = $token;
     }
     
     /**
@@ -37,10 +37,10 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackSettingException
      */
-    public function post($endpoint, $parameters = [])
+    private function post($endpoint, $parameters = [])
     {
         // add slack token to the post parameters
-        $parameters['token'] = $this->_token;
+        $parameters['token'] = $this->token;
 
         // prepare curl request using passed parameters and endpoint
         $curl = curl_init();
@@ -79,7 +79,7 @@ class SlackApi
         }
 
         // call invite endpoint from Slack Api in order to invite the user to the team
-        $result = self::post('/users.admin.invite', $params);
+        $result = $this->post('/users.admin.invite', $params);
 
         if ($result['ok'] == false) {
             throw new SlackTeamInvitationException($result['error']);
@@ -90,22 +90,32 @@ class SlackApi
      * Determine in which channels an user is currently in
      *
      * @param string $slackId Slack user id (ie: U3216587)
+     * @param string $type channel or group
+     * @throws SlackApiException
      * @throws SlackChannelException
      * @return array
      */
-    public function memberOfChannels($slackId)
+    public function memberOf($slackId, $type)
     {
         $channels = [];
-
-        // get all channels from the attached slack team
-        $result = self::post('/channels.list');
+        
+        switch ($type) {
+            case 'channels':
+                // get all channels from the attached slack team
+                $result = $this->post('/channels.list');
+                break;
+            case 'groups':
+                break;
+            default:
+                throw new SlackApiException('Unsupported call type for memberOf method');
+        }
 
         if ($result['ok'] == false) {
             throw new SlackChannelException($result['error']);
         }
 
         // iterate over channels and check if the current slack user is part of channel
-        foreach ($result['channels'] as $channel) {
+        foreach ($result[$type] as $channel) {
             if (in_array($slackId, $channel['members']))
                 $channels[] = $channel['id'];
         }
@@ -127,7 +137,7 @@ class SlackApi
             'channel' => $channelId
         ];
 
-        $result = self::post('/channels.info', $params);
+        $result = $this->post('/channels.info', $params);
 
         if ($result['ok'] == false) {
             throw new SlackChannelException($result['error']);
@@ -151,10 +161,14 @@ class SlackApi
             'user' => $userId
         ];
 
-        $result = self::post('/channels.invite', $params);
+        $channel = $this->channelInfo($channelId);
+        
+        if (in_array($userId, $channel['members']) == false) {
+            $result = $this->post('/channels.invite', $params);
 
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
+            }
         }
     }
 
@@ -173,45 +187,18 @@ class SlackApi
             'user' => $userId
         ];
 
-        $channel = self::channelInfo($channelId);
+        $channel = $this->channelInfo($channelId);
 
-        // user can only be kicked from non general channel
-        if ($channel['is_general'] == false) {
-            $result = self::post('/channels.kick', $params);
+        // user can only be kicked from non general channel and if it is already member of it (legit)
+        if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
+            $result = $this->post('/channels.kick', $params);
 
             if ($result['ok'] == false) {
                 throw new SlackChannelException($result['error']);
             }
         }
     }
-
-    /**
-     * Determine in which groups an user is currently in
-     *
-     * @param string $slackId Slack user id (ie: U3216587)
-     * @throws SlackGroupException
-     * @return array
-     */
-    public function memberOfGroups($slackId)
-    {
-        $groups = [];
-
-        // get all channels from the attached slack team
-        $result = self::post('/groups.list');
-
-        if ($result['ok'] == false) {
-            throw new SlackGroupException($result['error']);
-        }
-
-        // iterate over channels and check if the current slack user is part of channel
-        foreach ($result['groups'] as $group) {
-            if (in_array($slackId, $group['members']))
-                $groups[] = $group['id'];
-        }
-
-        return $groups;
-    }
-
+    
     /**
      * Get information from a specific group
      *
@@ -226,7 +213,7 @@ class SlackApi
             'channel' => $groupId
         ];
 
-        $result = self::post('/groups.info', $params);
+        $result = $this->post('/groups.info', $params);
 
         if ($result['ok'] == false) {
             throw new SlackGroupException($result['error']);
@@ -250,10 +237,15 @@ class SlackApi
             'user' => $userId
         ];
 
-        $result = SlackApi::post('/groups.invite', $params);
+        $group = $this->groupInfo($groupId);
+        
+        if (in_array($userId, $group['members']) == false) {
 
-        if ($result['ok'] == false) {
-            throw new SlackGroupException($result['error']);
+            $result = $this->post('/groups.invite', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
+            }
         }
     }
 
@@ -272,10 +264,15 @@ class SlackApi
             'user' => $userId
         ];
 
-        $result = self::post('/groups.kick', $params);
+        $group = $this->groupInfo($groupId);
 
-        if ($result['ok'] == false) {
-            throw new SlackGroupException($result['error']);
+        if (in_array($userId, $group['members']) == true) {
+
+            $result = $this->post('/groups.kick', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
+            }
         }
     }
 }

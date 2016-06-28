@@ -9,7 +9,7 @@ namespace Seat\Slackbot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
-use Seat\Services\Models\GlobalSetting;
+use Seat\Services\Settings\Seat;
 use Seat\Slackbot\Models\SlackChannel;
 use Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Slackbot\Models\SlackChannelRole;
@@ -43,7 +43,7 @@ class SlackbotController extends Controller
 
     public function getConfiguration()
     {
-        $token = GlobalSetting::where('name', 'slack_token')->first();
+        $token = Seat::get('slack_token');
         
         return view('slackbot::configuration', compact('token'));
     }
@@ -93,16 +93,7 @@ class SlackbotController extends Controller
     
     public function postConfiguration(ValidateConfiguration $request)
     {
-        $token = GlobalSetting::where('name', 'slack_token')->first();
-
-        if ($token != null) {
-            $token = new GlobalSetting();
-            $token->name = 'slack_token';
-            $token->value = $request->input('slack-configuration-token');
-            $token->save();
-        } else {
-            $token->update(['value' => $request->input('slack-configuration-token')]);
-        }
+        Seat::set('slack_token', $request->input('slack-configuration-token'));
 
         return redirect()->back()
             ->with('success', 'Slackbot setting has been updated.');
