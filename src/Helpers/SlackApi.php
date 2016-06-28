@@ -105,6 +105,7 @@ class SlackApi
                 $result = $this->post('/channels.list');
                 break;
             case 'groups':
+                $result = $this->post('/groups.list');
                 break;
             default:
                 throw new SlackApiException('Unsupported call type for memberOf method');

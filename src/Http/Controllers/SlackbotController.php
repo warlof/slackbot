@@ -146,7 +146,7 @@ class SlackbotController extends Controller
 
     public function getRemoveAlliance($allianceId, $channelId)
     {
-        $channelAlliance = SlackChannelCorporation::where('role_id', $allianceId)
+        $channelAlliance = SlackChannelAlliance::where('alliance_id', $allianceId)
             ->where('channel_id', $channelId);
 
         if ($channelAlliance != null) {
