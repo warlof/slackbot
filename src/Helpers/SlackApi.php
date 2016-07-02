@@ -241,4 +241,38 @@ class SlackApi
             }
         }
     }
+
+    /**
+     * Return channels or groups list
+     * 
+     * @param boolean $private Determine if channels should be private (group) or public (channel)
+     * @return array
+     * @throws SlackApiException
+     * @throws SlackChannelException
+     * @throws SlackGroupException
+     */
+    public function channels($private)
+    {
+        $params = [
+            'exclude_archived' => 1
+        ];
+
+        if ($private) {
+            $result = $this->post('/groups.list', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
+            }
+
+            return $result['groups'];
+        }
+
+        $result = $this->post('/channels.list', $params);
+
+        if ($result['ok'] == false) {
+            throw new SlackChannelException($result['error']);
+        }
+
+        return $result['channels'];
+    }
 }

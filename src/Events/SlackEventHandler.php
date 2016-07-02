@@ -41,7 +41,6 @@ class SlackEventHandler extends BaseCommand
                 $channel = SlackChannel::find($data['channel']);
 
                 if ($channel->count() == 0) {
-                    echo 'create new channel in datastore';
                     $channel = new SlackChannel();
                     $channel->id = $data['channel']['id'];
                     $channel->name = $data['channel']['name'];
