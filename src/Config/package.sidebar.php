@@ -14,13 +14,15 @@ return [
             [
                 'name'  => 'Slack Access Management',
                 'icon'  => 'fa-shield',
-                'route' => 'slackbot.list'
+                'route' => 'slackbot.list',
             ],
             [
                 'name'  => 'Slackbot Settings',
                 'icon'  => 'fa-cogs',
-                'route' => 'slackbot.configuration'
+                'route' => 'slackbot.configuration',
+                'permission' => 'slackbot:setup'
             ]
-        ]
+        ],
+        'permission' => 'slackbot:view'
     ]
 ];

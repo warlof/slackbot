@@ -8,6 +8,8 @@
 namespace Seat\Slackbot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
 use Seat\Services\Settings\Seat;
@@ -16,6 +18,7 @@ use Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Slackbot\Models\SlackChannelCorporation;
 use Seat\Slackbot\Models\SlackChannelAlliance;
+use Seat\Slackbot\Models\SlackOAuth;
 use Seat\Slackbot\Validation\AddRelation;
 use Seat\Slackbot\Validation\ValidateConfiguration;
 use Seat\Web\Models\Acl\Role;
@@ -45,8 +48,9 @@ class SlackbotController extends Controller
     public function getConfiguration()
     {
         $token = Seat::get('slack_token');
+        $oauth = SlackOAuth::first();
         
-        return view('slackbot::configuration', compact('token'));
+        return view('slackbot::configuration', compact('oauth', 'token'));
     }
 
     public function postRelation(AddRelation $request)
@@ -94,10 +98,18 @@ class SlackbotController extends Controller
     
     public function postConfiguration(ValidateConfiguration $request)
     {
-        Seat::set('slack_token', $request->input('slack-configuration-token'));
+        $slackOauth = SlackOAuth::find($request->input('slack-configuration-client'));
 
-        return redirect()->back()
-            ->with('success', 'Slackbot setting has been updated.');
+        if ($slackOauth != null)
+            $slackOauth->delete();
+
+        $slackOauth = new SlackOAuth();
+        $slackOauth->client_id = $request->input('slack-configuration-client');
+        $slackOauth->client_secret = $request->input('slack-configuration-secret');
+        $slackOauth->state = time();
+        $slackOauth->save();
+
+        return redirect($this->oAuthAuthorization($request->input('slack-configuration-client'), $slackOauth->state));
     }
 
     public function getRemoveUser($userId, $channelId)
@@ -158,6 +170,85 @@ class SlackbotController extends Controller
 
         return redirect()->back()
             ->with('error', 'An error occurs while trying to remove the Slack relation for the alliance.');
+    }
+
+    public function getSubmitJob($command_name)
+    {
+        $accepted_commands = [
+            'slack:update:channels',
+            'slack:update:users'
+        ];
+        
+        if (!in_array($command_name, $accepted_commands))
+            abort(401);
+
+        Artisan::call('slack:update:channels');
+
+        return redirect()->back()
+            ->with('success', 'The command has been run.');
+    }
+    
+    public function oAuthAuthorization($clientId, $state)
+    {
+        $baseUri = 'https://slack.com/oauth/authorize?';
+        $scope = 'channels:read channels:write groups:read groups:write users:read';
+
+        return $baseUri . http_build_query([
+                'client_id' => $clientId,
+                'scope' => $scope,
+                'state' => $state
+            ]);
+    }
+
+    public function getOAuthToken(Request $request)
+    {
+        // get slack_oauth table and check that state match with $state
+        $slackOAuth = SlackOAuth::whereNotNull('state')
+            ->first();
+
+        if ($slackOAuth != null) {
+
+            if ($slackOAuth->state != $request->input('state')) {
+                $slackOAuth->delete();
+
+                redirect()->back()
+                    ->with('error', 'An error occurred while getting back the token.');
+            }
+
+            $parameters = [
+                'client_id' => $slackOAuth->client_id,
+                'client_secret' => $slackOAuth->client_secret,
+                'code' => $request->input('code')
+            ];
+
+            // prepare curl request using passed parameters and endpoint
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, 'https://slack.com/api/oauth.access');
+            curl_setopt($curl, CURLOPT_POST, 1);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($parameters));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+            $result = json_decode(curl_exec($curl), true);
+
+            if ($result == null) {
+                throw new \Exception("An error occurred while asking the token to Slack API\r\n" . curl_error($curl));
+            }
+
+            if ($result['ok'] == false) {
+                throw new \Exception("An error occurred while getting back the token from Slack API\r\n" . $result['error']);
+            }
+
+            Seat::set('slack_token', $result['access_token']);
+
+            $slackOAuth->state = null;
+            $slackOAuth->save();
+
+            return redirect()->route('slackbot.configuration')
+                ->with('success', 'The bot credentials has been set.');
+        }
+
+        return redirect()->route('slackbot.configuration')
+            ->with('error', 'The process has been aborted in order to prevent any security issue.');
     }
 
 }

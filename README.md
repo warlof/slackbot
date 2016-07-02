@@ -8,6 +8,12 @@ This plugin provide an extension to the standard SeAT character Job which handle
 
 # Setup
 
+## Slack side
+1. go on Slack Application page (https://api.slack.com/apps)
+2. create a new application
+  - bind it to your Slack team
+  - set the redirect URI to `https://yourseat/slackbot/callback` where `yourseat` is your seat domain
+
 ## SeAT side
 1. put your SeAT instance offline by running `php artisan down`
 2. download the plugin by running `composer require warlof/slackbot`
@@ -38,3 +44,9 @@ directory=/var/www/seat
 stopwaitsecs=600
 user=www-data
 ```
+3. restart the service by running `service supervisor restart`
+
+# Available Commands
+The slackbot is provided with some CLI command which enable you to get informations from an existing Slack Team.
+- `slack:update:channels` this will pull all public and private channels into SeAT
+- `slack:update:users` this will try to aggregate existing slack user to existing SeAT user based on user email.
