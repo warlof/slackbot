@@ -8,6 +8,7 @@ This plugin provide an extension to the standard SeAT character Job which handle
 
 # Setup
 
+## SeAT side
 1. put your SeAT instance offline by running `php artisan down`
 2. download the plugin by running `composer require warlof/slackbot`
 3. add the plugin to your SeAT instance by editing the file in `config/app.php`
@@ -16,5 +17,24 @@ and append this line `Seat\Slackbot\SlackbotServiceProvider::class,` after `// E
 5. update your database by running `php artisan migrate`
 6. passing your SeAT instance online by running `php artisan up`
 7. sign to the instance as superuser and go into `Slackbot > Slackbot Settings` in order to setup the plugin
-8. Run slackbot service by running `php artisan slack:daemon:run` (it will run a permanent job)
 9. go into `Slackbot > Slack Access Management` in order to configure user access
+
+## Supervisor side
+In order to keep your slack data up to date (like channels and groups), you need to run the slack:daemon:run
+command with supervisor.
+
+1. create a new supervisor configuration file or edit your seat supervisor configuration file
+(located at /etc/supervisor/conf.d/seat.conf by default)
+2. append the following text
+```
+[program:seat-slackbot]
+command=/usr/bin/php /var/www/seat/artisan slack:daemon:run
+process_name = %(program_name)s-80%(process_num)02d
+stdout_logfile = /var/log/seat-80%(process_num)02d.log
+stdout_logfile_maxbytes=100MB
+stdout_logfile_backups=10
+numprocs=1
+directory=/var/www/seat
+stopwaitsecs=600
+user=www-data
+```
