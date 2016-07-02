@@ -13,6 +13,7 @@ use Seat\Slackbot\Exceptions\SlackGroupException;
 use Seat\Slackbot\Exceptions\SlackMailException;
 use Seat\Slackbot\Exceptions\SlackSettingException;
 use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
+use Seat\Slackbot\Exceptions\SlackUserException;
 
 class SlackApi
 {
@@ -274,5 +275,16 @@ class SlackApi
         }
 
         return $result['channels'];
+    }
+    
+    public function members()
+    {
+        $result = $this->post('/users.list');
+        
+        if ($result['ok'] == false) {
+            throw new SlackUserException($result['error']);
+        }
+        
+        return $result['members'];
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Seat\Slackbot\Commands\SlackDaemon;
 use Seat\Slackbot\Commands\SlackUpdate;
 use Seat\Slackbot\Commands\SlackUpdateChannels;
+use Seat\Slackbot\Commands\SlackUpdateUsers;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -45,6 +46,7 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->commands([
             SlackUpdate::class,
             SlackUpdateChannels::class,
+            SlackUpdateUsers::class,
             SlackDaemon::class
         ]);
     }

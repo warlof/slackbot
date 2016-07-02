@@ -11,9 +11,7 @@ class SlackUser extends Model
         'user_id', 'slack_id', 'invited'
     ];
 
-    protected $primaryKey = [
-        'user_id'
-    ];
+    protected $primaryKey = 'user_id';
     
     public function user()
     {
