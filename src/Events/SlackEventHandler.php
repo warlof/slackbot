@@ -5,8 +5,7 @@
  * Time: 10:46
  */
 
-namespace Seat\Slackbot\Services\Commands;
-
+namespace Seat\Slackbot\Events;
 
 use PhpSlackBot\Command\BaseCommand;
 use Seat\Services\Settings\Seat;
@@ -41,10 +40,17 @@ class SlackEventHandler extends BaseCommand
             case 'channel_created':
                 $channel = SlackChannel::find($data['channel']);
 
-                if ($channel == null) {
+                if ($channel->count() == 0) {
+                    echo 'create new channel in datastore';
                     $channel = new SlackChannel();
                     $channel->id = $data['channel']['id'];
                     $channel->name = $data['channel']['name'];
+
+                    if ($data['type'] == 'channel_created')
+                        $channel->is_group = false;
+                    else
+                        $channel->is_group = true;
+
                     $channel->save();
                 }
                 break;
@@ -53,7 +59,7 @@ class SlackEventHandler extends BaseCommand
             case 'group_archive':
                 $channel = SlackChannel::find($data['channel']);
 
-                if ($channel != null)
+                if ($channel->count() != 0)
                     $channel->delete();
                 
                 break;
@@ -68,8 +74,8 @@ class SlackEventHandler extends BaseCommand
                 $apiGroup = $slackApi->info($data['channel'], true);
 
                 $group = new SlackChannel();
-                $group->id = $apiGroup['group']['id'];
-                $group->name = $apiGroup['group']['name'];
+                $group->id = $apiGroup['id'];
+                $group->name = $apiGroup['name'];
                 $group->is_group = true;
                 $group->save();
                 break;

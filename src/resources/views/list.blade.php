@@ -55,7 +55,7 @@
                         <label for="slack-alliance-id">{{ trans('slackbot::seat.alliance') }}</label>
                         <select name="slack-alliance-id" id="slack-alliance-id" class="col-md-12" disabled="disabled">
                             @foreach($alliances as $alliance)
-                            <option value="{{ $alliance->allianceID }}">{{ $alliance->allianceName }}</option>
+                            <option value="{{ $alliance->allianceID }}">{{ $alliance->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -219,7 +219,7 @@
                         <tbody>
                         @foreach($channelAlliances as $channel)
                             <tr>
-                                <td>{{ $channel->alliance->allianceName }}</td>
+                                <td>{{ $channel->alliance->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>

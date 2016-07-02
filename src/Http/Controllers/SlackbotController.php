@@ -9,6 +9,7 @@ namespace Seat\Slackbot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
+use Seat\Eveapi\Models\Eve\AllianceList;
 use Seat\Services\Settings\Seat;
 use Seat\Slackbot\Models\SlackChannel;
 use Seat\Slackbot\Models\SlackChannelUser;
@@ -33,7 +34,7 @@ class SlackbotController extends Controller
         $users = User::all();
         $roles = Role::all();
         $corporations = CorporationSheet::all();
-        $alliances = $corporations->unique('allianceID');
+        $alliances = AllianceList::all();
         $channels = SlackChannel::all();
 
         return view('slackbot::list',

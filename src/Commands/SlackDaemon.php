@@ -9,33 +9,36 @@ namespace Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Seat\Eveapi\Helpers\JobContainer;
-use Seat\Eveapi\Traits\JobManager;
-use Seat\Slackbot\Jobs\SlackService;
+use PhpSlackBot\Bot;
+use Seat\Services\Settings\Seat;
+use Seat\Slackbot\Events\SlackEventHandler;
+use Seat\Slackbot\Exceptions\SlackSettingException;
 
 class SlackDaemon extends Command
 {
-    use JobManager;
-
     protected $signature = 'slack:daemon:run';
 
-    protected $description = 'Slack service which handle Slack event. Mandatory in order to keep slack user up to date.';
+    protected $description = 'Slack service which handle Slack event. Mandatory in order to keep slack user and channels up to date.';
 
     public function __construct()
     {
         parent::__construct();
     }
 
-    public function handle(JobContainer $job)
+    public function handle()
     {
-        $job->api = 'Slack';
-        $job->scope = 'Slack Daemon';
-        $job->owner_id = 0;
+        $token = Seat::get('slack_token');
 
-        $jobId = $this->addUniqueJob(
-            SlackService::class, $job
-        );
+        if ($token == null)
+            throw new SlackSettingException("missing slack_token in settings");
 
-        $this->info('Job ' . $jobId . ' dispatched');
+        $bot = new Bot();
+        $bot->setToken($token);
+
+        // catch all event and return them to SlackTeamJoin
+        $bot->loadCatchAllCommand(new SlackEventHandler());
+        $bot->run();
+
+        return;
     }
 }

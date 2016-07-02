@@ -93,6 +93,7 @@ class SlackApi
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
      * @throws SlackChannelException
+     * @throws SlackGroupException
      * @return array
      */
     public function member($slackId, $private)
@@ -109,7 +110,10 @@ class SlackApi
         $result = $this->post($endpoint);
 
         if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
+            if ($private)
+                throw new SlackGroupException($result['error']);
+            else
+                throw new SlackChannelException($result['error']);
         }
 
         // iterate over channels and check if the current slack user is part of channel

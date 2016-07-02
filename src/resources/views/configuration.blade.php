@@ -40,8 +40,9 @@
                             @if($token == '')
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack Channel and groups</a>
                             @else
-                            <a href="#" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack Channel and groups</a>
+                            <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack Channel and groups</a>
                             @endif
+                            <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
                             <span class="help-block">
                                 This will update known channels and groups from Slack.
                             </span>
@@ -53,8 +54,9 @@
                             @if($token == '')
                             <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Invite SeAT User</a>
                             @else
-                            <a href="#" type="button" class="btn btn-success btn-md col-md-12" role="button">Invite SeAT User</a>
+                            <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Invite SeAT User</a>
                             @endif
+                            <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
                             <span class="help-block">
                                 This will invite all SeAT user which are not yet part of the Slack Team.
                                 If user are already part of the team, the bot will invite them to all granted channel and groups.
@@ -67,8 +69,9 @@
                             @if($token == '')
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
                             @else
-                            <a href="#" type="button" class="btn btn-warning btn-md col-md-12" role="button">Update Slack Member</a>
+                            <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
                             @endif
+                            <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
                             <span class="help-block">
                                 Warning, this will kick all Slack member the bot is not able to link to SeAT user account.
                                 The bot is using both SeAT user mail and Slack member mail in order to bind the account.
@@ -81,8 +84,9 @@
                             @if($token == '')
                             <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
                             @else
-                            <a href="#" type="button" class="btn btn-warning btn-md col-md-12" role="button">Kick SeAT User</a>
+                            <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
                             @endif
+                            <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
                             <span class="help-block">
                                 This will kick all Slack member which not met the channels and groups rules.
                             </span>
@@ -105,5 +109,7 @@
         $('#token-eraser').click(function(){
             $('#slack-configuration-token').val('');
         });
+
+        $('[data-toggle="tooltip"]').tooltip();
     </script>
 @stop

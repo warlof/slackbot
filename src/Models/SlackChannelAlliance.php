@@ -4,6 +4,7 @@ namespace Seat\Slackbot\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
+use Seat\Eveapi\Models\Eve\AllianceList;
 
 class SlackChannelAlliance extends Model
 {
@@ -14,6 +15,6 @@ class SlackChannelAlliance extends Model
 
     public function alliance()
     {
-        return $this->belongsTo(CorporationSheet::class, 'alliance_id', 'allianceID');
+        return $this->belongsTo(AllianceList::class, 'alliance_id', 'allianceID');
     }
 }
