@@ -74,9 +74,9 @@
             <div class="form-group">
                 <div class="col-md-12">
                     @if($token == '')
-                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack Channel and groups</a>
+                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack channels and groups</a>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['command_name' => 'slack:update:channels']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack Channel and groups</a>
+                        <a href="{{ route('slackbot.command.run', ['command_name' => 'slack:update:channels']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</a>
                     @endif
                     <span class="help-block">
                         This will update known channels and groups from Slack.
@@ -87,12 +87,12 @@
             <div class="form-group">
                 <div class="col-md-12">
                     @if($token == '')
-                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack User</a>
+                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack users</a>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['command_name' => 'slack:update:users']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Invite SeAT User</a>
+                        <a href="{{ route('slackbot.command.run', ['command_name' => 'slack:update:users']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</a>
                     @endif
                     <span class="help-block">
-                        This will try to update known users from Slack Team based on both Slack user email and Seat user email.
+                        This will try to update known users from Slack Team based on both Slack user email and SeAT user email.
                     </span>
                 </div>
             </div>
@@ -123,6 +123,30 @@
                     <span class="help-block">
                         This will kick all Slack member which not met the channels and groups rules.
                     </span>
+                </div>
+            </div>
+        </div>
+    </div>
+@stop
+
+@section('right')
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-rss"></i> Update feed</h3>
+        </div>
+        <div class="panel-body" style="height: 500px; overflow-y: scroll">
+            {!! $changelog !!}
+        </div>
+        <div class="panel-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    Installed version: <b>{{ config('slackbot.config.version') }}</b>
+                </div>
+                <div class="col-md-6">
+                    Latest version:
+                    <a href="https://packagist.org/packages/warlof/slackbot">
+                        <img src="https://poser.pugx.org/warlof/slackbot/v/stable" alt="Slackbot version" />
+                    </a>
                 </div>
             </div>
         </div>

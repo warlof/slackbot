@@ -49,8 +49,11 @@ class SlackbotController extends Controller
     {
         $token = Seat::get('slack_token');
         $oauth = SlackOAuth::first();
+
+        $parser = new \Parsedown();
+        $changelog = $parser->parse($this->getChangelog());
         
-        return view('slackbot::configuration', compact('oauth', 'token'));
+        return view('slackbot::configuration', compact('oauth', 'token', 'changelog'));
     }
 
     public function postRelation(AddRelation $request)
@@ -188,7 +191,7 @@ class SlackbotController extends Controller
             ->with('success', 'The command has been run.');
     }
     
-    public function oAuthAuthorization($clientId, $state)
+    private function oAuthAuthorization($clientId, $state)
     {
         $baseUri = 'https://slack.com/oauth/authorize?';
         $scope = 'channels:read channels:write groups:read groups:write users:read';
@@ -251,4 +254,12 @@ class SlackbotController extends Controller
             ->with('error', 'The process has been aborted in order to prevent any security issue.');
     }
 
+    private function getChangelog()
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+        return curl_exec($curl);
+    }
 }

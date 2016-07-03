@@ -12,7 +12,8 @@
         "eveseat/services": "^1.0",
         "eveseat/eveapi": "^1.0",
         "eveseat/web": "^1.0",
-        "jclg/php-slack-bot": "dev-master"
+        "jclg/php-slack-bot": "dev-master",
+        "erusev/parsedown": "^1.6"
     },
     "license": "GPL-2.0",
     "authors": [
