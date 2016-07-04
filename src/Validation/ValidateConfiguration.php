@@ -14,8 +14,9 @@ class ValidateConfiguration extends Request
     public function rules()
     {
         return [
-            'slack-configuration-client' => 'required|string',
-            'slack-configuration-secret' => 'required|string'
+            //'slack-configuration-client' => 'required|string',
+            //'slack-configuration-secret' => 'required|string'
+            'slack-configuration-token' => 'required|string'
         ];
     }
 }

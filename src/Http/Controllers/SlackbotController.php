@@ -101,6 +101,7 @@ class SlackbotController extends Controller
     
     public function postConfiguration(ValidateConfiguration $request)
     {
+        /*
         $slackOauth = SlackOAuth::find($request->input('slack-configuration-client'));
 
         if ($slackOauth != null)
@@ -113,6 +114,10 @@ class SlackbotController extends Controller
         $slackOauth->save();
 
         return redirect($this->oAuthAuthorization($request->input('slack-configuration-client'), $slackOauth->state));
+        */
+        Seat::set('slack_token', $request->input('slack-configuration-token'));
+        return redirect()->back()
+            ->with('success', 'The Slack test token has been updated');
     }
 
     public function getRemoveUser($userId, $channelId)

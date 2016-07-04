@@ -17,6 +17,27 @@
                     <legend>Slack API</legend>
 
                     <div class="form-group">
+                        <label for="slack-configuration-token" class="col-md-4">Slack Test Token</label>
+                        <div class="col-md-7">
+                            <div class="input-group input-group-sm">
+                                @if ($token == null)
+                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" />
+                                @else
+                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ $token }}" />
+                                @endif
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-danger btn-flat" id="client-eraser">
+                                        <i class="fa fa-eraser"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            <span class="help-block">
+                                In order to generate token, please go on <a href="https://api.slack.com/docs/oauth-test-tokens" target="_blank">your slack test tokens</a> and create a new one.
+                            </span>
+                        </div>
+                    </div>
+                    {{--
+                    <div class="form-group">
                         <label for="slack-configuration-client" class="col-md-4">Slack Client ID</label>
                         <div class="col-md-7">
                             <div class="input-group input-group-sm">
@@ -54,6 +75,7 @@
                             </span>
                         </div>
                     </div>
+                    --}}
                 </div>
 
                 <div class="box-footer">
