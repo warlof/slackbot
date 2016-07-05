@@ -1,3 +1,7 @@
+# Version 0.3.2
+
+Fix an issue on slack:update:users command which avoid slack user refresh.
+
 # Version 0.3.1
 
 Due to a Slack API issue in OAuth mechanism which is used by this extension in order to invite and kick user,
