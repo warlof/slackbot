@@ -1,3 +1,6 @@
+# Version 0.3.3
+Version fix
+
 # Version 0.3.2
 
 Fix an issue on slack:update:users command which avoid slack user refresh.
