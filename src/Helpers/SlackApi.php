@@ -119,8 +119,10 @@ class SlackApi
 
         // iterate over channels and check if the current slack user is part of channel
         foreach ($result[$type] as $channel) {
-            if ($channel['is_mpim'] == false && in_array($slackId, $channel['members']))
-                $channels[] = $channel['id'];
+            if (($type == 'groups' && $channel['is_mpim'] == false) || $type == 'channels') {
+                if (in_array($slackId, $channel['members']))
+                    $channels[] = $channel['id'];
+            }
         }
 
         return $channels;
