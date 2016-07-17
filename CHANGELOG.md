@@ -1,3 +1,7 @@
+# Version 0.3.4
+Update Slack API and add a control to member function is order to check that a channel is not a MP channel
+Fix javascript on setting view
+
 # Version 0.3.3
 Version fix
 

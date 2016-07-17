@@ -26,7 +26,7 @@
                                 <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ $token }}" />
                                 @endif
                                 <span class="input-group-btn">
-                                    <button type="button" class="btn btn-danger btn-flat" id="client-eraser">
+                                    <button type="button" class="btn btn-danger btn-flat" id="token-eraser">
                                         <i class="fa fa-eraser"></i>
                                     </button>
                                 </span>
@@ -183,6 +183,10 @@
 
         $('#secret-eraser').click(function(){
             $('#slack-configuration-secret').val('');
+        });
+
+        $('#secret-token').click(function(){
+            $('#slack-configuration-token').val('');
         });
 
         $('[data-toggle="tooltip"]').tooltip();
