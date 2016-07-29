@@ -278,7 +278,14 @@ class SlackApi
 
         return $result['channels'];
     }
-    
+
+    /**
+     * Return a list of team members
+     *
+     * @return array
+     * @throws SlackApiException
+     * @throws SlackUserException
+     */
     public function members()
     {
         $result = $this->post('/users.list');
@@ -288,5 +295,16 @@ class SlackApi
         }
         
         return $result['members'];
+    }
+
+    public function rtmStart()
+    {
+        $result = $this->post('/rtm.start');
+
+        if ($result['ok'] == false) {
+            throw new SlackApiException($result['error']);
+        }
+
+        return $result['url'];
     }
 }
