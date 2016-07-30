@@ -100,11 +100,10 @@ class SlackApi
     public function member($slackId, $private)
     {
         $channels = [];
+        $type = 'channels';
 
         if ($private) {
             $type = 'groups';
-        } else {
-            $type = 'channels';
         }
 
         $endpoint = '/' . $type . '.list';
@@ -144,6 +143,7 @@ class SlackApi
             'channel' => $channelId
         ];
 
+        // The request is for a private channel, call groups endpoint
         if ($private) {
             $result = $this->post('/groups.info', $params);
 
@@ -152,15 +152,16 @@ class SlackApi
             }
             
             return $result['group'];
-        } else {
-            $result = $this->post('/channels.info', $params);
-
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
-            }
-            
-            return $result['channel'];
         }
+
+        // The request is for a public channel, call channels endpoint
+        $result = $this->post('/channels.info', $params);
+
+        if ($result['ok'] == false) {
+            throw new SlackChannelException($result['error']);
+        }
+
+        return $result['channel'];
     }
 
     /**
@@ -179,7 +180,8 @@ class SlackApi
             'channel' => $channelId,
             'user' => $userId
         ];
-        
+
+        // The request is for a private channel, call groups endpoint
         if ($private) {
             $group = $this->info($channelId, $private);
 
@@ -191,15 +193,18 @@ class SlackApi
                     throw new SlackGroupException($result['error']);
                 }
             }
-        } else {
-            $channel = $this->info($channelId, $private);
 
-            if (in_array($userId, $channel['members']) == false) {
-                $result = $this->post('/channels.invite', $params);
+            return;
+        }
 
-                if ($result['ok'] == false) {
-                    throw new SlackChannelException($result['error']);
-                }
+        // The request is for a public channel, call channels endpoint
+        $channel = $this->info($channelId, $private);
+
+        if (in_array($userId, $channel['members']) == false) {
+            $result = $this->post('/channels.invite', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
             }
         }
     }
@@ -220,7 +225,8 @@ class SlackApi
             'channel' => $channelId,
             'user' => $userId
         ];
-        
+
+        // The request is for a private channel, call groups endpoint
         if ($private) {
             $group = $this->info($channelId, $private);
 
@@ -231,16 +237,19 @@ class SlackApi
                     throw new SlackGroupException($result['error']);
                 }
             }
-        } else {
-            $channel = $this->info($channelId, $private);
 
-            // user can only be kicked from non general channel and if it is already member of it (legit)
-            if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
-                $result = $this->post('/channels.kick', $params);
+            return;
+        }
 
-                if ($result['ok'] == false) {
-                    throw new SlackChannelException($result['error']);
-                }
+        // The request is for a public channel, call channels endpoint
+        $channel = $this->info($channelId, $private);
+
+        // user can only be kicked from non general channel and if it is already member of it (legit)
+        if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
+            $result = $this->post('/channels.kick', $params);
+
+            if ($result['ok'] == false) {
+                throw new SlackChannelException($result['error']);
             }
         }
     }

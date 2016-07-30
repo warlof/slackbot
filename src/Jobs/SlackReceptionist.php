@@ -32,31 +32,33 @@ class SlackReceptionist extends AbstractSlack
             // if the user is not yet invited, invite him to team
             if ($this->isInvited($this->user) == false) {
                 $this->processMemberInvitation($this->user);
+
+                return;
+            }
+
             // in other case, invite him to channels and groups
-            } else {
-                // get the attached slack user
-                $slackUser = SlackUser::where('user_id', $this->user->id)->first();
-                // control that we already know it's slack ID (mean that he creates his account
-                if ($slackUser->slack_id != null) {
-                    $allowedChannels = $this->allowedChannels($slackUser, false);
-                    $allowedGroups = $this->allowedChannels($slackUser, true);
+            // get the attached slack user
+            $slackUser = SlackUser::where('user_id', $this->user->id)->first();
+            // control that we already know it's slack ID (mean that he creates his account
+            if ($slackUser->slack_id != null) {
+                $allowedChannels = $this->allowedChannels($slackUser, false);
+                $allowedGroups = $this->allowedChannels($slackUser, true);
 
-                    $this->processChannelsInvitation($slackUser, $allowedChannels);
+                $this->processChannelsInvitation($slackUser, $allowedChannels);
 
-                    $slackLog = new SlackLog();
-                    $slackLog->event = 'invite';
-                    $slackLog->message = 'The user ' . $this->user->name .
-                        ' has been invited to following channels : ' . implode(',', $allowedChannels);
-                    $slackLog->save();
+                $slackLog = new SlackLog();
+                $slackLog->event = 'invite';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been invited to following channels : ' . implode(',', $allowedChannels);
+                $slackLog->save();
 
-                    $this->processGroupsInvitation($slackUser, $allowedGroups);
+                $this->processGroupsInvitation($slackUser, $allowedGroups);
 
-                    $slackLog = new SlackLog();
-                    $slackLog->event = 'invite';
-                    $slackLog->message = 'The user ' . $this->user->name .
-                        ' has been invited to following channels : ' . implode(',', $allowedGroups);
-                    $slackLog->save();
-                }
+                $slackLog = new SlackLog();
+                $slackLog->event = 'invite';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been invited to following channels : ' . implode(',', $allowedGroups);
+                $slackLog->save();
             }
         }
 

@@ -76,11 +76,11 @@ class SlackDaemon extends Command
                             $channel = new SlackChannel();
                             $channel->id = $slackMessage['channel']['id'];
                             $channel->name = $slackMessage['channel']['name'];
+                            // set private channel flag to true by default
+                            $channel->is_group = true;
 
                             if ($slackMessage['type'] == 'channel_created') {
                                 $channel->is_group = false;
-                            } else {
-                                $channel->is_group = true;
                             }
 
                             $channel->save();

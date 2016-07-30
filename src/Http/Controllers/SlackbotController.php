@@ -72,44 +72,88 @@ class SlackbotController extends Controller
         // value are user, role, corporation or alliance
         switch ($request->input('slack-type')) {
             case 'public':
-                $relation = new SlackChannelPublic();
-                $relation->channel_id = $request->input('slack-channel-id');
-                $relation->save();
+
+                $channelId = $request->input('slack-channel-id');
+
+                if (SlackChannelPublic::find($channelId) == null) {
+                    $relation = new SlackChannelPublic();
+                    $relation->channel_id = $channelId;
+                    $relation->save();
+
+                    return redirect()->back()
+                        ->with('success', 'New public slack relation has been created');
+                }
 
                 return redirect()->back()
-                    ->with('success', 'New public slack relation has been created');
+                    ->with('error', 'This relation already exists');
             case 'user':
-                $relation = new SlackChannelUser();
-                $relation->user_id = $request->input('slack-user-id');
-                $relation->channel_id = $request->input('slack-channel-id');
-                $relation->save();
+
+                $userId = $request->input('slack-user-id');
+                $channelId = $request->input('slack-channel-id');
+
+                if (SlackChannelUser::find([$userId, $channelId]) == null) {
+                    $relation = new SlackChannelUser();
+                    $relation->user_id = $userId;
+                    $relation->channel_id = $channelId;
+                    $relation->save();
+
+                    return redirect()->back()
+                        ->with('success', 'New slack user relation has been created');
+                }
 
                 return redirect()->back()
-                    ->with('success', 'New slack user relation has been created');
+                    ->with('error', 'This relation already exists');
             case 'role':
-                $relation = new SlackChannelRole();
-                $relation->role_id = $request->input('slack-role-id');
-                $relation->channel_id = $request->input('slack-channel-id');
-                $relation->save();
+
+                $roleId = $request->input('slack-role-id');
+                $channelId = $request->input('slack-channel-id');
+
+                if (SlackChannelRole::find([$roleId, $channelId]) == null) {
+                    $relation = new SlackChannelRole();
+                    $relation->role_id = $roleId;
+                    $relation->channel_id = $channelId;
+                    $relation->save();
+
+                    return redirect()->back()
+                        ->with('success', 'New slack role relation has been created');
+                }
 
                 return redirect()->back()
-                    ->with('success', 'New slack role relation has been created');
+                    ->with('error', 'This relation already exists');
             case 'corporation':
-                $relation = new SlackChannelCorporation();
-                $relation->corporation_id = $request->input('slack-corporation-id');
-                $relation->channel_id = $request->input('slack-channel-id');
-                $relation->save();
+
+                $corporationId = $request->input('slack-corporation-id');
+                $channelId = $request->input('slack-channel-id');
+
+                if (SlackChannelCorporation::find([$corporationId, $channelId]) == null) {
+                    $relation = new SlackChannelCorporation();
+                    $relation->corporation_id = $corporationId;
+                    $relation->channel_id = $channelId;
+                    $relation->save();
+
+                    return redirect()->back()
+                        ->with('success', 'New slack corporation relation has been created');
+                }
 
                 return redirect()->back()
-                    ->with('success', 'New slack corporation relation has been created');
+                    ->with('error', 'This relation already exists');
             case 'alliance':
-                $relation = new SlackChannelAlliance();
-                $relation->alliance_id = $request->input('slack-alliance-id');
-                $relation->channel_id = $request->input('slack-channel-id');
-                $relation->save();
+                
+                $allianceId = $request->input('slack-alliance-id');
+                $channelId = $request->input('slack-channel-id');
+                
+                if (SlackChannelAlliance::find([$allianceId, $channelId]) == null) {
+                    $relation = new SlackChannelAlliance();
+                    $relation->alliance_id = $allianceId;
+                    $relation->channel_id = $channelId;
+                    $relation->save();
+
+                    return redirect()->back()
+                        ->with('success', 'New slack alliance relation has been created');
+                }
 
                 return redirect()->back()
-                    ->with('success', 'New slack alliance relation has been created');
+                    ->with('error', 'This relation already exists');
             default:
                 return redirect()->back()
                     ->with('error', 'Unknown relation type');
@@ -211,17 +255,17 @@ class SlackbotController extends Controller
             ->with('error', 'An error occurs while trying to remove the Slack relation for the alliance.');
     }
 
-    public function getSubmitJob($command_name)
+    public function getSubmitJob($commandName)
     {
         $accepted_commands = [
             'slack:update:channels',
             'slack:update:users'
         ];
         
-        if (!in_array($command_name, $accepted_commands))
+        if (!in_array($commandName, $accepted_commands))
             abort(401);
 
-        Artisan::call($command_name);
+        Artisan::call($commandName);
 
         return redirect()->back()
             ->with('success', 'The command has been run.');

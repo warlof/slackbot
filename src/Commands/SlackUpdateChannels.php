@@ -34,41 +34,31 @@ class SlackUpdateChannels extends Command
         
         $api = new SlackApi($token);
 
-        $channels = $api->channels(false);
-        $groups = $api->channels(true);
+        $channels = array_merge($api->channels(false), $api->channels(true));
 
-        foreach ($channels as $c) {
-            $channel = SlackChannel::find($c['id']);
+        foreach ($channels as $channel) {
 
-            if ($channel == null) {
-                $channel = new SlackChannel();
-                $channel->id = $c['id'];
-                $channel->name = $c['name'];
-                $channel->is_group = false;
-                $channel->save();
+            $slackChannel = SlackChannel::find($channel['id']);
+
+            if ($slackChannel == null) {
+
+                $slackChannel = new SlackChannel();
+                $slackChannel->id = $channel['id'];
+                $slackChannel->name = $channel['name'];
+                // set private channel flag to true by default
+                $slackChannel->is_group = true;
+
+                // Determine if this is a group (private channel) or a channel
+                if (substr($channel['id'], 0, 1) === 'C') {
+                    $slackChannel->is_group = false;
+                }
+
             } else {
-                $channel->update([
-                    'name' => $c['name']
+                $slackChannel->update([
+                    'name' => $channel['name']
                 ]);
             }
         }
 
-        foreach ($groups as $g) {
-            if ($g['is_mpim'] == false) {
-                $group = SlackChannel::find($g['id']);
-
-                if ($group == null) {
-                    $group = new SlackChannel();
-                    $group->id = $g['id'];
-                    $group->name = $g['name'];
-                    $group->is_group = true;
-                    $group->save();
-                } else {
-                    $group->update([
-                        'name' => $g['name']
-                    ]);
-                }
-            }
-        }
     }
 }

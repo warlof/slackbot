@@ -63,7 +63,7 @@ Route::group([
         'middleware' => 'bouncer:slackbot.setup'
     ]);
 
-    Route::get('/run/{command_name}', [
+    Route::get('/run/{commandName}', [
         'as' => 'slackbot.command.run',
         'uses' => 'SlackbotController@getSubmitJob',
         'middleware' => 'bouncer:slackbot.setup'
