@@ -113,6 +113,17 @@ class SlackDaemon extends Command
                         $group->save();
 
                         break;
+                    case 'channel_rename':
+                    case 'group_rename':
+                        $channel = SlackChannel::find($slackMessage['channel']['id']);
+
+                        if ($channel->count() != 0) {
+                            $channel->update([
+                                'name' => $slackMessage['channel']['name']
+                            ]);
+                        }
+
+                        break;
                 }
             });
         },

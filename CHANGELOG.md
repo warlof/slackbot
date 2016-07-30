@@ -1,3 +1,11 @@
+# Version 0.5.2
+Implement channel_rename and group_rename event into Slack Daemon in order to keep channel table up to date
+Add a way to rename channel when user run `slack:update:channels` and the channel already exist in SeAT
+
+# Version 0.5.1
+Fix an issue which was running `slack:update:channels` when people clic on "Update Slack users" from
+Slackbot Settings UI.
+
 # Version 0.5.0
 Replace `jclg/php-slack-bot` package which avoid to use stable flag and cause some issue,
 with `ratchet/pawl` and a homemade RTM daemon.
