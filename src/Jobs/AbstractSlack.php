@@ -157,7 +157,9 @@ abstract class AbstractSlack
                     ->where('slack_channels.is_group', (int) $private)
                     ->select('channel_id')
             )->union(
-                SlackChannelPublic::all('channel_id')
+                SlackChannelPublic::join('slack_channels', 'slack_channel_public.channel_id', '=', 'slack_channels.id')
+                    ->where('slack_channels.is_group', (int) $private)
+                    ->select('channel_id')
             )->get();
 
         foreach ($rows as $row) {
