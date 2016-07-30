@@ -257,12 +257,12 @@ class SlackbotController extends Controller
 
     public function getSubmitJob($commandName)
     {
-        $accepted_commands = [
+        $acceptedCommands = [
             'slack:update:channels',
             'slack:update:users'
         ];
         
-        if (!in_array($commandName, $accepted_commands))
+        if (!in_array($commandName, $acceptedCommands))
             abort(401);
 
         Artisan::call($commandName);
@@ -271,6 +271,7 @@ class SlackbotController extends Controller
             ->with('success', 'The command has been run.');
     }
     
+    /*
     private function oAuthAuthorization($clientId, $state)
     {
         $baseUri = 'https://slack.com/oauth/authorize?';
@@ -333,7 +334,8 @@ class SlackbotController extends Controller
         return redirect()->route('slackbot.configuration')
             ->with('error', 'The process has been aborted in order to prevent any security issue.');
     }
-
+    */
+    
     private function getChangelog()
     {
         $curl = curl_init();
