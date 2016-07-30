@@ -221,7 +221,7 @@ class SlackbotController extends Controller
         if (!in_array($command_name, $accepted_commands))
             abort(401);
 
-        Artisan::call('slack:update:channels');
+        Artisan::call($command_name);
 
         return redirect()->back()
             ->with('success', 'The command has been run.');
