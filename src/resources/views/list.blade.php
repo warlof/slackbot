@@ -21,6 +21,7 @@
                             <option value="role">{{ trans('slackbot::seat.role_filter') }}</option>
                             <option value="corporation">{{ trans('slackbot::seat.corporation_filter') }}</option>
                             <option value="alliance">{{ trans('slackbot::seat.alliance_filter') }}</option>
+                            <option value="public">{{ trans('slackbot::seat.public_filter') }}</option>
                         </select>
                     </div>
 
@@ -94,6 +95,9 @@
 
             <ul class="nav nav-pills" id="slack-tabs">
                 <li role="presentation" class="active">
+                    <a href="#slackbot-public">{{ trans('slackbot::seat.public_filter') }}</a>
+                </li>
+                <li role="presentation">
                     <a href="#slackbot-username">{{ trans('slackbot::seat.user_filter') }}</a>
                 </li>
                 <li role="presentation">
@@ -108,7 +112,39 @@
             </ul>
 
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="slackbot-username">
+                <div role="tabpanel" class="tab-pane active" id="slackbot-public">
+                    <table class="table table-condensed table-hover table-responsive">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>{{ trans('slackbot::seat.channel') }}</th>
+                            <th>{{ trans('slackbot::seat.created') }}</th>
+                            <th>{{ trans('slackbot::seat.updated') }}</th>
+                            <th>{{ trans('slackbot::seat.status') }}</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($channelPublic as $channel)
+                            <tr>
+                                <td></td>
+                                <td>{{ $channel->channel->name }}</td>
+                                <td>{{ $channel->created_at }}</td>
+                                <td>{{ $channel->updated_at }}</td>
+                                <td>{{ $channel->enable }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ route('slackbot.public.remove', ['channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
+                                            {{ trans('web::seat.remove') }}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="slackbot-username">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>

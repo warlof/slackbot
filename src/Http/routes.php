@@ -15,6 +15,12 @@ Route::group([
         'middleware' => 'bouncer:slackbot.view'
     ]);
 
+    Route::get('/public/{channel_id}/remove', [
+        'as' => 'slackbot.public.remove',
+        'uses' => 'SlackbotController@getRemovePublic',
+        'middleware' => 'bouncer:slackbot.create'
+    ]);
+
     Route::get('/users/{user_id}/{channel_id}/remove', [
         'as' => 'slackbot.user.remove',
         'uses' => 'SlackbotController@getRemoveUser',

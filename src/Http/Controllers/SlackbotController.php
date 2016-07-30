@@ -14,6 +14,7 @@ use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
 use Seat\Services\Settings\Seat;
 use Seat\Slackbot\Models\SlackChannel;
+use Seat\Slackbot\Models\SlackChannelPublic;
 use Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Slackbot\Models\SlackChannelCorporation;
@@ -29,11 +30,12 @@ class SlackbotController extends Controller
 
     public function getRelations()
     {
+        $channelPublic = SlackChannelPublic::all();
         $channelUsers = SlackChannelUser::all();
         $channelRoles = SlackChannelRole::all();
         $channelCorporations = SlackChannelCorporation::all();
         $channelAlliances = SlackChannelAlliance::all();
-
+        
         $users = User::all();
         $roles = Role::all();
         $corporations = CorporationSheet::all();
@@ -41,7 +43,7 @@ class SlackbotController extends Controller
         $channels = SlackChannel::all();
 
         return view('slackbot::list',
-            compact('channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances',
+            compact('channelPublic', 'channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances',
                 'users', 'roles', 'corporations', 'alliances', 'channels'));
     }
 
@@ -61,6 +63,13 @@ class SlackbotController extends Controller
         // use a single post route in order to create any kind of relation
         // value are user, role, corporation or alliance
         switch ($request->input('slack-type')) {
+            case 'public':
+                $relation = new SlackChannelPublic();
+                $relation->channel_id = $request->input('slack-channel-id');
+                $relation->save();
+
+                return redirect()->back()
+                    ->with('success', 'New public slack relation has been created');
             case 'user':
                 $relation = new SlackChannelUser();
                 $relation->user_id = $request->input('slack-user-id');
@@ -118,6 +127,20 @@ class SlackbotController extends Controller
         Seat::set('slack_token', $request->input('slack-configuration-token'));
         return redirect()->back()
             ->with('success', 'The Slack test token has been updated');
+    }
+
+    public function getRemovePublic($channelId)
+    {
+        $channelPublic = SlackChannelPublic::where('channel_id', $channelId);
+
+        if ($channelPublic != null) {
+            $channelPublic->delete();
+            return redirect()->back()
+                ->with('success', 'The public slack relation has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occurs while trying to remove the public Slack relation.');
     }
 
     public function getRemoveUser($userId, $channelId)

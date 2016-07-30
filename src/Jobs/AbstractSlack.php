@@ -15,6 +15,7 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Services\Settings\Seat;
 use Seat\Slackbot\Exceptions\SlackSettingException;
 use Seat\Slackbot\Helpers\SlackApi;
+use Seat\Slackbot\Models\SlackChannelPublic;
 use Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
 
@@ -155,6 +156,8 @@ abstract class AbstractSlack
                     ->where('eve_api_keys.user_id', $slackUser->user_id)
                     ->where('slack_channels.is_group', (int) $private)
                     ->select('channel_id')
+            )->union(
+                SlackChannelPublic::all('channel_id')
             )->get();
 
         foreach ($rows as $row) {

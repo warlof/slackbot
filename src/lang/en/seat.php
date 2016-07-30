@@ -17,6 +17,7 @@ return [
     'role_filter' => 'Role Filter',
     'corporation_filter' => 'Corporation Filter',
     'alliance_filter' => 'Alliance Filter',
+    'public_filter' => 'Public Filter',
     'created' => 'Created',
     'updated' => 'Updated',
     'status' => 'Status',
