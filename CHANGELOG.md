@@ -1,3 +1,14 @@
+# Version 0.5.0
+Replace `jclg/php-slack-bot` package which avoid to use stable flag and cause some issue,
+with `ratchet/pawl` and a homemade RTM daemon.
+
+# Version 0.4.3
+Fix a query issue introduced with version 0.4.0 and public filter
+
+# Version 0.4.2
+ Add a log system which store event history (invite, kick and mail issue)
+ Remove unset mail exception from fail job
+
 # Version 0.4.1
 Fix manual user sync with job slack:update:users (set invited flag to true)
 
