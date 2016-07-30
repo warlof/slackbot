@@ -21,6 +21,11 @@ return [
                 'icon'  => 'fa-cogs',
                 'route' => 'slackbot.configuration',
                 'permission' => 'slackbot:setup'
+            ],
+            [
+                'name'  => 'Slackbot Logs',
+                'icon'  => 'fa-list',
+                'route' => 'slackbot.logs'
             ]
         ],
         'permission' => 'slackbot:view'

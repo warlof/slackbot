@@ -1,3 +1,10 @@
+# Version 0.4.1
+Fix manual user sync with job slack:update:users (set invited flag to true)
+
+# Version 0.4.0
+Add a way to create public filter (grant everybody to be in a channel)
+Remove eveseat/seat package from dependencies
+
 # Version 0.3.5
 Fix 0.3.4 typo issue
 

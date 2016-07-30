@@ -8,6 +8,7 @@
 namespace Seat\Slackbot\Jobs;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
+use Seat\Slackbot\Models\SlackLog;
 use Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractSlack
@@ -35,7 +36,20 @@ class SlackAssKicker extends AbstractSlack
             // kick the user from all channels to which he's member
             if ($this->isEnabledKey($keys) == false || $this->isActive($keys) == false) {
                 $this->processChannelsKick($slackUser, $channels);
+
+                $slackLog = new SlackLog();
+                $slackLog->event = 'kick';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been kicked from following channels : ' . implode(',', $channels);
+                $slackLog->save();
+
                 $this->processGroupsKick($slackUser, $groups);
+
+                $slackLog = new SlackLog();
+                $slackLog->event = 'kick';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been kicked from following channels : ' . implode(',', $groups);
+                $slackLog->save();
 
             // in other way, compute the gap and kick only the user
             // to channel from which he's no longer granted to be in
@@ -45,8 +59,21 @@ class SlackAssKicker extends AbstractSlack
 
                 // remove channels in which user is already in from all granted channels and invite him
                 $this->processChannelsKick($slackUser, array_diff($channels, $allowedChannels));
+
+                $slackLog = new SlackLog();
+                $slackLog->event = 'kick';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been kicked from following channels : ' . implode(',', array_diff($channels, $allowedChannels));
+                $slackLog->save();
+
                 // remove granted channels from channels in which user is already in and kick him
                 $this->processGroupsKick($slackUser, array_diff($groups, $allowedGroups));
+
+                $slackLog = new SlackLog();
+                $slackLog->event = 'kick';
+                $slackLog->message = 'The user ' . $this->user->name .
+                    ' has been kicked from following channels : ' . implode(',', array_diff($groups, $allowedGroups));
+                $slackLog->save();
             }
         }
 
