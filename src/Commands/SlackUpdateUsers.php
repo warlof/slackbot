@@ -50,6 +50,7 @@ class SlackUpdateUsers extends Command
                     if ($slackUser == null) {
                         $slackUser = new SlackUser();
                         $slackUser->user_id = $user->id;
+                        $slackUser->invited = true;
                     }
                     
                     $slackUser->slack_id = $m['id'];
