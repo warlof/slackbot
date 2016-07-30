@@ -185,7 +185,7 @@
             $('#slack-configuration-secret').val('');
         });
 
-        $('#secret-token').click(function(){
+        $('#token-eraser').click(function(){
             $('#slack-configuration-token').val('');
         });
 

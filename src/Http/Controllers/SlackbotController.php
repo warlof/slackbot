@@ -19,6 +19,7 @@ use Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Slackbot\Models\SlackChannelCorporation;
 use Seat\Slackbot\Models\SlackChannelAlliance;
+use Seat\Slackbot\Models\SlackLog;
 use Seat\Slackbot\Models\SlackOAuth;
 use Seat\Slackbot\Validation\AddRelation;
 use Seat\Slackbot\Validation\ValidateConfiguration;
@@ -56,6 +57,13 @@ class SlackbotController extends Controller
         $changelog = $parser->parse($this->getChangelog());
         
         return view('slackbot::configuration', compact('oauth', 'token', 'changelog'));
+    }
+    
+    public function getLogs()
+    {
+        $logs = SlackLog::all();
+
+        return view('slackbot::logs', compact('logs'));
     }
 
     public function postRelation(AddRelation $request)

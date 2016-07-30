@@ -56,6 +56,12 @@ Route::group([
         'uses' => 'SlackbotController@getConfiguration',
         'middleware' => 'bouncer:slackbot.setup'
     ]);
+    
+    Route::get('/logs', [
+        'as' => 'slackbot.logs',
+        'uses' => 'SlackbotController@getLogs',
+        'middleware' => 'bouncer:slackbot.setup'
+    ]);
 
     Route::get('/run/{command_name}', [
         'as' => 'slackbot.command.run',

@@ -11,6 +11,7 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
 use Seat\Slackbot\Exceptions\SlackMailException;
+use Seat\Slackbot\Models\SlackLog;
 use Seat\Web\Models\User;
 use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Seat\Slackbot\Models\SlackUser;
@@ -41,7 +42,20 @@ class SlackReceptionist extends AbstractSlack
                     $allowedGroups = $this->allowedChannels($slackUser, true);
 
                     $this->processChannelsInvitation($slackUser, $allowedChannels);
+
+                    $slackLog = new SlackLog();
+                    $slackLog->event = 'invite';
+                    $slackLog->message = 'The user ' . $this->user->name .
+                        ' has been invited to following channels : ' . implode(',', $allowedChannels);
+                    $slackLog->save();
+
                     $this->processGroupsInvitation($slackUser, $allowedGroups);
+
+                    $slackLog = new SlackLog();
+                    $slackLog->event = 'invite';
+                    $slackLog->message = 'The user ' . $this->user->name .
+                        ' has been invited to following channels : ' . implode(',', $allowedGroups);
+                    $slackLog->save();
                 }
             }
         }
@@ -58,13 +72,20 @@ class SlackReceptionist extends AbstractSlack
      */
     function processMemberInvitation(User $user)
     {
-        $this->getSlackApi()->inviteToTeam($user->email);
+        try {
+            $this->getSlackApi()->inviteToTeam($user->email);
 
-        // update Slack user relation
-        $slackUser = new SlackUser();
-        $slackUser->user_id = $user->id;
-        $slackUser->invited = true;
-        $user->save();
+            // update Slack user relation
+            $slackUser = new SlackUser();
+            $slackUser->user_id = $user->id;
+            $slackUser->invited = true;
+            $user->save();
+        } catch (SlackMailException $e) {
+            $slackLog = new SlackLog();
+            $slackLog->event = 'mail';
+            $slackLog->message = 'The mail address for user ' . $user->name . ' has not been set (' . $user->email .')';
+            $slackLog->save();
+        }
     }
 
     /**
