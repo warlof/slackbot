@@ -77,7 +77,11 @@ abstract class AbstractSlack
     function isEnabledKey(Collection $keys)
     {
         // count keys with enable value and compare it to total keys number
-        if ($keys->where('enabled', 1)->count() == $keys->count() && $keys->count() != 0)
+        $enabledKeys = $keys->filter(function($item){
+            return $item->enabled == 1;
+        })->count();
+        
+        if ($enabledKeys == $keys->count() && $keys->count() != 0)
             return true;
 
         return false;
@@ -95,7 +99,7 @@ abstract class AbstractSlack
         foreach ($keys as $key) {
             if (AccountStatus::where('keyID', $key->key_id)
                 ->whereDate('paidUntil', '>=', date('Y-m-d'))
-                ->count()) {
+                ->count() > 0) {
 
                 return true;
 

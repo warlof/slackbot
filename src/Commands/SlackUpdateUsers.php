@@ -39,8 +39,7 @@ class SlackUpdateUsers extends Command
 
         // iterate over each member, check if the user mail match with a seat account and update the relation table
         foreach ($members as $m) {
-            if ($m['deleted'] == false &&
-                $m['is_bot'] ==  false &&
+            if ($m['is_bot'] ==  false &&
                 !key_exists('api_app_id', $m['profile'])) {
 
                 $user = User::where('email', '=', $m['profile']['email'])->first();
