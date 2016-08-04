@@ -81,7 +81,7 @@ class SlackReceptionist extends AbstractSlack
             $slackUser = new SlackUser();
             $slackUser->user_id = $user->id;
             $slackUser->invited = true;
-            $user->save();
+            $slackUser->save();
         } catch (SlackMailException $e) {
             $slackLog = new SlackLog();
             $slackLog->event = 'mail';
