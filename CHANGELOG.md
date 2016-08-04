@@ -1,3 +1,6 @@
+# Version 0.5.3
+Fix issue for new user invitation
+
 # Version 0.5.2
 Implement channel_rename and group_rename event into Slack Daemon in order to keep channel table up to date
 Add a way to rename channel when user run `slack:update:channels` and the channel already exist in SeAT
