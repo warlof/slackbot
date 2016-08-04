@@ -1,3 +1,7 @@
+# Version 0.5.4
+fix API issue for is_bot flag usage which is not available on deleted user
+as a result, add deleted check
+
 # Version 0.5.3
 Fix issue for new user invitation
 
