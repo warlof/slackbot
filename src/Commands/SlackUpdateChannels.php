@@ -53,6 +53,8 @@ class SlackUpdateChannels extends Command
                     $slackChannel->is_group = false;
                 }
 
+                $slackChannel->save();
+
             } else {
                 $slackChannel->update([
                     'name' => $channel['name']

@@ -1,3 +1,6 @@
+# Version 0.5.6
+fix channels update refactoring issue which avoid new record to be saved
+
 # Version 0.5.4
 fix API issue for is_bot flag usage which is not available on deleted user
 as a result, add deleted check
