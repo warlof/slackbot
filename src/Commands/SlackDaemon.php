@@ -57,35 +57,12 @@ class SlackDaemon extends Command
                     // if the event is of type "team_join", then update our Slack user table using the new slack user id
                     // common element between SeAT and Slack is mail address
                     case 'team_join':
-                        $slackUser = SlackUser::join('users', 'users.id', 'slack_users.user_id')
-                            ->where('email', $slackMessage['user']['profile']['email'])
-                            ->first();
-
-                        if ($slackUser != null) {
-                            $slackUser->update(['slack_id' => $slackMessage['user']['id']]);
-                        }
-
+                        $this->newMember($slackMessage['user']);
                         break;
-
                     // if the event is of type "channel_created", then update our Slack channel table using new slack channel id
                     case 'group_joined':
                     case 'channel_created':
-                        $channel = SlackChannel::find($slackMessage['channel']);
-
-                        if ($channel->count() == 0) {
-                            $channel = new SlackChannel();
-                            $channel->id = $slackMessage['channel']['id'];
-                            $channel->name = $slackMessage['channel']['name'];
-                            // set private channel flag to true by default
-                            $channel->is_group = true;
-
-                            if ($slackMessage['type'] == 'channel_created') {
-                                $channel->is_group = false;
-                            }
-
-                            $channel->save();
-                        }
-
+                        $this->createChannel($slackMessage['channel']);
                         break;
                     // if the event is of type "channel_delete", then remove the record from our Slack channel table
                     case 'channel_deleted':
@@ -97,32 +74,11 @@ class SlackDaemon extends Command
 
                         break;
                     case 'group_unarchive':
-                        // load token and team uri from settings
-                        $token = Seat::get('slack_token');
-
-                        if ($token == null)
-                            throw new SlackSettingException("missing slack_token in settings");
-
-                        $slackApi = new SlackApi($token);
-                        $apiGroup = $slackApi->info($slackMessage['channel'], true);
-
-                        $group = new SlackChannel();
-                        $group->id = $apiGroup['id'];
-                        $group->name = $apiGroup['name'];
-                        $group->is_group = true;
-                        $group->save();
-
+                        $this->restoreGroup($slackMessage['channel']);
                         break;
                     case 'channel_rename':
                     case 'group_rename':
-                        $channel = SlackChannel::find($slackMessage['channel']['id']);
-
-                        if ($channel->count() != 0) {
-                            $channel->update([
-                                'name' => $slackMessage['channel']['name']
-                            ]);
-                        }
-
+                        $this->renameChannel($slackMessage['channel']);
                         break;
                 }
             });
@@ -135,5 +91,65 @@ class SlackDaemon extends Command
         $loop->run();
 
         return;
+    }
+
+    private function newMember($userInformation)
+    {
+        $slackUser = SlackUser::join('users', 'users.id', 'slack_users.user_id')
+            ->where('email', $userInformation['profile']['email'])
+            ->first();
+
+        if ($slackUser != null) {
+            $slackUser->update(['slack_id' => $userInformation['id']]);
+        }
+    }
+
+    private function createChannel($channelInformation)
+    {
+        $channel = SlackChannel::find($channelInformation['id']);
+
+        $group = true;
+
+        // Determine if this is a group (private channel) or a channel
+        if (substr($channelInformation['id'], 0, 1) === 'C') {
+            $channel->is_group = false;
+        }
+
+        if ($channel->count() == 0) {
+            SlackChannel::create([
+                'id' => $channelInformation['id'],
+                'name' => $channelInformation['name'],
+                'is_group' => $group
+            ]);
+        }
+    }
+
+    private function renameChannel($channelInformation)
+    {
+        $channel = SlackChannel::find($channelInformation['id']);
+
+        if ($channel->count() != 0) {
+            $channel->update([
+                'name' => $channelInformation['name']
+            ]);
+        }
+    }
+
+    private function restoreGroup($groupId)
+    {
+        // load token and team uri from settings
+        $token = Seat::get('slack_token');
+
+        if ($token == null)
+            throw new SlackSettingException("missing slack_token in settings");
+
+        $slackApi = new SlackApi($token);
+        $apiGroup = $slackApi->info($groupId, true);
+
+        $group = new SlackChannel();
+        $group->id = $apiGroup['id'];
+        $group->name = $apiGroup['name'];
+        $group->is_group = true;
+        $group->save();
     }
 }

@@ -8,7 +8,6 @@
 namespace Seat\Slackbot\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
@@ -68,12 +67,16 @@ class SlackbotController extends Controller
 
     public function postRelation(AddRelation $request)
     {
+        $userId = $request->input('slack-user-id');
+        $roleId = $request->input('slack-role-id');
+        $corporationId = $request->input('slack-corporation-id');
+        $allianceId = $request->input('slack-alliance-id');
+        $channelId = $request->input('slack-channel-id');
+
         // use a single post route in order to create any kind of relation
         // value are user, role, corporation or alliance
         switch ($request->input('slack-type')) {
             case 'public':
-
-                $channelId = $request->input('slack-channel-id');
 
                 if (SlackChannelPublic::find($channelId) == null) {
                     SlackChannelPublic::create([
@@ -87,9 +90,6 @@ class SlackbotController extends Controller
                 return redirect()->back()
                     ->with('error', 'This relation already exists');
             case 'user':
-
-                $userId = $request->input('slack-user-id');
-                $channelId = $request->input('slack-channel-id');
 
                 $relation = SlackChannelUser::where('channel_id', '=', $channelId)
                     ->where('user_id', '=', $userId)
@@ -107,9 +107,6 @@ class SlackbotController extends Controller
                 return redirect()->back()
                     ->with('error', 'This relation already exists');
             case 'role':
-
-                $roleId = $request->input('slack-role-id');
-                $channelId = $request->input('slack-channel-id');
 
                 $relation = SlackChannelRole::where('role_id', '=', $roleId)
                     ->where('channel_id', '=', $channelId)
@@ -129,9 +126,6 @@ class SlackbotController extends Controller
                     ->with('error', 'This relation already exists');
             case 'corporation':
 
-                $corporationId = $request->input('slack-corporation-id');
-                $channelId = $request->input('slack-channel-id');
-
                 $relation = SlackChannelCorporation::where('corporation_id', '=', $corporationId)
                     ->where('channel_id', '=', $channelId)
                     ->get();
@@ -149,9 +143,6 @@ class SlackbotController extends Controller
                 return redirect()->back()
                     ->with('error', 'This relation already exists');
             case 'alliance':
-                
-                $allianceId = $request->input('slack-alliance-id');
-                $channelId = $request->input('slack-channel-id');
 
                 $relation = SlackChannelAlliance::where('alliance_id', '=', $allianceId)
                     ->where('channel_id', '=', $channelId)
@@ -285,7 +276,8 @@ class SlackbotController extends Controller
         return redirect()->back()
             ->with('success', 'The command has been run.');
     }
-    
+
+    // DEPRECATED UNTIL SLACK ALLOW USER INVITATION API ENDPOINT
     /*
     private function oAuthAuthorization($clientId, $state)
     {
