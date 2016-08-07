@@ -19,7 +19,6 @@ use Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Slackbot\Models\SlackChannelCorporation;
 use Seat\Slackbot\Models\SlackChannelAlliance;
 use Seat\Slackbot\Models\SlackLog;
-use Seat\Slackbot\Models\SlackOAuth;
 use Seat\Slackbot\Validation\AddRelation;
 use Seat\Slackbot\Validation\ValidateConfiguration;
 use Seat\Web\Models\Acl\Role;
@@ -50,12 +49,11 @@ class SlackbotController extends Controller
     public function getConfiguration()
     {
         $token = Seat::get('slack_token');
-        $oauth = SlackOAuth::first();
 
         $parser = new \Parsedown();
         $changelog = $parser->parse($this->getChangelog());
         
-        return view('slackbot::configuration', compact('oauth', 'token', 'changelog'));
+        return view('slackbot::configuration', compact('token', 'changelog'));
     }
     
     public function getLogs()
@@ -77,95 +75,21 @@ class SlackbotController extends Controller
         // value are user, role, corporation or alliance
         switch ($request->input('slack-type')) {
             case 'public':
-
-                if (SlackChannelPublic::find($channelId) == null) {
-                    SlackChannelPublic::create([
-                        'channel_id' => $channelId
-                    ]);
-
-                    return redirect()->back()
-                        ->with('success', 'New public slack relation has been created');
-                }
-
-                return redirect()->back()
-                    ->with('error', 'This relation already exists');
+                return $this->postPublicRelation($channelId);
             case 'user':
-
-                $relation = SlackChannelUser::where('channel_id', '=', $channelId)
-                    ->where('user_id', '=', $userId)
-                    ->get();
-
-                if ($relation->count() == 0) {
-                    SlackChannelUser::create([
-                        'user_id' => $userId,
-                        'channel_id' => $channelId]);
-
-                    return redirect()->back()
-                        ->with('success', 'New slack user relation has been created');
-                }
-
-                return redirect()->back()
-                    ->with('error', 'This relation already exists');
+                return $this->postUserRelation($channelId, $userId);
             case 'role':
-
-                $relation = SlackChannelRole::where('role_id', '=', $roleId)
-                    ->where('channel_id', '=', $channelId)
-                    ->get();
-
-                if ($relation->count() == 0) {
-                    SlackChannelRole::create([
-                        'role_id' => $roleId,
-                        'channel_id' => $channelId
-                    ]);
-
-                    return redirect()->back()
-                        ->with('success', 'New slack role relation has been created');
-                }
-
-                return redirect()->back()
-                    ->with('error', 'This relation already exists');
+                return $this->postRoleRelation($channelId, $roleId);
             case 'corporation':
-
-                $relation = SlackChannelCorporation::where('corporation_id', '=', $corporationId)
-                    ->where('channel_id', '=', $channelId)
-                    ->get();
-
-                if ($relation->count() == 0) {
-                    SlackChannelCorporation::create([
-                        'corporation_id' => $corporationId,
-                        'channel_id' => $channelId
-                    ]);
-
-                    return redirect()->back()
-                        ->with('success', 'New slack corporation relation has been created');
-                }
-
-                return redirect()->back()
-                    ->with('error', 'This relation already exists');
+                return $this->postCorporationRelation($channelId, $corporationId);
             case 'alliance':
-
-                $relation = SlackChannelAlliance::where('alliance_id', '=', $allianceId)
-                    ->where('channel_id', '=', $channelId)
-                    ->get();
-                
-                if ($relation->count() == 0) {
-                    SlackChannelAlliance::create([
-                        'alliance_id' => $allianceId,
-                        'channel_id' => $channelId
-                    ]);
-
-                    return redirect()->back()
-                        ->with('success', 'New slack alliance relation has been created');
-                }
-
-                return redirect()->back()
-                    ->with('error', 'This relation already exists');
+                return $this->postAllianceRelation($channelId, $allianceId);
             default:
                 return redirect()->back()
                     ->with('error', 'Unknown relation type');
         }
     }
-    
+
     public function postConfiguration(ValidateConfiguration $request)
     {
         /*
@@ -351,4 +275,99 @@ class SlackbotController extends Controller
 
         return curl_exec($curl);
     }
+
+    private function postPublicRelation($channelId)
+    {
+        if (SlackChannelPublic::find($channelId) == null) {
+            SlackChannelPublic::create([
+                'channel_id' => $channelId
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'New public slack relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
+    private function postUserRelation($channelId, $userId)
+    {
+        $relation = SlackChannelUser::where('channel_id', '=', $channelId)
+            ->where('user_id', '=', $userId)
+            ->get();
+
+        if ($relation->count() == 0) {
+            SlackChannelUser::create([
+                'user_id' => $userId,
+                'channel_id' => $channelId]);
+
+            return redirect()->back()
+                ->with('success', 'New slack user relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
+    private function postRoleRelation($channelId, $roleId)
+    {
+        $relation = SlackChannelRole::where('role_id', '=', $roleId)
+            ->where('channel_id', '=', $channelId)
+            ->get();
+
+        if ($relation->count() == 0) {
+            SlackChannelRole::create([
+                'role_id' => $roleId,
+                'channel_id' => $channelId
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'New slack role relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
+    private function postCorporationRelation($channelId, $corporationId)
+    {
+        $relation = SlackChannelCorporation::where('corporation_id', '=', $corporationId)
+            ->where('channel_id', '=', $channelId)
+            ->get();
+
+        if ($relation->count() == 0) {
+            SlackChannelCorporation::create([
+                'corporation_id' => $corporationId,
+                'channel_id' => $channelId
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'New slack corporation relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
+    private function postAllianceRelation($channelId, $allianceId)
+    {
+        $relation = SlackChannelAlliance::where('alliance_id', '=', $allianceId)
+            ->where('channel_id', '=', $channelId)
+            ->get();
+
+        if ($relation->count() == 0) {
+            SlackChannelAlliance::create([
+                'alliance_id' => $allianceId,
+                'channel_id' => $channelId
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'New slack alliance relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
 }
