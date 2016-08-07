@@ -8,6 +8,8 @@ use Seat\Eveapi\Models\Eve\AllianceList;
 
 class SlackChannelAlliance extends Model
 {
+    protected $fillable = ['alliance_id', 'channel_id', 'enable'];
+
     public function channel()
     {
         return $this->belongsTo(SlackChannel::class, 'channel_id', 'id');

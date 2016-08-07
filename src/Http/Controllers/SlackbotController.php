@@ -76,9 +76,9 @@ class SlackbotController extends Controller
                 $channelId = $request->input('slack-channel-id');
 
                 if (SlackChannelPublic::find($channelId) == null) {
-                    $relation = new SlackChannelPublic();
-                    $relation->channel_id = $channelId;
-                    $relation->save();
+                    SlackChannelPublic::create([
+                        'channel_id' => $channelId
+                    ]);
 
                     return redirect()->back()
                         ->with('success', 'New public slack relation has been created');
@@ -91,11 +91,14 @@ class SlackbotController extends Controller
                 $userId = $request->input('slack-user-id');
                 $channelId = $request->input('slack-channel-id');
 
-                if (SlackChannelUser::find([$userId, $channelId]) == null) {
-                    $relation = new SlackChannelUser();
-                    $relation->user_id = $userId;
-                    $relation->channel_id = $channelId;
-                    $relation->save();
+                $relation = SlackChannelUser::where('channel_id', '=', $channelId)
+                    ->where('user_id', '=', $userId)
+                    ->get();
+
+                if ($relation->count() == 0) {
+                    SlackChannelUser::create([
+                        'user_id' => $userId,
+                        'channel_id' => $channelId]);
 
                     return redirect()->back()
                         ->with('success', 'New slack user relation has been created');
@@ -108,11 +111,15 @@ class SlackbotController extends Controller
                 $roleId = $request->input('slack-role-id');
                 $channelId = $request->input('slack-channel-id');
 
-                if (SlackChannelRole::find([$roleId, $channelId]) == null) {
-                    $relation = new SlackChannelRole();
-                    $relation->role_id = $roleId;
-                    $relation->channel_id = $channelId;
-                    $relation->save();
+                $relation = SlackChannelRole::where('role_id', '=', $roleId)
+                    ->where('channel_id', '=', $channelId)
+                    ->get();
+
+                if ($relation->count() == 0) {
+                    SlackChannelRole::create([
+                        'role_id' => $roleId,
+                        'channel_id' => $channelId
+                    ]);
 
                     return redirect()->back()
                         ->with('success', 'New slack role relation has been created');
@@ -125,11 +132,15 @@ class SlackbotController extends Controller
                 $corporationId = $request->input('slack-corporation-id');
                 $channelId = $request->input('slack-channel-id');
 
-                if (SlackChannelCorporation::find([$corporationId, $channelId]) == null) {
-                    $relation = new SlackChannelCorporation();
-                    $relation->corporation_id = $corporationId;
-                    $relation->channel_id = $channelId;
-                    $relation->save();
+                $relation = SlackChannelCorporation::where('corporation_id', '=', $corporationId)
+                    ->where('channel_id', '=', $channelId)
+                    ->get();
+
+                if ($relation->count() == 0) {
+                    SlackChannelCorporation::create([
+                        'corporation_id' => $corporationId,
+                        'channel_id' => $channelId
+                    ]);
 
                     return redirect()->back()
                         ->with('success', 'New slack corporation relation has been created');
@@ -141,12 +152,16 @@ class SlackbotController extends Controller
                 
                 $allianceId = $request->input('slack-alliance-id');
                 $channelId = $request->input('slack-channel-id');
+
+                $relation = SlackChannelAlliance::where('alliance_id', '=', $allianceId)
+                    ->where('channel_id', '=', $channelId)
+                    ->get();
                 
-                if (SlackChannelAlliance::find([$allianceId, $channelId]) == null) {
-                    $relation = new SlackChannelAlliance();
-                    $relation->alliance_id = $allianceId;
-                    $relation->channel_id = $channelId;
-                    $relation->save();
+                if ($relation->count() == 0) {
+                    SlackChannelAlliance::create([
+                        'alliance_id' => $allianceId,
+                        'channel_id' => $channelId
+                    ]);
 
                     return redirect()->back()
                         ->with('success', 'New slack alliance relation has been created');

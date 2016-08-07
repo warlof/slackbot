@@ -7,6 +7,8 @@ use Seat\Web\Models\User;
 
 class SlackChannelUser extends Model
 {
+    protected $fillable = ['user_id', 'channel_id', 'enable'];
+
     public function channel()
     {
         return $this->belongsTo(SlackChannel::class, 'channel_id', 'id');

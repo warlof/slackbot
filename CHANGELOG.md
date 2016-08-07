@@ -1,3 +1,6 @@
+# Version 0.5.7
+fix and refactor slack access creation
+
 # Version 0.5.6
 fix channels update refactoring issue which avoid new record to be saved
 

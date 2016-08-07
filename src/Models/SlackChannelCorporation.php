@@ -7,6 +7,8 @@ use Seat\Eveapi\Models\Corporation\CorporationSheet;
 
 class SlackChannelCorporation extends Model
 {
+    protected $fillable = ['corporation_id', 'channel_id', 'enable'];
+
     public function channel()
     {
         return $this->belongsTo(SlackChannel::class, 'channel_id', 'id');
