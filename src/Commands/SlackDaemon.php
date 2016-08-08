@@ -9,6 +9,7 @@ namespace Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
 use Ratchet\RFC6455\Messaging\MessageInterface;
@@ -67,13 +68,11 @@ class SlackDaemon extends Command
                     // if the event is of type "channel_delete", then remove the record from our Slack channel table
                     case 'channel_deleted':
                     case 'group_archive':
-                        $channel = SlackChannel::find($slackMessage['channel']);
-
-                        if ($channel->count() != 0)
-                            $channel->delete();
-
+                        SlackChannel::destroy($slackMessage['channel']);
                         break;
                     case 'group_unarchive':
+                        Log::debug('[Slackbot][Daemon][group_unarchive] ' . print_r($slackMessage, true));
+
                         $this->restoreGroup($slackMessage['channel']);
                         break;
                     case 'channel_rename':
@@ -95,7 +94,7 @@ class SlackDaemon extends Command
 
     private function newMember($userInformation)
     {
-        $slackUser = SlackUser::join('users', 'users.id', 'slack_users.user_id')
+        $slackUser = SlackUser::join('users', 'users.id', '=', 'slack_users.user_id')
             ->where('email', $userInformation['profile']['email'])
             ->first();
 
@@ -112,10 +111,10 @@ class SlackDaemon extends Command
 
         // Determine if this is a group (private channel) or a channel
         if (substr($channelInformation['id'], 0, 1) === 'C') {
-            $channel->is_group = false;
+            $group = false;
         }
 
-        if ($channel->count() == 0) {
+        if ($channel == null) {
             SlackChannel::create([
                 'id' => $channelInformation['id'],
                 'name' => $channelInformation['name'],
@@ -128,10 +127,12 @@ class SlackDaemon extends Command
     {
         $channel = SlackChannel::find($channelInformation['id']);
 
-        if ($channel->count() != 0) {
+        if ($channel != null) {
             $channel->update([
                 'name' => $channelInformation['name']
             ]);
+        } else {
+            $this->createChannel($channelInformation);
         }
     }
 
@@ -146,10 +147,10 @@ class SlackDaemon extends Command
         $slackApi = new SlackApi($token);
         $apiGroup = $slackApi->info($groupId, true);
 
-        $group = new SlackChannel();
-        $group->id = $apiGroup['id'];
-        $group->name = $apiGroup['name'];
-        $group->is_group = true;
-        $group->save();
+        SlackChannel::create([
+            'id' => $apiGroup['id'],
+            'name' => $apiGroup['name'],
+            'is_group' => true
+        ]);
     }
 }

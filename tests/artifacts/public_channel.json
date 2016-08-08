@@ -1,0 +1,27 @@
+{
+  "id": "C1Z8J1BFY",
+  "name": "general",
+  "is_channel": true,
+  "created": 1470669888,
+  "creator": "U1Z8TCZAT",
+  "is_archived": false,
+  "is_general": true,
+  "is_member": true,
+  "members": [
+    "U1Z8TCZAT",
+    "U1Z9HSP1T",
+    "U1Z9LT9NK",
+    "U1Z9QVCJW"
+  ],
+  "topic": {
+    "value": "Company-wide announcements and work-based matters",
+    "creator": "",
+    "last_set": 0
+  },
+  "purpose": {
+    "value": "This channel is for team-wide communication and announcements. All team members are in this channel.",
+    "creator": "",
+    "last_set": 0
+  },
+  "num_members": 1
+}

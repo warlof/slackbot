@@ -1,3 +1,7 @@
+# Version 0.5.8
+add test coverage for SlackApi Helper
+fix Daemon issue related to user and channel creation
+
 # Version 0.5.7
 fix and refactor slack access creation
 
