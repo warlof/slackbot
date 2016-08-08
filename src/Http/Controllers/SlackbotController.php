@@ -26,7 +26,6 @@ use Seat\Web\Models\User;
 
 class SlackbotController extends Controller
 {
-
     public function getRelations()
     {
         $channelPublic = SlackChannelPublic::all();
@@ -92,20 +91,6 @@ class SlackbotController extends Controller
 
     public function postConfiguration(ValidateConfiguration $request)
     {
-        /*
-        $slackOauth = SlackOAuth::find($request->input('slack-configuration-client'));
-
-        if ($slackOauth != null)
-            $slackOauth->delete();
-
-        $slackOauth = new SlackOAuth();
-        $slackOauth->client_id = $request->input('slack-configuration-client');
-        $slackOauth->client_secret = $request->input('slack-configuration-secret');
-        $slackOauth->state = time();
-        $slackOauth->save();
-
-        return redirect($this->oAuthAuthorization($request->input('slack-configuration-client'), $slackOauth->state));
-        */
         Seat::set('slack_token', $request->input('slack-configuration-token'));
         return redirect()->back()
             ->with('success', 'The Slack test token has been updated');
@@ -192,8 +177,9 @@ class SlackbotController extends Controller
             'slack:update:users'
         ];
         
-        if (!in_array($commandName, $acceptedCommands))
+        if (!in_array($commandName, $acceptedCommands)) {
             abort(401);
+        }
 
         Artisan::call($commandName);
 
@@ -201,72 +187,6 @@ class SlackbotController extends Controller
             ->with('success', 'The command has been run.');
     }
 
-    // DEPRECATED UNTIL SLACK ALLOW USER INVITATION API ENDPOINT
-    /*
-    private function oAuthAuthorization($clientId, $state)
-    {
-        $baseUri = 'https://slack.com/oauth/authorize?';
-        $scope = 'channels:read channels:write groups:read groups:write users:read';
-
-        return $baseUri . http_build_query([
-                'client_id' => $clientId,
-                'scope' => $scope,
-                'state' => $state
-            ]);
-    }
-
-    public function getOAuthToken(Request $request)
-    {
-        // get slack_oauth table and check that state match with $state
-        $slackOAuth = SlackOAuth::whereNotNull('state')
-            ->first();
-
-        if ($slackOAuth != null) {
-
-            if ($slackOAuth->state != $request->input('state')) {
-                $slackOAuth->delete();
-
-                redirect()->back()
-                    ->with('error', 'An error occurred while getting back the token.');
-            }
-
-            $parameters = [
-                'client_id' => $slackOAuth->client_id,
-                'client_secret' => $slackOAuth->client_secret,
-                'code' => $request->input('code')
-            ];
-
-            // prepare curl request using passed parameters and endpoint
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, 'https://slack.com/api/oauth.access');
-            curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($parameters));
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-
-            $result = json_decode(curl_exec($curl), true);
-
-            if ($result == null) {
-                throw new \Exception("An error occurred while asking the token to Slack API\r\n" . curl_error($curl));
-            }
-
-            if ($result['ok'] == false) {
-                throw new \Exception("An error occurred while getting back the token from Slack API\r\n" . $result['error']);
-            }
-
-            Seat::set('slack_token', $result['access_token']);
-
-            $slackOAuth->state = null;
-            $slackOAuth->save();
-
-            return redirect()->route('slackbot.configuration')
-                ->with('success', 'The bot credentials has been set.');
-        }
-
-        return redirect()->route('slackbot.configuration')
-            ->with('error', 'The process has been aborted in order to prevent any security issue.');
-    }
-    */
-    
     private function getChangelog()
     {
         $curl = curl_init();

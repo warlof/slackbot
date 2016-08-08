@@ -15,7 +15,11 @@
         "ratchet/pawl": "^0.2.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.5"
+        "phpunit/phpunit": "^4.8",
+        "orchestra/testbench": "~3.0",
+        "codeclimate/php-test-reporter": "dev-master",
+        "satooshi/php-coveralls": "^1.0",
+        "codacy/coverage": "dev-master"
     },
     "license": "GPL-2.0",
     "authors": [

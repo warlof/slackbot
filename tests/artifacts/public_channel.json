@@ -1,25 +1,24 @@
 {
-  "id": "C1Z8J1BFY",
-  "name": "general",
+  "id": "C1Z920QKC",
+  "name": "random",
   "is_channel": true,
   "created": 1470669888,
   "creator": "U1Z8TCZAT",
   "is_archived": false,
-  "is_general": true,
+  "is_general": false,
   "is_member": true,
   "members": [
     "U1Z8TCZAT",
     "U1Z9HSP1T",
-    "U1Z9LT9NK",
     "U1Z9QVCJW"
   ],
   "topic": {
-    "value": "Company-wide announcements and work-based matters",
+    "value": "Non-work banter and water cooler conversation",
     "creator": "",
     "last_set": 0
   },
   "purpose": {
-    "value": "This channel is for team-wide communication and announcements. All team members are in this channel.",
+    "value": "A place for non-work-related flimflam, faffing, hodge-podge or jibber-jabber you'd prefer to keep out of more focused work-related channels.",
     "creator": "",
     "last_set": 0
   },

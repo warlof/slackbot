@@ -8,14 +8,9 @@
 
 namespace Seat\Slackbot\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Seat\Slackbot\Exceptions\SlackChannelException;
-use Seat\Slackbot\Exceptions\SlackGroupException;
-use Seat\Slackbot\Exceptions\SlackMailException;
-use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Seat\Slackbot\Helpers\SlackApi;
 
-class SlackApiTest extends TestCase
+class SlackApiTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var SlackApi
@@ -26,24 +21,28 @@ class SlackApiTest extends TestCase
     {
         parent::setUp();
 
-        $token = "xoxp-67298154005-67299441367-67288681844-0828b5aad7";
+        $token = getenv('slack_token');
 
         $this->slackApi = new SlackApi($token);
     }
 
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackMailException
+     */
     public function testInviteMailException()
     {
         $mail = "example@domain.local";
 
-        $this->expectException(SlackMailException::class);
         $this->slackApi->inviteToTeam($mail);
     }
 
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackTeamInvitationException
+     */
     public function testInviteTeamException()
     {
         $mail = "e.elfaus@gmail.com";
 
-        $this->expectException(SlackTeamInvitationException::class);
         $this->slackApi->inviteToTeam($mail);
     }
 
@@ -59,10 +58,36 @@ class SlackApiTest extends TestCase
     public function testMemberPrivateChannel()
     {
         $slackUserId = "U1Z8TCZAT";
-        $slackChannelsId = ["G1Z9267L1", "G1Z9CBCP8"];
+        $slackChannelsId = ["G1Z9267L1", "G1Z9CBCP8", "G1ZUXJZSL"];
         $apiResponse = $this->slackApi->member($slackUserId, true);
 
         $this->assertEquals($apiResponse, $slackChannelsId);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
+     */
+    public function testMemberPublicException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $slackUserId = "U1Z8TCZAT";
+
+        $testApi->member($slackUserId, false);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
+     */
+    public function testMemberGroupException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $slackUserId = "U1Z8TCZAT";
+
+        $testApi->member($slackUserId, true);
     }
 
     public function testInfoPublicChannel()
@@ -76,28 +101,106 @@ class SlackApiTest extends TestCase
 
     public function testInfoPrivateChannel()
     {
-        $slackChannelId = "G1Z9267L1";
+        $slackChannelId = "G1ZUXJZSL";
         $apiResponse = $this->slackApi->info($slackChannelId, true);
         $artifact = $this->getArtifactPath("private_info.json");
 
         $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse));
     }
 
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
+     */
+    public function testInfoChannelException()
+    {
+        $slackChannelId = "C2Z4D897";
+
+        $this->slackApi->info($slackChannelId, false);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
+     */
+    public function testInfoGroupException()
+    {
+        $slackChannelId = "C2Z4D897";
+
+        $this->slackApi->info($slackChannelId, true);
+    }
+
+    public function testInvitePublicChannel()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "C1Z920QKC";
+
+        $this->assertNull($this->slackApi->invite($slackUserId, $slackChannelId, false));
+    }
+
+    public function testInvitePrivateChannel()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "G1Z9267L1";
+
+        $this->assertNull($this->slackApi->invite($slackUserId, $slackChannelId, true));
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
+     */
+    public function testInvitePublicChannelException()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "C1Z920QKD";
+
+        $this->slackApi->invite($slackUserId, $slackChannelId, false);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
+     */
+    public function testInvitePrivateChannelException()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "G1Z9267L2";
+
+        $this->slackApi->invite($slackUserId, $slackChannelId, true);
+    }
+
+    public function testKickPublicChannel()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "C1Z920QKC";
+
+        $this->assertNull($this->slackApi->kick($slackUserId, $slackChannelId, false));
+    }
+
+    public function testKickPrivateChannel()
+    {
+        $slackUserId = "U1Z9LT9NK";
+        $slackChannelId = "G1Z9267L1";
+
+        $this->assertNull($this->slackApi->kick($slackUserId, $slackChannelId, true));
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
+     */
     public function testKickPublicChannelException()
     {
         $slackUserId = "U1Z8TCZAT";
         $slackChannelId = "C1Z920QKC";
 
-        $this->expectException(SlackChannelException::class);
         $this->slackApi->kick($slackUserId, $slackChannelId, false);
     }
 
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
+     */
     public function testKickPrivateChannelException()
     {
         $slackUserId = "U1Z8TCZAT";
         $slackChannelId = "C1Z8J1BFY";
 
-        $this->expectException(SlackGroupException::class);
         $this->slackApi->kick($slackUserId, $slackChannelId, true);
     }
 
@@ -106,7 +209,7 @@ class SlackApiTest extends TestCase
         $apiResponse = $this->slackApi->channels(false);
         $artifact = $this->getArtifactPath("public_channel.json");
 
-        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[0]));
+        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[1]));
     }
 
     public function testPrivateChannels()
@@ -117,12 +220,63 @@ class SlackApiTest extends TestCase
         $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[0]));
     }
 
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
+     */
+    public function testPublicChannelException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $testApi->channels(false);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
+     */
+    public function testPrivateChannelException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $testApi->channels(true);
+    }
+
     public function testMembers()
     {
         $apiResponse = $this->slackApi->members();
         $artifact = $this->getArtifactPath("member.json");
 
         $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[3]));
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackUserException
+     */
+    public function testMembersException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $testApi->members();
+    }
+
+    public function testRtm()
+    {
+        $apiResponse = $this->slackApi->rtmStart();
+
+        $this->assertNotEmpty($apiResponse);
+    }
+
+    /**
+     * @expectedException Seat\Slackbot\Exceptions\SlackApiException
+     */
+    public function testRtmException()
+    {
+        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
+        $testApi = new SlackApi($wrongToken);
+
+        $testApi->rtmStart();
     }
 
     private function getArtifactPath($artifactName)

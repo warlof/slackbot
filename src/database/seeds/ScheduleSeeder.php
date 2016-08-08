@@ -32,8 +32,9 @@ class ScheduleSeeder extends Seeder
                 ->where('expression', $job['expression'])
                 ->first();
 
-            if (!$existing)
+            if (!$existing) {
                 DB::table('schedules')->insert($job);
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ use Seat\Slackbot\Models\SlackUser;
 class SlackReceptionist extends AbstractSlack
 {
 
-    function call()
+    public function call()
     {
         // call the parent call method in order to load the Slack Api Token
         parent::call();
@@ -72,7 +72,7 @@ class SlackReceptionist extends AbstractSlack
      * @throws SlackMailException
      * @throws SlackTeamInvitationException
      */
-    function processMemberInvitation(User $user)
+    private function processMemberInvitation(User $user)
     {
         try {
             $this->getSlackApi()->inviteToTeam($user->email);
@@ -97,7 +97,7 @@ class SlackReceptionist extends AbstractSlack
      * @param array $channels
      * @throws SlackChannelException
      */
-    function processChannelsInvitation(SlackUser $slackUser, $channels)
+    private function processChannelsInvitation(SlackUser $slackUser, $channels)
     {
         // iterate over each channel ID and invite the user
         foreach ($channels as $channelId) {
@@ -112,7 +112,7 @@ class SlackReceptionist extends AbstractSlack
      * @param array $groups
      * @throws SlackGroupException
      */
-    function processGroupsInvitation(SlackUser $slackUser, $groups)
+    private function processGroupsInvitation(SlackUser $slackUser, $groups)
     {
         // iterate over each group ID and invite the user
         foreach ($groups as $groupId) {

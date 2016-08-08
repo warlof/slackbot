@@ -24,7 +24,8 @@ class SlackDaemon extends Command
 {
     protected $signature = 'slack:daemon:run';
 
-    protected $description = 'Slack service which handle Slack event. Mandatory in order to keep slack user and channels up to date.';
+    protected $description = 'Slack service which handle Slack event.' .
+        ' Mandatory in order to keep slack user and channels up to date.';
 
     public function __construct()
     {
@@ -35,8 +36,9 @@ class SlackDaemon extends Command
     {
         $token = Seat::get('slack_token');
 
-        if ($token == null)
+        if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
+        }
 
         // call rtm method in order to get a fresh new WSS uri
         $api = new SlackApi($token);
@@ -60,7 +62,8 @@ class SlackDaemon extends Command
                     case 'team_join':
                         $this->newMember($slackMessage['user']);
                         break;
-                    // if the event is of type "channel_created", then update our Slack channel table using new slack channel id
+                    // if the event is of type "channel_created"
+                    // then update our Slack channel table using new slack channel id
                     case 'group_joined':
                     case 'channel_created':
                         $this->createChannel($slackMessage['channel']);
@@ -131,9 +134,11 @@ class SlackDaemon extends Command
             $channel->update([
                 'name' => $channelInformation['name']
             ]);
-        } else {
-            $this->createChannel($channelInformation);
+
+            return;
         }
+
+        $this->createChannel($channelInformation);
     }
 
     private function restoreGroup($groupId)
@@ -141,8 +146,9 @@ class SlackDaemon extends Command
         // load token and team uri from settings
         $token = Seat::get('slack_token');
 
-        if ($token == null)
+        if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
+        }
 
         $slackApi = new SlackApi($token);
         $apiGroup = $slackApi->info($groupId, true);

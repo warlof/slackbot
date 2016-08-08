@@ -109,6 +109,9 @@
                 <li role="presentation">
                     <a href="#slackbot-alliance">{{ trans('slackbot::seat.alliance_filter') }}</a>
                 </li>
+                <li role="presentation">
+                    <a href="#test">Test</a>
+                </li>
             </ul>
 
             <div class="tab-content">
@@ -271,6 +274,45 @@
                         @endforeach
                         </tbody>
                     </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="test">
+                    <form method="post">
+                        <table class="table table-condensed table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    @foreach($corporations as $corporation)
+                                    <th style="height: 140px; white-space: nowrap;">
+                                        <div style="transform: translate(0, -5px) rotate(315deg); width: 30px;">
+                                            <span>{{ $corporation->corporationName }}</span>
+                                        </div>
+                                    </th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($channels as $channel)
+                                <tr>
+                                    <td>{{ $channel->name }}</td>
+                                    @foreach($corporations as $corporation)
+                                    <td>
+                                        <input type="checkbox" id="corp-{{ $corporation->corporationID }}-{{ $channel->id }}"
+                                               title="Allow {{ $corporation->corporationName }} to join {{ $channel->name }}" />
+                                    </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                        <div class="btn btn-group pull-right">
+                            <button type="button" class="btn btn-danger">
+                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reset
+                            </button>
+                            <button type="button" class="btn btn-success">
+                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Validate
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -32,11 +32,11 @@ class SlackUpdater extends Job implements SelfHandling, ShouldQueue
     {
         $jobTracker = $this->trackOrDismiss();
 
-        if (!$jobTracker)
+        if (!$jobTracker) {
             return;
+        }
 
         try {
-
             $jobTracker->status = 'Working';
             $jobTracker->output = 'Started Slack Update';
             $jobTracker->save();

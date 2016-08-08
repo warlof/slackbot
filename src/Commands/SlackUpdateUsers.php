@@ -30,8 +30,9 @@ class SlackUpdateUsers extends Command
     {
         $token = Seat::get('slack_token');
 
-        if ($token == null)
+        if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
+        }
 
         // get members list from slack team
         $api = new SlackApi($token);
@@ -41,7 +42,6 @@ class SlackUpdateUsers extends Command
         foreach ($members as $m) {
             if ($m['deleted'] == false && $m['is_bot'] ==  false &&
                 !key_exists('api_app_id', $m['profile'])) {
-
                 $user = User::where('email', '=', $m['profile']['email'])->first();
                 if ($user != null) {
                     $slackUser = SlackUser::find($user->id);

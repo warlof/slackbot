@@ -29,19 +29,18 @@ class SlackUpdateChannels extends Command
     {
         $token = Seat::get('slack_token');
 
-        if ($token == null)
+        if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
+        }
         
         $api = new SlackApi($token);
 
         $channels = array_merge($api->channels(false), $api->channels(true));
 
         foreach ($channels as $channel) {
-
             $slackChannel = SlackChannel::find($channel['id']);
 
             if ($slackChannel == null) {
-
                 $slackChannel = new SlackChannel();
                 $slackChannel->id = $channel['id'];
                 $slackChannel->name = $channel['name'];
@@ -55,11 +54,12 @@ class SlackUpdateChannels extends Command
 
                 $slackChannel->save();
 
-            } else {
-                $slackChannel->update([
-                    'name' => $channel['name']
-                ]);
+                continue;
             }
+
+            $slackChannel->update([
+                'name' => $channel['name']
+            ]);
         }
 
     }

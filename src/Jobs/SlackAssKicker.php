@@ -13,7 +13,7 @@ use Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractSlack
 {
-    function call()
+    public function call()
     {
         // call the parent call method in order to load the Slack Api Token
         parent::call();
@@ -27,7 +27,6 @@ class SlackAssKicker extends AbstractSlack
             ->first();
 
         if ($slackUser != null) {
-
             // get channels into which current user is already member
             $channels = $this->getSlackApi()->member($slackUser->slack_id, false);
             $groups = $this->getSlackApi()->member($slackUser->slack_id, true);
@@ -88,7 +87,7 @@ class SlackAssKicker extends AbstractSlack
      * @param $channels
      * @throws \Seat\Slackbot\Exceptions\SlackChannelException
      */
-    function processChannelsKick(SlackUser $slackUser, $channels)
+    private function processChannelsKick(SlackUser $slackUser, $channels)
     {
         // iterate channel ID and call kick method from Slack Api
         foreach ($channels as $channelId) {
@@ -103,7 +102,7 @@ class SlackAssKicker extends AbstractSlack
      * @param $groups
      * @throws \Seat\Slackbot\Exceptions\SlackGroupException
      */
-    function processGroupsKick(SlackUser $slackUser, $groups)
+    private function processGroupsKick(SlackUser $slackUser, $groups)
     {
         // iterate group ID and call kick method from Slack Api
         foreach ($groups as $groupId) {

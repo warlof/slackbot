@@ -1,19 +1,19 @@
 {
-  "id": "G1Z9267L1",
-  "name": "private-channel",
+  "id": "G1ZUXJZSL",
+  "name": "static-private",
   "is_group": true,
-  "created": 1470670608,
+  "created": 1470817085,
   "creator": "U1Z8TCZAT",
   "is_archived": false,
   "is_mpim": false,
   "is_open": true,
-  "last_read": "1470670608.000002",
+  "last_read": "0000000000.000000",
   "latest": {
     "user": "U1Z8TCZAT",
     "text": "<@U1Z8TCZAT|warlof> has joined the group",
     "type": "message",
     "subtype": "group_join",
-    "ts": "1470670608.000002"
+    "ts": "1470817085.000002"
   },
   "unread_count": 0,
   "unread_count_display": 0,
