@@ -8,22 +8,16 @@
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutTodoAnnotatedTests="true"
          verbose="true">
-    <testsuite>
-        <directory suffix="Test.php">tests</directory>
-    </testsuite>
+
+    <testsuites>
+        <testsuite name="Warlof\Slackbot Test Suite">
+            <directory suffix="Test.php">./tests/</directory>
+        </testsuite>
+    </testsuites>
 
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="false">
+        <whitelist addUncoveredFilesFromWhitelist="false">
             <directory suffix=".php">src</directory>
-            <exclude>
-                <directory suffix=".php">src/resources</directory>
-                <directory suffix=".php">src/Config</directory>
-                <directory suffix=".php">src/database</directory>
-                <directory suffix=".php">src/lang</directory>
-                <directory suffix=".php">src/Http</directory>
-                <directory suffix=".php">src/Jobs</directory>
-                <file>src/SlackbotServiceProvider.php</file>
-            </exclude>
         </whitelist>
     </filter>
 
