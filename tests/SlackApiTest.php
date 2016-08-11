@@ -64,32 +64,6 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($apiResponse, $slackChannelsId);
     }
 
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
-     */
-    public function testMemberPublicException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $slackUserId = "U1Z8TCZAT";
-
-        $testApi->member($slackUserId, false);
-    }
-
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
-     */
-    public function testMemberGroupException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $slackUserId = "U1Z8TCZAT";
-
-        $testApi->member($slackUserId, true);
-    }
-
     public function testInfoPublicChannel()
     {
         $slackChannelId = "C1Z8J1BFY";
@@ -187,8 +161,8 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
      */
     public function testKickPublicChannelException()
     {
-        $slackUserId = "U1Z8TCZAT";
-        $slackChannelId = "C1Z920QKC";
+        $slackUserId = "U1Z8TCZA3";
+        $slackChannelId = "G1Z920QKC";
 
         $this->slackApi->kick($slackUserId, $slackChannelId, false);
     }
@@ -198,7 +172,7 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
      */
     public function testKickPrivateChannelException()
     {
-        $slackUserId = "U1Z8TCZAT";
+        $slackUserId = "U1Z8TCZA3";
         $slackChannelId = "C1Z8J1BFY";
 
         $this->slackApi->kick($slackUserId, $slackChannelId, true);
@@ -220,45 +194,12 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
         $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[0]));
     }
 
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackChannelException
-     */
-    public function testPublicChannelException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $testApi->channels(false);
-    }
-
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackGroupException
-     */
-    public function testPrivateChannelException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $testApi->channels(true);
-    }
-
     public function testMembers()
     {
         $apiResponse = $this->slackApi->members();
         $artifact = $this->getArtifactPath("member.json");
 
         $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[3]));
-    }
-
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackUserException
-     */
-    public function testMembersException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $testApi->members();
     }
 
     public function testRtm()
@@ -277,6 +218,12 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
         $testApi = new SlackApi($wrongToken);
 
         $testApi->rtmStart();
+    }
+
+    public function testOwnerKick()
+    {
+        $testUser = 'U1Z8TCZAT';
+        $this->assertNull($this->slackApi->kick($testUser, 'C1Z920QKD', false));
     }
 
     private function getArtifactPath($artifactName)

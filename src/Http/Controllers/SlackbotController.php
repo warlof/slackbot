@@ -57,7 +57,7 @@ class SlackbotController extends Controller
     
     public function getLogs()
     {
-        $logs = SlackLog::all();
+        $logs = SlackLog::orderBy('created_at', 'desc')->take(30)->get();
 
         return view('slackbot::logs', compact('logs'));
     }

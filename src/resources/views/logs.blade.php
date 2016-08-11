@@ -37,7 +37,7 @@
 @section('right')
     <div class="panel panel-default">
         <div class="panel-heading">
-            <h3 class="panel-title">Event logs</h3>
+            <h3 class="panel-title">Last Event logs</h3>
         </div>
         <div class="panel-body">
             <table class="table table-condensed table-hover table-responsive no-margin">

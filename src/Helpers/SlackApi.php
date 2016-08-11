@@ -27,50 +27,45 @@ class SlackApi
     private $token;
 
     /**
+     * @var string The Slack token Owner User ID
+     */
+    private $tokenOwnerId;
+
+    /**
      * SlackApi constructor.
      * @param $token
      */
     public function __construct($token)
     {
         $this->token = $token;
+
+        $tokenInfo = $this->tokenInformation();
+        $this->tokenOwnerId = $tokenInfo['user_id'];
     }
-    
+
     /**
-     * Make a post action to the Slack API
-     * 
-     * @param string $endpoint Slack API method
-     * @param array $parameters Slack API parameters (except token)
-     * @return array An array from the Slack API response (json parsed)
+     * Return information about current token
+     * ['ok' => true,
+     * 'url' => 'slack team uri',
+     * 'team' => 'slack team name',
+     * 'user' => 'token owner name',
+     * 'team_id' => 'slack team id',
+     * 'user_id' => 'slack team id']
+     *
      * @throws SlackApiException
+     * @return array
      */
-    private function post($endpoint, $parameters = [])
+    public function tokenInformation()
     {
-        // add slack token to the post parameters
-        $parameters['token'] = $this->token;
+        $result = $this->post('/auth.test');
 
-        // prepare curl request using passed parameters and endpoint
-        $curl = curl_init();
-        // concatenate API endpoint with constant api URI
-        curl_setopt($curl, CURLOPT_URL, self::SLACK_URI_PATTERN . $endpoint);
-        // send all request using HTTP/POST
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($parameters));
-        // ask curl to wait until server answer
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        // inform Slack about who's sending the query
-        curl_setopt($curl, CURLOPT_USERAGENT, 'Seat-Slackbot/0.x mail=loic.leuilliot@gmail.com');
-
-        // Slack is talking with us using JSON, fetch the result and convert into array
-        $result = json_decode(curl_exec($curl), true);
-
-        // check that the request has been received successfully. If not, fire an exception
-        if ($result == null) {
-            throw new SlackApiException("An error occurred while calling the Slack API\r\n" . curl_error($curl));
+        if ($result['ok'] == false) {
+            throw new SlackApiException($result['error']);
         }
 
         return $result;
     }
-
+    
     /**
      * Invite an user to the Slack team using a specific mail address
      * 
@@ -258,6 +253,11 @@ class SlackApi
             'user' => $userId
         ];
 
+        // We can't kick token owner himself
+        if ($userId == $this->tokenOwnerId) {
+            return;
+        }
+
         // The request is for a private channel, call groups endpoint
         if ($private) {
             // fetch group information from Slack API in order to avoid to kick somebody who's not in the channel
@@ -374,5 +374,41 @@ class SlackApi
 
         // return the short life token which should be used with RTM Api
         return $result['url'];
+    }
+
+    /**
+     * Make a post action to the Slack API
+     *
+     * @param string $endpoint Slack API method
+     * @param array $parameters Slack API parameters (except token)
+     * @return array An array from the Slack API response (json parsed)
+     * @throws SlackApiException
+     */
+    private function post($endpoint, $parameters = [])
+    {
+        // add slack token to the post parameters
+        $parameters['token'] = $this->token;
+
+        // prepare curl request using passed parameters and endpoint
+        $curl = curl_init();
+        // concatenate API endpoint with constant api URI
+        curl_setopt($curl, CURLOPT_URL, self::SLACK_URI_PATTERN . $endpoint);
+        // send all request using HTTP/POST
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($parameters));
+        // ask curl to wait until server answer
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        // inform Slack about who's sending the query
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Seat-Slackbot/0.x mail=loic.leuilliot@gmail.com');
+
+        // Slack is talking with us using JSON, fetch the result and convert into array
+        $result = json_decode(curl_exec($curl), true);
+
+        // check that the request has been received successfully. If not, fire an exception
+        if ($result == null) {
+            throw new SlackApiException("An error occurred while calling the Slack API\r\n" . curl_error($curl));
+        }
+
+        return $result;
     }
 }
