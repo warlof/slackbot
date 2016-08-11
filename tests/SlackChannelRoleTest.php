@@ -38,7 +38,7 @@ class SlackChannelRoleTest extends TestCase
         $this->assertEquals($artifact, $permission->channel);
     }
 
-    public function testCorporation()
+    public function testRole()
     {
         $permission = SlackChannelRole::where('role_id', '=', 1)->first();
         $artifact = Role::find(1);
