@@ -49,10 +49,10 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
     public function testMemberPublicChannel()
     {
         $slackUserId = "U1Z8TCZAT";
-        $slackChannelsId = ["C1Z8J1BFY", "C1Z920QKC"];
+        $slackChannelsId = ["C1Z920QKC"];
         $apiResponse = $this->slackApi->member($slackUserId, false);
 
-        $this->assertEquals($apiResponse, $slackChannelsId);
+        $this->assertEquals($slackChannelsId, $apiResponse);
     }
 
     public function testMemberPrivateChannel()

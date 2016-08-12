@@ -11,14 +11,12 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Slackbot\Exceptions\SlackChannelException;
 use Seat\Slackbot\Exceptions\SlackGroupException;
 use Seat\Slackbot\Exceptions\SlackMailException;
-use Seat\Slackbot\Models\SlackLog;
 use Seat\Web\Models\User;
 use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Seat\Slackbot\Models\SlackUser;
 
 class SlackReceptionist extends AbstractSlack
 {
-
     public function call()
     {
         // call the parent call method in order to load the Slack Api Token
@@ -32,33 +30,31 @@ class SlackReceptionist extends AbstractSlack
             // if the user is not yet invited, invite him to team
             if ($this->isInvited($this->user) == false) {
                 $this->processMemberInvitation($this->user);
-
                 return;
             }
 
             // in other case, invite him to channels and groups
             // get the attached slack user
             $slackUser = SlackUser::where('user_id', $this->user->id)->first();
-            // control that we already know it's slack ID (mean that he creates his account
+            // control that we already know it's slack ID (mean that he creates his account)
             if ($slackUser->slack_id != null) {
                 $allowedChannels = $this->allowedChannels($slackUser, false);
+                $memberOfChannels = $this->getSlackApi()->member($slackUser->slack_id, false);
+                $missingChannels = array_diff($allowedChannels, $memberOfChannels);
+
+                if (!empty($missingChannels)) {
+                    $this->processChannelsInvitation($slackUser, $missingChannels);
+                    $this->logEvent('invite', $missingChannels);
+                }
+
                 $allowedGroups = $this->allowedChannels($slackUser, true);
+                $memberOfGroups = $this->getSlackApi()->member($slackUser->slack_id, true);
+                $missingGroups = array_diff($allowedGroups, $memberOfGroups);
 
-                $this->processChannelsInvitation($slackUser, $allowedChannels);
-
-                $slackLog = new SlackLog();
-                $slackLog->event = 'invite';
-                $slackLog->message = 'The user ' . $this->user->name .
-                    ' has been invited to following channels : ' . implode(',', $allowedChannels);
-                $slackLog->save();
-
-                $this->processGroupsInvitation($slackUser, $allowedGroups);
-
-                $slackLog = new SlackLog();
-                $slackLog->event = 'invite';
-                $slackLog->message = 'The user ' . $this->user->name .
-                    ' has been invited to following channels : ' . implode(',', $allowedGroups);
-                $slackLog->save();
+                if (!empty($missingGroups)) {
+                    $this->processGroupsInvitation($slackUser, $missingGroups);
+                    $this->logEvent('invite', $missingGroups);
+                }
             }
         }
 
@@ -78,15 +74,12 @@ class SlackReceptionist extends AbstractSlack
             $this->getSlackApi()->inviteToTeam($user->email);
 
             // update Slack user relation
-            $slackUser = new SlackUser();
-            $slackUser->user_id = $user->id;
-            $slackUser->invited = true;
-            $slackUser->save();
+            SlackUser::create([
+                'user_id' => $user->id,
+                'invited' => true
+            ]);
         } catch (SlackMailException $e) {
-            $slackLog = new SlackLog();
-            $slackLog->event = 'mail';
-            $slackLog->message = 'The mail address for user ' . $user->name . ' has not been set (' . $user->email .')';
-            $slackLog->save();
+            $this->logEvent('mail');
         }
     }
 

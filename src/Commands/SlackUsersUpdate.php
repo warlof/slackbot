@@ -15,9 +15,9 @@ use Seat\Slackbot\Helpers\SlackApi;
 use Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
 
-class SlackUpdateUsers extends Command
+class SlackUsersUpdate extends Command
 {
-    protected $signature = 'slack:update:users';
+    protected $signature = 'slack:users:update';
 
     protected $description = 'Discovering Slack users';
 
@@ -54,7 +54,6 @@ class SlackUpdateUsers extends Command
                     $slackUser->slack_id = $m['id'];
                     $slackUser->save();
                 }
-
             }
         }
     }

@@ -1,20 +1,20 @@
 <?php
+
 /**
  * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 10/08/2016
- * Time: 09:29
+ * Date: 09/08/2016
+ * Time: 16:25
  */
 
 namespace Seat\Slackbot\Tests;
 
-
 use Orchestra\Testbench\TestCase;
 use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Commands\SlackUpdateUsers;
+use Seat\Slackbot\Commands\SlackChannelsUpdate;
 use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackUser;
+use Seat\Slackbot\Models\SlackChannel;
 
-class SlackUpdateUsersTest extends TestCase
+class SlackChannelsUpdateTest extends TestCase
 {
     /**
      * @var SlackApi
@@ -46,26 +46,43 @@ class SlackUpdateUsersTest extends TestCase
         $this->slackApi = new SlackApi($token);
     }
 
-    public function testUserUpdate()
+    public function testChannelUpdate()
     {
         // pre test
         Seat::set('slack_token', getenv('slack_token'));
 
-        $artifacts = [new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
-            new SlackUser(['user_id' => 3, 'slack_id' => 'U1Z9LT9NK'])];
-
         // test
-        $job = new SlackUpdateUsers();
+
+        // get list of channels
+        $channels = array_merge(
+            $this->slackApi->channels(false),
+            $this->slackApi->channels(true)
+        );
+
+        // store all channels in an array of object
+        $artifacts = [];
+
+        foreach ($channels as $c) {
+            $artifacts[] = new SlackChannel([
+                'id' => $c['id'],
+                'name' => $c['name']
+            ]);
+        }
+
+        // call slack:update:channels command
+        $job = new SlackChannelsUpdate();
         $job->handle();
 
-        $inDatabaseMember  = SlackUser::all(['user_id', 'slack_id']);
+        // fetch in database channels
+        $inDatabase = SlackChannel::all(['id', 'name']);
 
+        // convert to an array of "new object"
         $result = [];
 
-        foreach ($inDatabaseMember as $member) {
-            $result[] = new SlackUser([
-                'user_id' => $member->user_id,
-                'slack_id' => $member->slack_id
+        foreach ($inDatabase as $object) {
+            $result[] = new SlackChannel([
+                'id' => $object->id,
+                'name' => $object->name
             ]);
         }
 
@@ -82,7 +99,7 @@ class SlackUpdateUsersTest extends TestCase
         Seat::set('slack_token', '');
 
         // test
-        $job = new SlackUpdateUsers();
+        $job = new SlackChannelsUpdate();
         $job->handle();
     }
 }

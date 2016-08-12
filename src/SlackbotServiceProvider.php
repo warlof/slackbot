@@ -5,8 +5,8 @@ namespace Seat\Slackbot;
 use Illuminate\Support\ServiceProvider;
 use Seat\Slackbot\Commands\SlackDaemon;
 use Seat\Slackbot\Commands\SlackUpdate;
-use Seat\Slackbot\Commands\SlackUpdateChannels;
-use Seat\Slackbot\Commands\SlackUpdateUsers;
+use Seat\Slackbot\Commands\SlackChannelsUpdate;
+use Seat\Slackbot\Commands\SlackUsersUpdate;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -45,8 +45,8 @@ class SlackbotServiceProvider extends ServiceProvider
     {
         $this->commands([
             SlackUpdate::class,
-            SlackUpdateChannels::class,
-            SlackUpdateUsers::class,
+            SlackChannelsUpdate::class,
+            SlackUsersUpdate::class,
             SlackDaemon::class
         ]);
     }

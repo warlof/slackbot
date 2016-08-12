@@ -1,3 +1,19 @@
+# Version 0.7.0
+fix log issues which was logging event even when they didn't happen.
+rename slack command
+exclude general channel from member list and add general flag to channels
+
+**Warning**
+> This update is an upgrade and need a migration, run `php artisan migrate` command in order to update schemas.
+
+> This update replace `slack:update:channels` and `slack:update:users` with `slack:channels:update`
+and `slack:users:update` respectively.
+
+> Due to latest modification, you need to run `slack:channels:update` command in order to update your `slack_channels`
+flags.
+
+Report any bugs on [github](https://github.com/warlof/slackbot/issues).
+
 # Version 0.5.8
 add test coverage for SlackApi Helper
 fix Daemon issue related to user and channel creation

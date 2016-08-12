@@ -15,8 +15,8 @@ VALUES ('1', 'Superuser');
 INSERT INTO `slack_users` (`user_id`, `slack_id`, `invited`, `created_at`, `updated_at`)
 VALUES ('1', 'U1Z9LT9NM', '1', '2016-08-10 07:43:35', '2016-08-10 07:43:35');
 
-INSERT INTO `slack_channels` (`id`, `name`, `is_group`, `created_at`, `updated_at`)
-VALUES ('C1Z920QKC', 'random2', 0, '2016-08-09 20:59:44', '2016-08-09 20:59:44');
+INSERT INTO `slack_channels` (`id`, `name`, `is_group`, `is_general`, `created_at`, `updated_at`)
+VALUES ('C1Z920QKC', 'random2', 0, 0, '2016-08-09 20:59:44', '2016-08-09 20:59:44');
 
 INSERT INTO `slack_channel_corporations` (`corporation_id`, `channel_id`, `enable`, `created_at`, `updated_at`)
 VALUES ('98413060', 'C1Z920QKC', '1', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
