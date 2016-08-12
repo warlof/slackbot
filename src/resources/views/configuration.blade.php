@@ -98,7 +98,7 @@
                     @if($token == '')
                         <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack channels and groups</a>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:update:channels']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</a>
+                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:channels:update']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</a>
                     @endif
                     <span class="help-block">
                         This will update known channels and groups from Slack.
@@ -111,7 +111,7 @@
                     @if($token == '')
                         <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack users</a>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:update:users']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</a>
+                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:users:update']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</a>
                     @endif
                     <span class="help-block">
                         This will try to update known users from Slack Team based on both Slack user email and SeAT user email.

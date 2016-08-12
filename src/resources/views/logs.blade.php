@@ -71,5 +71,14 @@
                 </tbody>
             </table>
         </div>
+        <div class="panel-footer clearfix">
+            @if($logs->count() == 0)
+                <a href="#" type="button" class="btn btn-danger btn-sm pull-right disabled" role="button">
+                    Clear</a>
+            @else
+                <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:logs:clear']) }}" type="button"
+                   class="btn btn-danger btn-sm pull-right" role="button">Clear</a>
+            @endif
+        </div>
     </div>
 @stop

@@ -4,6 +4,7 @@ namespace Seat\Slackbot;
 
 use Illuminate\Support\ServiceProvider;
 use Seat\Slackbot\Commands\SlackDaemon;
+use Seat\Slackbot\Commands\SlackLogsClear;
 use Seat\Slackbot\Commands\SlackUpdate;
 use Seat\Slackbot\Commands\SlackChannelsUpdate;
 use Seat\Slackbot\Commands\SlackUsersUpdate;
@@ -47,6 +48,7 @@ class SlackbotServiceProvider extends ServiceProvider
             SlackUpdate::class,
             SlackChannelsUpdate::class,
             SlackUsersUpdate::class,
+            SlackLogsClear::class,
             SlackDaemon::class
         ]);
     }

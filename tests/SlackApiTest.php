@@ -123,8 +123,8 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvitePublicChannelException()
     {
-        $slackUserId = "U1Z9LT9NK";
-        $slackChannelId = "C1Z920QKD";
+        $slackUserId = "U1Z9LT9NP";
+        $slackChannelId = "C1Z920QKC";
 
         $this->slackApi->invite($slackUserId, $slackChannelId, false);
     }
@@ -134,8 +134,8 @@ class SlackApiTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvitePrivateChannelException()
     {
-        $slackUserId = "U1Z9LT9NK";
-        $slackChannelId = "G1Z9267L2";
+        $slackUserId = "U1Z9LT9NP";
+        $slackChannelId = "G1Z9267L1";
 
         $this->slackApi->invite($slackUserId, $slackChannelId, true);
     }

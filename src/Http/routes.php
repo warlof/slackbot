@@ -69,13 +69,6 @@ Route::group([
         'middleware' => 'bouncer:slackbot.setup'
     ]);
 
-    /*
-    Route::get('/callback', [
-        'as' => 'slackbot.callback',
-        'uses' => 'SlackbotController@getOAuthToken'
-    ]);
-    */
-
     Route::post('/configuration', [
         'as' => 'slackbot.configuration.post',
         'uses' => 'SlackbotController@postConfiguration',
