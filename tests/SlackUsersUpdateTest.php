@@ -52,6 +52,7 @@ class SlackUsersUpdateTest extends TestCase
         Seat::set('slack_token', getenv('slack_token'));
 
         $artifacts = [new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
+            new SlackUser(['user_id' => 2, 'slack_id' => 'U1Z9QVCJW']),
             new SlackUser(['user_id' => 3, 'slack_id' => 'U1Z9LT9NK'])];
 
         // test
