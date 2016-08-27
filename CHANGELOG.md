@@ -1,10 +1,13 @@
+# Version 0.7.2
+remove MPM channels from private channels list
+
 # Version 0.7.0
 fix log issues which was logging event even when they didn't happen.
 rename slack command
 exclude general channel from member list and add general flag to channels
 
 **Warning**
-> This update is an upgrade and need a migration, run `php artisan migrate` command in order to update schemas.
+> This update is an upgrade and need a migration. Run `php artisan migrate` command in order to update schemas.
 
 > This update replace `slack:update:channels` and `slack:update:users` with `slack:channels:update`
 and `slack:users:update` respectively.
