@@ -319,8 +319,16 @@ class SlackApi
                 throw new SlackGroupException($result['error']);
             }
 
+            // we only care about private channel, iterate over the result and exclude the MPIM (private message)
+            $data = [];
+            foreach ($result['groups'] as $g) {
+                if ($g['is_mpim'] == false) {
+                    $data[] = $g;
+                }
+            }
+
             // return only channels array which handle channels information like id or name
-            return $result['groups'];
+            return $data;
         }
 
         // send request to Slack API and fetch result

@@ -9,20 +9,11 @@
 namespace Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Commands\SlackChannelsUpdate;
 use Seat\Slackbot\Commands\SlackLogsClear;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackChannel;
 use Seat\Slackbot\Models\SlackLog;
 
 class SlackLogsClearTest extends TestCase
 {
-    /**
-     * @var SlackApi
-     */
-    private $slackApi;
-
     public function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'mysql');
@@ -38,7 +29,7 @@ class SlackLogsClearTest extends TestCase
         ]);
     }
 
-    public function testChannelUpdate()
+    public function testLogsClear()
     {
         $logAmount = SlackLog::all()->count();
         $this->assertGreaterThan(0, $logAmount);
@@ -50,18 +41,5 @@ class SlackLogsClearTest extends TestCase
 
         // compare both array
         $this->assertEquals(0, $logAmount);
-    }
-
-    /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackSettingException
-     */
-    public function testTokenException()
-    {
-        // pre test
-        Seat::set('slack_token', '');
-
-        // test
-        $job = new SlackChannelsUpdate();
-        $job->handle();
     }
 }

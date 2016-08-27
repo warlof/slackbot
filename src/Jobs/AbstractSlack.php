@@ -28,7 +28,7 @@ abstract class AbstractSlack
     protected $user;
 
     /**
-     * @var string The Slack Token API
+     * @var SlackApi The Slack Token API
      */
     private $slackApi;
 
