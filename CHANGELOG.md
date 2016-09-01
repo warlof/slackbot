@@ -1,3 +1,6 @@
+# Version 0.7.3
+Add a local channels clear which will delete no longer valid channels to the command `slack:channels:update` if there is an issue with the daemon.
+
 # Version 0.7.2
 remove MPM channels from private channels list
 

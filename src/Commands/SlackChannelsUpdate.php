@@ -33,14 +33,25 @@ class SlackChannelsUpdate extends Command
             throw new SlackSettingException("missing slack_token in settings");
         }
 
+        // init Slack Api using token
         $api = new SlackApi($token);
 
+        // make a call in order to fetch both public and private channels
         $channels = array_merge($api->channels(false), $api->channels(true));
 
+        $slackChannelIds = [];
+
+        // iterate over each slack channel and create or update information from SeAT
         foreach ($channels as $channel) {
-            $slackChannel = SlackChannel::find($channel['id']);
+            // init channels ids array which will be used later in order to remove outdate channels
+            $slackChannelIds[] = $channel['id'];
+
+            // init flags to default value
             $isGroup = true;
             $isGeneral = false;
+
+            // try to get channel object from SeAT
+            $slackChannel = SlackChannel::find($channel['id']);
 
             // Determine if this is a group (private channel) or a channel
             if (substr($channel['id'], 0, 1) === 'C') {
@@ -51,6 +62,7 @@ class SlackChannelsUpdate extends Command
                 $isGeneral = (boolean) $channel['is_general'];
             }
 
+            // create the channel if it doesn't exist
             if ($slackChannel == null) {
                 SlackChannel::create([
                     'id' => $channel['id'],
@@ -62,10 +74,23 @@ class SlackChannelsUpdate extends Command
                 continue;
             }
 
+            // update the channel if it is already known by SeAT
             $slackChannel->update([
                 'name' => $channel['name'],
                 'is_general' => $isGeneral
             ]);
         }
+
+        // get all known channels from SeAT
+        SlackChannel::whereNotIn('id', $slackChannelIds)->delete();
+        /*
+        // iterate over each of them and check if they are still valid
+        // if not, we will remove them from the database since they are no longer usable
+        foreach ($seatChannels as $channel) {
+            if (in_array($channel->id, $slackChannelIds) == false) {
+                $channel->delete();
+            }
+        }
+        */
     }
 }

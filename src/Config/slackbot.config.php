@@ -5,6 +5,9 @@
  * Time: 18:39
  */
 
+/*
+ * TODO: lazy coder, remember to edit this file before TAG ! DAMMIT !
+ */
 return [
-    'version'   => '0.7.1'
+    'version'   => '0.7.3'
 ];
