@@ -1,3 +1,7 @@
+# Version 0.7.4
+Add a constraint into `slack:users:update` command which exclude `slackbot` from valid users. It appears that `slackbot` is not considered as a bot by Slack API.
+We're waiting for a ticket issue response from Slack Team related to this bug.
+
 # Version 0.7.3
 Add a local channels clear which will delete no longer valid channels to the command `slack:channels:update` if there is an issue with the daemon.
 
