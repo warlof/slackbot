@@ -207,6 +207,9 @@ abstract class AbstractSlack
                 $message = 'The mail address for user ' . $this->user->name . ' has not been set (' .
                     $this->user->email . ')';
                 break;
+            case 'sync':
+                $message = 'The SeAT database is not synced with Slack users.';
+                break;
         }
 
         SlackLog::create([

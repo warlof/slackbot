@@ -80,6 +80,8 @@ class SlackReceptionist extends AbstractSlack
             ]);
         } catch (SlackMailException $e) {
             $this->logEvent('mail');
+        } catch (SlackTeamInvitationException $e) {
+            $this->logEvent('sync');
         }
     }
 

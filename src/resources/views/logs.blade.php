@@ -58,7 +58,7 @@
                             <span class="label label-danger">{{ $log->event }}</span>
                             @elseif($log->event == 'invite')
                             <span class="label label-success">{{ $log->event }}</span>
-                            @elseif($log->event == 'kick')
+                            @elseif($log->event == 'kick' || $log->event == 'sync')
                             <span class="label label-warning">{{ $log->event }}</span>
                             @else
                             <span class="label label-info">{{ $log->event }}</span>
