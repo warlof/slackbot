@@ -1,3 +1,7 @@
+# Version 0.7.5
+Handle `Team Invitation` exception in logs in order to avoid to barrely spam SeAT stats with unrelevant exception.
+Introduce a new event kind called "sync" into which those exception are published.
+
 # Version 0.7.4
 Add a constraint into `slack:users:update` command which exclude `slackbot` from valid users. It appears that `slackbot` is not considered as a bot by Slack API.
 We're waiting for a ticket issue response from Slack Team related to this bug.
