@@ -5,13 +5,13 @@
  * Time: 11:49
  */
 
-namespace Seat\Slackbot\Tests;
+namespace Warlof\Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
 use Seat\Eveapi\Models\Eve\AllianceList;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackChannelAlliance;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackChannelAlliance;
 
 class SlackChannelAllianceTest extends TestCase
 {

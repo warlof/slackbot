@@ -5,7 +5,7 @@
  * Time: 18:43
  */
 
-namespace Seat\Slackbot\Database\Seeds;
+namespace Warlof\Seat\Slackbot\Database\Seeds;
 
 
 use Illuminate\Database\Seeder;

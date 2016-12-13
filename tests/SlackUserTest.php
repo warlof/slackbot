@@ -9,7 +9,7 @@ namespace Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
-use Seat\Slackbot\Models\SlackUser;
+use \Warlof\Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
 
 class SlackUserTest extends TestCase

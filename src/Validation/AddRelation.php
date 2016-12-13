@@ -5,7 +5,7 @@
  * Time: 22:12
  */
 
-namespace Seat\Slackbot\Validation;
+namespace Warlof\Seat\Slackbot\Validation;
 
 use App\Http\Requests\Request;
 

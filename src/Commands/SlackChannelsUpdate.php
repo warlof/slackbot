@@ -5,14 +5,14 @@
  * Time: 18:51
  */
 
-namespace Seat\Slackbot\Commands;
+namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
 use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Exceptions\SlackSettingException;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 class SlackChannelsUpdate extends Command
 {
@@ -81,16 +81,7 @@ class SlackChannelsUpdate extends Command
             ]);
         }
 
-        // get all known channels from SeAT
+        // get all known channels from SeAT and remove them if they are no longer existing
         SlackChannel::whereNotIn('id', $slackChannelIds)->delete();
-        /*
-        // iterate over each of them and check if they are still valid
-        // if not, we will remove them from the database since they are no longer usable
-        foreach ($seatChannels as $channel) {
-            if (in_array($channel->id, $slackChannelIds) == false) {
-                $channel->delete();
-            }
-        }
-        */
     }
 }

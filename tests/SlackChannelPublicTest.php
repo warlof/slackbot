@@ -5,12 +5,12 @@
  * Time: 14:31
  */
 
-namespace Seat\Slackbot\Tests;
+namespace Warlof\Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackChannelPublic;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 
 class SlackChannelPublicTest extends TestCase
 {

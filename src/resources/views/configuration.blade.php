@@ -23,7 +23,7 @@
                                 @if ($token == null)
                                 <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" />
                                 @else
-                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ $token }}" />
+                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ setting('slack_token', true) }}" />
                                 @endif
                                 <span class="input-group-btn">
                                     <button type="button" class="btn btn-danger btn-flat" id="token-eraser">

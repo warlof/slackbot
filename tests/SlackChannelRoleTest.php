@@ -5,12 +5,12 @@
  * Time: 14:52
  */
 
-namespace Seat\Slackbot\Tests;
+namespace Warlof\Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackChannelRole;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Seat\Web\Models\Acl\Role;
 
 class SlackChannelRoleTest extends TestCase

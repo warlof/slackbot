@@ -5,11 +5,11 @@
  * Time: 18:51
  */
 
-namespace Seat\Slackbot\Commands;
+namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Seat\Slackbot\Models\SlackLog;
+use Warlof\Seat\Slackbot\Models\SlackLog;
 
 class SlackLogsClear extends Command
 {

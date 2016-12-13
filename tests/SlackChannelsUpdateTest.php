@@ -9,17 +9,12 @@
 namespace Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Commands\SlackChannelsUpdate;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 class SlackChannelsUpdateTest extends TestCase
 {
-    /**
-     * @var SlackApi
-     */
-    private $slackApi;
 
     public function getEnvironmentSetUp($app)
     {
@@ -43,20 +38,22 @@ class SlackChannelsUpdateTest extends TestCase
         // setup Slack API
         $token = getenv('slack_token');
 
-        $this->slackApi = new SlackApi($token);
+        app()->singleton('warlof.slackbot.slack', function() use ($token){
+            return new SlackApi($token);
+        });
     }
 
     public function testChannelUpdate()
     {
         // pre test
-        Seat::set('slack_token', getenv('slack_token'));
+        setting(['slack_token', getenv('slack_token')], true);
 
         // test
 
         // get list of channels
         $channels = array_merge(
-            $this->slackApi->channels(false),
-            $this->slackApi->channels(true)
+            app('warlof.slackbot.slack')->channels(false),
+            app('warlof.slackbot.slack')->channels(true)
         );
 
         // store all channels in an array of object
@@ -91,12 +88,12 @@ class SlackChannelsUpdateTest extends TestCase
     }
 
     /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackSettingException
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      */
     public function testTokenException()
     {
         // pre test
-        Seat::set('slack_token', '');
+        setting(['slack_token', ''], true);
 
         // test
         $job = new SlackChannelsUpdate();

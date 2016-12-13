@@ -1,6 +1,6 @@
 <?php
 
-namespace Seat\Slackbot\Models;
+namespace Warlof\Seat\Slackbot\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;

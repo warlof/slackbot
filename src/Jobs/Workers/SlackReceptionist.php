@@ -5,28 +5,26 @@
  * Time: 19:01
  */
 
-namespace Seat\Slackbot\Jobs;
+namespace Warlof\Seat\Slackbot\Jobs\Workers;
 
-use Seat\Eveapi\Models\Eve\ApiKey;
-use Seat\Slackbot\Exceptions\SlackChannelException;
-use Seat\Slackbot\Exceptions\SlackGroupException;
-use Seat\Slackbot\Exceptions\SlackMailException;
 use Seat\Web\Models\User;
-use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
-use Seat\Slackbot\Models\SlackUser;
+use Seat\Eveapi\Models\Eve\ApiKey;
+use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
+use Warlof\Seat\Slackbot\Exceptions\SlackGroupException;
+use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
+use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
+use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
-class SlackReceptionist extends AbstractSlack
+class SlackReceptionist extends AbstractWorker
 {
     public function call()
     {
-        // call the parent call method in order to load the Slack Api Token
-        parent::call();
-
         // get all Api Key owned by the user
         $keys = ApiKey::where('user_id', $this->user->id)->get();
 
         // invite user only if both account are subscribed and keys active
-        if ($this->isEnabledKey($keys) && $this->isActive($keys)) {
+        if (Helper::isEnabledKey($keys)) {
             // if the user is not yet invited, invite him to team
             if ($this->isInvited($this->user) == false) {
                 $this->processMemberInvitation($this->user);
@@ -38,8 +36,8 @@ class SlackReceptionist extends AbstractSlack
             $slackUser = SlackUser::where('user_id', $this->user->id)->first();
             // control that we already know it's slack ID (mean that he creates his account)
             if ($slackUser->slack_id != null) {
-                $allowedChannels = $this->allowedChannels($slackUser, false);
-                $memberOfChannels = $this->getSlackApi()->member($slackUser->slack_id, false);
+                $allowedChannels = Helper::allowedChannels($slackUser, false);
+                $memberOfChannels = app('warlof.slackbot.slack')->member($slackUser->slack_id, false);
                 $missingChannels = array_diff($allowedChannels, $memberOfChannels);
 
                 if (!empty($missingChannels)) {
@@ -47,8 +45,8 @@ class SlackReceptionist extends AbstractSlack
                     $this->logEvent('invite', $missingChannels);
                 }
 
-                $allowedGroups = $this->allowedChannels($slackUser, true);
-                $memberOfGroups = $this->getSlackApi()->member($slackUser->slack_id, true);
+                $allowedGroups = Helper::allowedChannels($slackUser, true);
+                $memberOfGroups = app('warlof.slackbot.slack')->member($slackUser->slack_id, true);
                 $missingGroups = array_diff($allowedGroups, $memberOfGroups);
 
                 if (!empty($missingGroups)) {
@@ -71,7 +69,7 @@ class SlackReceptionist extends AbstractSlack
     private function processMemberInvitation(User $user)
     {
         try {
-            $this->getSlackApi()->inviteToTeam($user->email);
+            app('warlof.slackbot.slack')->inviteToTeam($user->email);
 
             // update Slack user relation
             SlackUser::create([
@@ -92,11 +90,11 @@ class SlackReceptionist extends AbstractSlack
      * @param array $channels
      * @throws SlackChannelException
      */
-    private function processChannelsInvitation(SlackUser $slackUser, $channels)
+    private function processChannelsInvitation(SlackUser $slackUser, array $channels)
     {
         // iterate over each channel ID and invite the user
         foreach ($channels as $channelId) {
-            $this->getSlackApi()->invite($slackUser->slack_id, $channelId, false);
+            app('warlof.slackbot.slack')->invite($slackUser->slack_id, $channelId, false);
         }
     }
 
@@ -107,11 +105,11 @@ class SlackReceptionist extends AbstractSlack
      * @param array $groups
      * @throws SlackGroupException
      */
-    private function processGroupsInvitation(SlackUser $slackUser, $groups)
+    private function processGroupsInvitation(SlackUser $slackUser, array $groups)
     {
         // iterate over each group ID and invite the user
         foreach ($groups as $groupId) {
-            $this->getSlackApi()->invite($slackUser->slack_id, $groupId, true);
+            app('warlof.slackbot.slack')->invite($slackUser->slack_id, $groupId, true);
         }
     }
 }

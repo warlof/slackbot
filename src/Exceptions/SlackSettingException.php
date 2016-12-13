@@ -5,7 +5,7 @@
  * Time: 21:34
  */
 
-namespace Seat\Slackbot\Exceptions;
+namespace Warlof\Seat\Slackbot\Exceptions;
 
 
 class SlackSettingException extends \Exception

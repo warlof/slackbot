@@ -10,7 +10,7 @@
          verbose="true">
 
     <testsuites>
-        <testsuite name="Warlof\Slackbot Test Suite">
+        <testsuite name="Warlof\Seat\Slackbot Test Suite">
             <directory suffix="Test.php">./tests/</directory>
         </testsuite>
     </testsuites>

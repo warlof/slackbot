@@ -5,13 +5,15 @@
  * Time: 18:51
  */
 
-namespace Seat\Slackbot\Commands;
+namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Seat\Eveapi\Helpers\JobContainer;
+use Seat\Eveapi\Helpers\JobPayloadContainer;
 use Seat\Eveapi\Traits\JobManager;
-use Seat\Slackbot\Jobs\SlackUpdater;
+use Seat\Services\Helpers\AnalyticsContainer;
+use Seat\Services\Jobs\Analytics;
+use Warlof\Seat\Slackbot\Jobs\SlackUpdater;
 use Seat\Web\Models\User;
 
 class SlackUpdate extends Command
@@ -27,9 +29,12 @@ class SlackUpdate extends Command
         parent::__construct();
     }
 
-    public function handle(JobContainer $job)
+    public function handle(JobPayloadContainer $job)
     {
-        User::where('active', true)->chunk(10, function($users) use ($job) {
+        // Counter for the number of keys queued
+        $queued_keys = 0;
+
+        User::where('active', true)->chunk(10, function($users) use ($job, &$queued_keys) {
 
             foreach ($users as $user) {
                 $job->api = 'Slack';
@@ -42,7 +47,20 @@ class SlackUpdate extends Command
                 );
 
                 $this->info('Job ' . $jobId . ' dispatched');
+
+                $queued_keys++;
             }
         });
+
+        // Analytics
+        dispatch(
+            (new Analytics(
+                (new AnalyticsContainer())->set('type', 'event')
+                ->set('ec', 'queues')
+                ->set('ea', 'slack_update')
+                ->set('el', 'console')
+                ->set('ev', $queued_keys)
+            ))->onQueue('medium')
+        );
     }
 }

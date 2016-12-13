@@ -5,7 +5,7 @@
  * Time: 21:00
  */
 
-namespace Seat\Slackbot\Exceptions;
+namespace Warlof\Seat\Slackbot\Exceptions;
 
 
 class SlackGroupException extends \Exception

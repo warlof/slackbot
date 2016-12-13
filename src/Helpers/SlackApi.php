@@ -5,14 +5,14 @@
  * Time: 10:58
  */
 
-namespace Seat\Slackbot\Helpers;
+namespace Warlof\Seat\Slackbot\Helpers;
 
-use Seat\Slackbot\Exceptions\SlackApiException;
-use Seat\Slackbot\Exceptions\SlackChannelException;
-use Seat\Slackbot\Exceptions\SlackGroupException;
-use Seat\Slackbot\Exceptions\SlackMailException;
-use Seat\Slackbot\Exceptions\SlackTeamInvitationException;
-use Seat\Slackbot\Exceptions\SlackUserException;
+use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
+use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
+use Warlof\Seat\Slackbot\Exceptions\SlackGroupException;
+use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
+use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
+use Warlof\Seat\Slackbot\Exceptions\SlackUserException;
 
 class SlackApi
 {
@@ -35,7 +35,7 @@ class SlackApi
      * SlackApi constructor.
      * @param $token
      */
-    public function __construct($token)
+    public function __construct(string $token)
     {
         $this->token = $token;
 
@@ -55,7 +55,7 @@ class SlackApi
      * @throws SlackApiException
      * @return array
      */
-    public function tokenInformation()
+    public function tokenInformation() : array
     {
         $result = $this->post('/auth.test');
 
@@ -74,7 +74,7 @@ class SlackApi
      * @throws SlackMailException
      * @throws SlackTeamInvitationException
      */
-    public function inviteToTeam($mail)
+    public function inviteToTeam(string $mail)
     {
         $params = [
             'email' => $mail,
@@ -105,7 +105,7 @@ class SlackApi
      * @throws SlackGroupException
      * @return array
      */
-    public function member($slackId, $private)
+    public function member(string $slackId, bool $private) : array
     {
         $channels = [];
         $type = 'channels';
@@ -157,7 +157,7 @@ class SlackApi
      * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function info($channelId, $private)
+    public function info(string $channelId, bool $private) : array
     {
         $params = [
             'channel' => $channelId
@@ -197,7 +197,7 @@ class SlackApi
      * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function invite($userId, $channelId, $private)
+    public function invite(string $userId, string $channelId, bool $private)
     {
         // set parameters for Slack request, channel id and user id
         $params = [
@@ -246,7 +246,7 @@ class SlackApi
      * @throws SlackGroupException
      * @throws SlackChannelException
      */
-    public function kick($userId, $channelId, $private)
+    public function kick(string $userId, string $channelId, bool $private)
     {
         // set parameters for Slack request, channel id and user id
         $params = [
@@ -302,7 +302,7 @@ class SlackApi
      * @throws SlackChannelException
      * @throws SlackGroupException
      */
-    public function channels($private)
+    public function channels(bool $private) : array
     {
         // we don't care from archived channels either they are public or private
         $params = [
@@ -350,7 +350,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackUserException
      */
-    public function members()
+    public function members() : array
     {
         // send request to Slack API and fetch result
         $result = $this->post('/users.list');
@@ -371,7 +371,7 @@ class SlackApi
      * @return string
      * @throws SlackApiException
      */
-    public function rtmStart()
+    public function rtmStart() : string
     {
         // send request to Slack API and fetch result
         $result = $this->post('/rtm.start');
@@ -393,7 +393,7 @@ class SlackApi
      * @return array An array from the Slack API response (json parsed)
      * @throws SlackApiException
      */
-    private function post($endpoint, $parameters = [])
+    private function post(string $endpoint, array $parameters = []) : array
     {
         // add slack token to the post parameters
         $parameters['token'] = $this->token;

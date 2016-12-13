@@ -9,8 +9,8 @@
 namespace Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
-use Seat\Slackbot\Commands\SlackLogsClear;
-use Seat\Slackbot\Models\SlackLog;
+use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
+use Warlof\Seat\Slackbot\Models\SlackLog;
 
 class SlackLogsClearTest extends TestCase
 {

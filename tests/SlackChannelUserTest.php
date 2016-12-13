@@ -9,8 +9,8 @@ namespace Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackChannelUser;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackChannelUser;
 use Seat\Web\Models\User;
 
 class SlackChannelUserTest extends TestCase

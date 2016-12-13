@@ -9,17 +9,12 @@ namespace Seat\Slackbot\Tests;
 
 
 use Orchestra\Testbench\TestCase;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Commands\SlackUsersUpdate;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Commands\SlackUsersUpdate;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackUsersUpdateTest extends TestCase
 {
-    /**
-     * @var SlackApi
-     */
-    private $slackApi;
 
     public function getEnvironmentSetUp($app)
     {
@@ -43,13 +38,15 @@ class SlackUsersUpdateTest extends TestCase
         // setup Slack API
         $token = getenv('slack_token');
 
-        $this->slackApi = new SlackApi($token);
+        app()->singleton('warlof.slackbot.slack', function() use ($token){
+            return new SlackApi($token);
+        });
     }
 
     public function testUserUpdate()
     {
         // pre test
-        Seat::set('slack_token', getenv('slack_token'));
+        setting(['slack_token', getenv('slack_token')], true);
 
         $artifacts = [new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
             new SlackUser(['user_id' => 2, 'slack_id' => 'U1Z9QVCJW']),
@@ -75,12 +72,12 @@ class SlackUsersUpdateTest extends TestCase
     }
 
     /**
-     * @expectedException Seat\Slackbot\Exceptions\SlackSettingException
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      */
     public function testTokenException()
     {
         // pre test
-        Seat::set('slack_token', '');
+        setting(['slack_token', ''], true);
 
         // test
         $job = new SlackUsersUpdate();

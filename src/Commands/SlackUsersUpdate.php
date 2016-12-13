@@ -5,15 +5,14 @@
  * Time: 18:51
  */
 
-namespace Seat\Slackbot\Commands;
+namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Exceptions\SlackSettingException;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackUser;
 use Seat\Web\Models\User;
+use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackUsersUpdate extends Command
 {
@@ -28,15 +27,18 @@ class SlackUsersUpdate extends Command
 
     public function handle()
     {
-        $token = Seat::get('slack_token');
+        $token = setting('slack_token', true);
 
         if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
         }
 
         // get members list from slack team
-        $api = new SlackApi($token);
-        $members = $api->members();
+        app()->singleton('warlof.slackbot.slack', function() use ($token){
+            return new SlackApi($token);
+        });
+
+        $members = app('warlof.slackbot.slack')->members();
 
         // iterate over each member, check if the user mail match with a seat account and update the relation table
         foreach ($members as $m) {

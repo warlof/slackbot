@@ -5,24 +5,24 @@
  * Time: 18:58
  */
 
-namespace Seat\Slackbot\Http\Controllers;
+namespace Warlof\Seat\Slackbot\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Guzzle\Http\Client;
 use Illuminate\Support\Facades\Artisan;
+use Seat\Web\Http\Controllers\Controller;
+use Seat\Web\Models\User;
+use Seat\Web\Models\Acl\Role;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackChannelPublic;
-use Seat\Slackbot\Models\SlackChannelUser;
-use Seat\Slackbot\Models\SlackChannelRole;
-use Seat\Slackbot\Models\SlackChannelCorporation;
-use Seat\Slackbot\Models\SlackChannelAlliance;
-use Seat\Slackbot\Models\SlackLog;
-use Seat\Slackbot\Validation\AddRelation;
-use Seat\Slackbot\Validation\ValidateConfiguration;
-use Seat\Web\Models\Acl\Role;
-use Seat\Web\Models\User;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
+use Warlof\Seat\Slackbot\Models\SlackChannelUser;
+use Warlof\Seat\Slackbot\Models\SlackChannelRole;
+use Warlof\Seat\Slackbot\Models\SlackChannelCorporation;
+use Warlof\Seat\Slackbot\Models\SlackChannelAlliance;
+use Warlof\Seat\Slackbot\Models\SlackLog;
+use Warlof\Seat\Slackbot\Validation\AddRelation;
+use Warlof\Seat\Slackbot\Validation\ValidateConfiguration;
 
 class SlackbotController extends Controller
 {
@@ -47,12 +47,9 @@ class SlackbotController extends Controller
 
     public function getConfiguration()
     {
-        $token = Seat::get('slack_token');
-
-        $parser = new \Parsedown();
-        $changelog = $parser->parse($this->getChangelog());
+        $changelog = $this->getChangelog();
         
-        return view('slackbot::configuration', compact('token', 'changelog'));
+        return view('slackbot::configuration', compact('changelog'));
     }
     
     public function getLogs()
@@ -91,7 +88,7 @@ class SlackbotController extends Controller
 
     public function postConfiguration(ValidateConfiguration $request)
     {
-        Seat::set('slack_token', $request->input('slack-configuration-token'));
+        setting(['slack_token', $request->input('slack-configuration-token')], true);
         return redirect()->back()
             ->with('success', 'The Slack test token has been updated');
     }
@@ -188,13 +185,16 @@ class SlackbotController extends Controller
             ->with('success', 'The command has been run.');
     }
 
-    private function getChangelog()
+    private function getChangelog() : string
     {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $response = (new Client())->request('GET', "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
 
-        return curl_exec($curl);
+        if ($response->getStatusCode() != 200) {
+            return 'Error fetching latest SDE version';
+        }
+
+        $parser = new \Parsedown();
+        return $parser->parse($response);
     }
 
     private function postPublicRelation($channelId)

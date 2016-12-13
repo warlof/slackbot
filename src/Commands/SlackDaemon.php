@@ -5,7 +5,7 @@
  * Time: 18:51
  */
 
-namespace Seat\Slackbot\Commands;
+namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
@@ -14,11 +14,10 @@ use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use React\EventLoop\Factory;
-use Seat\Services\Settings\Seat;
-use Seat\Slackbot\Exceptions\SlackSettingException;
-use Seat\Slackbot\Helpers\SlackApi;
-use Seat\Slackbot\Models\SlackChannel;
-use Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackDaemon extends Command
 {
@@ -34,7 +33,7 @@ class SlackDaemon extends Command
 
     public function handle()
     {
-        $token = Seat::get('slack_token');
+        $token = setting('slack_token', true);
 
         if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");
@@ -74,7 +73,7 @@ class SlackDaemon extends Command
                         SlackChannel::destroy($slackMessage['channel']);
                         break;
                     case 'group_unarchive':
-                        Log::debug('[Slackbot][Daemon][group_unarchive] ' . print_r($slackMessage, true));
+                        logger()->debug('[Slackbot][Daemon][group_unarchive] ' . print_r($slackMessage, true));
 
                         $this->restoreGroup($slackMessage['channel']);
                         break;
@@ -86,7 +85,7 @@ class SlackDaemon extends Command
             });
         },
         function(\Exception $e) use ($loop) {
-            echo $e->getMessage();
+            logger()->error($e->getMessage());
             $loop->stop();
         });
 
@@ -144,7 +143,7 @@ class SlackDaemon extends Command
     private function restoreGroup($groupId)
     {
         // load token and team uri from settings
-        $token = Seat::get('slack_token');
+        $token = setting('slack_token', true);
 
         if ($token == null) {
             throw new SlackSettingException("missing slack_token in settings");

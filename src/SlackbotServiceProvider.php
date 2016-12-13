@@ -1,13 +1,14 @@
 <?php
 
-namespace Seat\Slackbot;
+namespace Warlof\Seat\Slackbot;
 
 use Illuminate\Support\ServiceProvider;
-use Seat\Slackbot\Commands\SlackDaemon;
-use Seat\Slackbot\Commands\SlackLogsClear;
-use Seat\Slackbot\Commands\SlackUpdate;
-use Seat\Slackbot\Commands\SlackChannelsUpdate;
-use Seat\Slackbot\Commands\SlackUsersUpdate;
+use Warlof\Seat\Slackbot\Commands\SlackDaemon;
+use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
+use Warlof\Seat\Slackbot\Commands\SlackUpdate;
+use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
+use Warlof\Seat\Slackbot\Commands\SlackUsersUpdate;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,7 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->addViews();
         $this->addPublications();
         $this->addTranslations();
+        $this->registerServices();
     }
 
     /**
@@ -42,7 +44,7 @@ class SlackbotServiceProvider extends ServiceProvider
             __DIR__ . '/Config/package.sidebar.php', 'package.sidebar');
     }
 
-    public function addCommands()
+    private function addCommands()
     {
         $this->commands([
             SlackUpdate::class,
@@ -53,27 +55,42 @@ class SlackbotServiceProvider extends ServiceProvider
         ]);
     }
     
-    public function addTranslations()
+    private function addTranslations()
     {
         $this->loadTranslationsFrom(__DIR__ . '/lang', 'slackbot');
     }
     
-    public function addRoutes()
+    private function addRoutes()
     {
         if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
     }
     
-    public function addViews()
+    private function addViews()
     {
         $this->loadViewsFrom(__DIR__ . '/resources/views', 'slackbot');
     }
     
-    public function addPublications()
+    private function addPublications()
     {
         $this->publishes([
             __DIR__ . '/database/migrations/' => database_path('migrations')
         ]);
+    }
+
+    private function registerServices()
+    {
+        $slackToken = setting('slack_token', true);
+
+        // Ensure slack has been set
+        if ($slackToken == null) {
+            return;
+        }
+
+        // Load the Slack Api on boot time
+        $this->app->singleton('warlof.slackbot.slack', function() use ($slackToken) {
+            return new SlackApi($slackToken);
+        });
     }
 }
