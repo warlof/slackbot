@@ -55,8 +55,9 @@ trait UserHandler
 
         $redisData = Redis::get($redisRecordKey);
 
-        if ($redisData == null)
+        if ($redisData == null) {
             return;
+        }
 
         $userInfo = json_decode($redisData, true);
         $key = array_search($channel['channel'], $userInfo['channels']);

@@ -122,8 +122,9 @@ class EventController extends Controller
                 $this->joinTeam($event['user']);
                 break;
             case 'message':
-                if (!isset($event['subtype']))
+                if (!isset($event['subtype'])) {
                     return response();
+                }
 
                 switch ($event['subtype']) {
                     case 'channel_join':

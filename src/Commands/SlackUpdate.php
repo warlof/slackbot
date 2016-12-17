@@ -32,9 +32,9 @@ class SlackUpdate extends Command
     public function handle(JobPayloadContainer $job)
     {
         // Counter for the number of keys queued
-        $queued_keys = 0;
+        $queuedKeys = 0;
 
-        User::where('active', true)->chunk(10, function($users) use ($job, &$queued_keys) {
+        User::where('active', true)->chunk(10, function($users) use ($job, &$queuedKeys) {
 
             foreach ($users as $user) {
                 $job->api = 'Slack';
@@ -48,7 +48,7 @@ class SlackUpdate extends Command
 
                 $this->info('Job ' . $jobId . ' dispatched');
 
-                $queued_keys++;
+                $queuedKeys++;
             }
         });
 
@@ -59,7 +59,7 @@ class SlackUpdate extends Command
                 ->set('ec', 'queues')
                 ->set('ea', 'slack_update')
                 ->set('el', 'console')
-                ->set('ev', $queued_keys)
+                ->set('ev', $queuedKeys)
             ))->onQueue('medium')
         );
     }

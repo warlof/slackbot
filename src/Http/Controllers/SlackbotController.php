@@ -181,7 +181,8 @@ class SlackbotController extends Controller
     private function getChangelog() : string
     {
         try {
-            $response = (new Client())->request('GET', "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
+            $response = (new Client())
+                ->request('GET', "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
 
             if ($response->getStatusCode() != 200) {
                 return 'Error while fetching changelog';

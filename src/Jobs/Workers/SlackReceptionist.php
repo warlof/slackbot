@@ -7,7 +7,6 @@
 
 namespace Warlof\Seat\Slackbot\Jobs\Workers;
 
-use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
@@ -48,7 +47,7 @@ class SlackReceptionist extends AbstractWorker
 
     /**
      * Invite the user to a slack team
-     * 
+     *
      * @param User $user
      * @throws SlackMailException
      * @throws SlackTeamInvitationException

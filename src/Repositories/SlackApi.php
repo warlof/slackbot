@@ -73,6 +73,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackMailException
      * @throws SlackTeamInvitationException
+     * @deprecated Since not an official endpoint and live OAuth tokens don't grant access to it
      */
     public function inviteToTeam(string $mail)
     {

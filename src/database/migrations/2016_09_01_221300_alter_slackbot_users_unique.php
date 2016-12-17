@@ -14,15 +14,15 @@ class AlterSlackbotUsersUnique extends Migration
      */
     public function up()
     {
-        $last_user = '';
+        $lastUser = '';
         $users = SlackUser::all();
 
         foreach ($users as $user) {
-            if ($user->slack_id == $last_user) {
+            if ($user->slack_id == $lastUser) {
                 $user->delete();
 
             }
-            $last_user = $user->slack_id;
+            $lastUser = $user->slack_id;
         }
 
         Schema::table('slack_users', function (Blueprint $table) {

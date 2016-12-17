@@ -43,7 +43,7 @@ class SlackUsersUpdate extends Command
                 !key_exists('api_app_id', $member['profile'])) {
 
                 // if it appears to be a new user (at least, unknown from SeAT
-                if (($slackUser = SlackUser::where('slack_id', $member['id'])->first()) == null) {
+                if (SlackUser::where('slack_id', $member['id'])->first() == null) {
 
                     // and we're able to match him using email address
                     if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
