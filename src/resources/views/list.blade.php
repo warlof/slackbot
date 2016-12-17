@@ -16,7 +16,7 @@
 
                     <div class="form-group">
                         <label for="slack-type">{{ trans('slackbot::seat.type') }}</label>
-                        <select name="slack-type" id="slack-type" class="col-md-12">
+                        <select name="slack-type" id="slack-type" class="form-control">
                             <option value="user">{{ trans('slackbot::seat.user_filter') }}</option>
                             <option value="role">{{ trans('slackbot::seat.role_filter') }}</option>
                             <option value="corporation">{{ trans('slackbot::seat.corporation_filter') }}</option>
@@ -27,7 +27,7 @@
 
                     <div class="form-group">
                         <label for="slack-user-id">{{ trans('slackbot::seat.username') }}</label>
-                        <select name="slack-user-id" id="slack-user-id" class="col-md-12">
+                        <select name="slack-user-id" id="slack-user-id" class="form-control">
                             @foreach($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
@@ -36,7 +36,7 @@
 
                     <div class="form-group">
                         <label for="slack-role-id">{{ trans('slackbot::seat.role') }}</label>
-                        <select name="slack-role-id" id="slack-role-id" class="col-md-12" disabled="disabled">
+                        <select name="slack-role-id" id="slack-role-id" class="form-control" disabled="disabled">
                             @foreach($roles as $role)
                             <option value="{{ $role->id }}">{{ $role->title }}</option>
                             @endforeach
@@ -45,7 +45,7 @@
 
                     <div class="form-group">
                         <label for="slack-corporation-id">{{ trans('slackbot::seat.corporation') }}</label>
-                        <select name="slack-corporation-id" id="slack-corporation-id" class="col-md-12" disabled="disabled">
+                        <select name="slack-corporation-id" id="slack-corporation-id" class="form-control" disabled="disabled">
                             @foreach($corporations as $corporation)
                             <option value="{{ $corporation->corporationID }}">{{ $corporation->corporationName }}</option>
                             @endforeach
@@ -54,7 +54,7 @@
 
                     <div class="form-group">
                         <label for="slack-alliance-id">{{ trans('slackbot::seat.alliance') }}</label>
-                        <select name="slack-alliance-id" id="slack-alliance-id" class="col-md-12" disabled="disabled">
+                        <select name="slack-alliance-id" id="slack-alliance-id" class="form-control" disabled="disabled">
                             @foreach($alliances as $alliance)
                             <option value="{{ $alliance->allianceID }}">{{ $alliance->name }}</option>
                             @endforeach
@@ -63,7 +63,7 @@
 
                     <div class="form-group">
                         <label for="slack-channel-id">{{ trans('slackbot::seat.channel') }}</label>
-                        <select name="slack-channel-id" id="slack-channel-id" class="col-md-12">
+                        <select name="slack-channel-id" id="slack-channel-id" class="form-control">
                             @foreach($channels as $channel)
                             <option value="{{ $channel->id }}">{{ $channel->name }}</option>
                             @endforeach
@@ -93,26 +93,26 @@
         </div>
         <div class="panel-body">
 
-            <ul class="nav nav-pills" id="slack-tabs">
+            <ul class="nav nav-pills" id="slack-tabs" role="tablist">
                 <li role="presentation" class="active">
-                    <a href="#slackbot-public">{{ trans('slackbot::seat.public_filter') }}</a>
+                    <a href="#slackbot-public" role="tab" data-toggle="tab">{{ trans('slackbot::seat.public_filter') }}</a>
                 </li>
                 <li role="presentation">
-                    <a href="#slackbot-username">{{ trans('slackbot::seat.user_filter') }}</a>
+                    <a href="#slackbot-username" role="tab" data-toggle="tab">{{ trans('slackbot::seat.user_filter') }}</a>
                 </li>
                 <li role="presentation">
-                    <a href="#slackbot-role">{{ trans('slackbot::seat.role_filter') }}</a>
+                    <a href="#slackbot-role" role="tab" data-toggle="tab">{{ trans('slackbot::seat.role_filter') }}</a>
                 </li>
                 <li role="presentation">
-                    <a href="#slackbot-corporation">{{ trans('slackbot::seat.corporation_filter') }}</a>
+                    <a href="#slackbot-corporation" role="tab" data-toggle="tab">{{ trans('slackbot::seat.corporation_filter') }}</a>
                 </li>
                 <li role="presentation">
-                    <a href="#slackbot-alliance">{{ trans('slackbot::seat.alliance_filter') }}</a>
+                    <a href="#slackbot-alliance" role="tab" data-toggle="tab">{{ trans('slackbot::seat.alliance_filter') }}</a>
                 </li>
             </ul>
 
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="slackbot-public">
+                <div role="tabpanel" class="tab-pane fade in active" id="slackbot-public">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>
@@ -144,7 +144,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="slackbot-username">
+                <div role="tabpanel" class="tab-pane fade" id="slackbot-username">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>
@@ -176,7 +176,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="slackbot-role">
+                <div role="tabpanel" class="tab-pane fade" id="slackbot-role">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>
@@ -208,7 +208,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="slackbot-corporation">
+                <div role="tabpanel" class="tab-pane fade" id="slackbot-corporation">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>
@@ -240,7 +240,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="slackbot-alliance">
+                <div role="tabpanel" class="tab-pane fade" id="slackbot-alliance">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
                         <tr>
@@ -277,7 +277,7 @@
     </div>
 @stop
 
-@section('javascript')
+@push('javascript')
     <script type="application/javascript">
         $('#slack-type').change(function(){
             $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-alliance-id'], function(key, value){
@@ -291,9 +291,9 @@
 
         $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-alliance-id, #slack-channel-id').select2();
 
-        $('#slack-tabs a').click(function(e){
+        $('#slack-tabs').find('a').click(function(e){
             e.preventDefault();
             $(this).tab('show');
-        });
+        })
     </script>
-@stop
+@endpush

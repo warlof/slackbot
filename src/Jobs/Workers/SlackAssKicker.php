@@ -9,6 +9,7 @@ namespace Warlof\Seat\Slackbot\Jobs\Workers;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractWorker
@@ -25,8 +26,8 @@ class SlackAssKicker extends AbstractWorker
 
         if ($slackUser != null) {
             // get channels into which current user is already member
-            $channels = app('warlof.slackbot.slack')->member($slackUser->slack_id, false);
-            $groups = app('warlof.slackbot.slack')->member($slackUser->slack_id, true);
+            $channels = app(SlackApi::class)->member($slackUser->slack_id, false);
+            $groups = app(SlackApi::class)->member($slackUser->slack_id, true);
 
             // if key are not valid OR account no longer paid
             // kick the user from all channels to which he's member
@@ -79,7 +80,7 @@ class SlackAssKicker extends AbstractWorker
     {
         // iterate channel ID and call kick method from Slack Api
         foreach ($channels as $channelId) {
-            app('warlof.slackbot.slack')->kick($slackUser->slack_id, $channelId, false);
+            app(SlackApi::class)->kick($slackUser->slack_id, $channelId, false);
         }
     }
 
@@ -94,7 +95,7 @@ class SlackAssKicker extends AbstractWorker
     {
         // iterate group ID and call kick method from Slack Api
         foreach ($groups as $groupId) {
-            app('warlof.slackbot.slack')->kick($slackUser->slack_id, $groupId, true);
+            app(SlackApi::class)->kick($slackUser->slack_id, $groupId, true);
         }
     }
 

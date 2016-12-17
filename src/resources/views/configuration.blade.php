@@ -9,42 +9,27 @@
             <h3 class="panel-title">Configuration</h3>
         </div>
         <div class="panel-body">
-            <form role="form" action="{{ route('slackbot.configuration.post') }}" method="post" class="form-horizontal">
+            <form role="form" action="{{ route('slack.oauth.configuration.post') }}" method="post" class="form-horizontal">
                 {{ csrf_field() }}
 
                 <div class="box-body">
 
                     <legend>Slack API</legend>
 
-                    <div class="form-group">
-                        <label for="slack-configuration-token" class="col-md-4">Slack Test Token</label>
-                        <div class="col-md-7">
-                            <div class="input-group input-group-sm">
-                                @if ($token == null)
-                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" />
-                                @else
-                                <input type="text" class="form-control" id="slack-configuration-token" name="slack-configuration-token" value="{{ setting('slack_token', true) }}" />
-                                @endif
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-danger btn-flat" id="token-eraser">
-                                        <i class="fa fa-eraser"></i>
-                                    </button>
-                                </span>
-                            </div>
-                            <span class="help-block">
-                                In order to generate token, please go on <a href="https://api.slack.com/docs/oauth-test-tokens" target="_blank">your slack test tokens</a> and create a new one.
-                            </span>
-                        </div>
-                    </div>
-                    {{--
+                    <p class="callout callout-warning text-justify">It appears you already have a Slack API access setup.
+                        In order to prevent any mistakes, <code>Client ID</code> and <code>Client Secret</code> fields have been disabled.
+                        Please use the rubber in order to enable modifications.</p>
+
                     <div class="form-group">
                         <label for="slack-configuration-client" class="col-md-4">Slack Client ID</label>
                         <div class="col-md-7">
                             <div class="input-group input-group-sm">
-                                @if ($oauth == null)
-                                <input type="text" class="form-control" id="slack-configuration-client" name="slack-configuration-client" />
+                                @if (setting('warlof.slackbot.credentials.client_id', true) == null)
+                                <input type="text" class="form-control" id="slack-configuration-client"
+                                       name="slack-configuration-client" />
                                 @else
-                                <input type="text" class="form-control" id="slack-configuration-client" name="slack-configuration-client" value="{{ $oauth->client_id }}" />
+                                <input type="text" class="form-control " id="slack-configuration-client"
+                                       name="slack-configuration-client" value="{{ setting('warlof.slackbot.credentials.client_id', true) }}" readonly />
                                 @endif
                                 <span class="input-group-btn">
                                     <button type="button" class="btn btn-danger btn-flat" id="client-eraser">
@@ -59,13 +44,35 @@
                         <label for="slack-configuration-secret" class="col-md-4">Slack Client Secret</label>
                         <div class="col-md-7">
                             <div class="input-group input-group-sm">
-                                @if ($oauth == null)
-                                <input type="text" class="form-control" id="slack-configuration-secret" name="slack-configuration-secret" />
+                                @if (setting('warlof.slackbot.credentials.client_secret', true) == null)
+                                <input type="text" class="form-control" id="slack-configuration-secret"
+                                       name="slack-configuration-secret" />
                                 @else
-                                <input type="text" class="form-control" id="slack-configuration-secret" name="slack-configuration-secret" value="{{ $oauth->client_secret }}" />
+                                <input type="text" class="form-control" id="slack-configuration-secret"
+                                       name="slack-configuration-secret" value="{{ setting('warlof.slackbot.credentials.client_secret', true) }}" readonly />
                                 @endif
                                 <span class="input-group-btn">
                                     <button type="button" class="btn btn-danger btn-flat" id="secret-eraser">
+                                        <i class="fa fa-eraser"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slack-configuration-verification" class="col-md-4">Slack Verification Token</label>
+                        <div class="col-md-7">
+                            <div class="input-group input-group-sm">
+                                @if (setting('warlof.slackbot.credentials.verification_token', true) == null)
+                                    <input type="text" class="form-control" id="slack-configuration-verification"
+                                           name="slack-configuration-verification" />
+                                @else
+                                    <input type="text" class="form-control" id="slack-configuration-verification"
+                                           name="slack-configuration-verification" value="{{ setting('warlof.slackbot.credentials.verification_token', true) }}" readonly />
+                                @endif
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-danger btn-flat" id="verification-eraser">
                                         <i class="fa fa-eraser"></i>
                                     </button>
                                 </span>
@@ -75,7 +82,6 @@
                             </span>
                         </div>
                     </div>
-                    --}}
                 </div>
 
                 <div class="box-footer">
@@ -95,7 +101,7 @@
         <div class="panel-body">
             <div class="form-group">
                 <div class="col-md-12">
-                    @if($token == '')
+                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
                         <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack channels and groups</a>
                     @else
                         <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:channels:update']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</a>
@@ -108,7 +114,7 @@
 
             <div class="form-group">
                 <div class="col-md-12">
-                    @if($token == '')
+                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
                         <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack users</a>
                     @else
                         <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:users:update']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</a>
@@ -121,7 +127,7 @@
 
             <div class="form-group">
                 <div class="col-md-12">
-                    @if($token == '')
+                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
                         <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
                     @else
                         <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
@@ -136,7 +142,7 @@
 
             <div class="form-group">
                 <div class="col-md-12">
-                    @if($token == '')
+                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
                         <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
                     @else
                         <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
@@ -175,20 +181,23 @@
     </div>
 @stop
 
-@section('javascript')
+@push('javascript')
     <script type="application/javascript">
         $('#client-eraser').click(function(){
             $('#slack-configuration-client').val('');
+            $('#slack-configuration-client').removeAttr("readonly");
         });
 
         $('#secret-eraser').click(function(){
             $('#slack-configuration-secret').val('');
+            $('#slack-configuration-secret').removeAttr("readonly");
         });
 
-        $('#token-eraser').click(function(){
-            $('#slack-configuration-token').val('');
+        $('#verification-eraser').click(function(){
+            $('#slack-configuration-verification').val('');
+            $('#slack-configuration-verification').removeAttr("readonly");
         });
 
         $('[data-toggle="tooltip"]').tooltip();
     </script>
-@stop
+@endpush

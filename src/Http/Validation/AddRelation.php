@@ -5,11 +5,12 @@
  * Time: 22:12
  */
 
-namespace Warlof\Seat\Slackbot\Validation;
+namespace Warlof\Seat\Slackbot\Http\Validation;
 
-use App\Http\Requests\Request;
 
-class AddRelation extends Request
+use Illuminate\Foundation\Http\FormRequest;
+
+class AddRelation extends FormRequest
 {
     public function rules()
     {

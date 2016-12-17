@@ -7,7 +7,8 @@
 
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
-use Guzzle\Http\Client;
+use GuzzleHttp\Client;
+use Guzzle\Http\Exception\RequestException;
 use Illuminate\Support\Facades\Artisan;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\User;
@@ -21,8 +22,7 @@ use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Warlof\Seat\Slackbot\Models\SlackChannelCorporation;
 use Warlof\Seat\Slackbot\Models\SlackChannelAlliance;
 use Warlof\Seat\Slackbot\Models\SlackLog;
-use Warlof\Seat\Slackbot\Validation\AddRelation;
-use Warlof\Seat\Slackbot\Validation\ValidateConfiguration;
+use Warlof\Seat\Slackbot\Http\Validation\AddRelation;
 
 class SlackbotController extends Controller
 {
@@ -84,13 +84,6 @@ class SlackbotController extends Controller
                 return redirect()->back()
                     ->with('error', 'Unknown relation type');
         }
-    }
-
-    public function postConfiguration(ValidateConfiguration $request)
-    {
-        setting(['slack_token', $request->input('slack-configuration-token')], true);
-        return redirect()->back()
-            ->with('success', 'The Slack test token has been updated');
     }
 
     public function getRemovePublic($channelId)
@@ -187,14 +180,18 @@ class SlackbotController extends Controller
 
     private function getChangelog() : string
     {
-        $response = (new Client())->request('GET', "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
+        try {
+            $response = (new Client())->request('GET', "https://raw.githubusercontent.com/warlof/slackbot/master/CHANGELOG.md");
 
-        if ($response->getStatusCode() != 200) {
-            return 'Error fetching latest SDE version';
+            if ($response->getStatusCode() != 200) {
+                return 'Error while fetching changelog';
+            }
+
+            $parser = new \Parsedown();
+            return $parser->parse($response->getBody());
+        } catch (RequestException $e) {
+            return 'Error while fetching changelog';
         }
-
-        $parser = new \Parsedown();
-        return $parser->parse($response);
     }
 
     private function postPublicRelation($channelId)

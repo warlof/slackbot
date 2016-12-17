@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
-use Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class AlterSlackbotUsersUnique extends Migration
 {

@@ -89,7 +89,7 @@ class SlackbotServiceProvider extends ServiceProvider
         }
 
         // Load the Slack Api on boot time
-        $this->app->singleton('warlof.slackbot.slack', function() use ($slackToken) {
+        $this->app->singleton(SlackApi::class, function() use ($slackToken) {
             return new SlackApi($slackToken);
         });
     }

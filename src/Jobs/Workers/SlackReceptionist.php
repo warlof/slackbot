@@ -14,6 +14,7 @@ use Warlof\Seat\Slackbot\Exceptions\SlackGroupException;
 use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
 use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackReceptionist extends AbstractWorker
@@ -37,7 +38,7 @@ class SlackReceptionist extends AbstractWorker
             // control that we already know it's slack ID (mean that he creates his account)
             if ($slackUser->slack_id != null) {
                 $allowedChannels = Helper::allowedChannels($slackUser, false);
-                $memberOfChannels = app('warlof.slackbot.slack')->member($slackUser->slack_id, false);
+                $memberOfChannels = app(SlackApi::class)->member($slackUser->slack_id, false);
                 $missingChannels = array_diff($allowedChannels, $memberOfChannels);
 
                 if (!empty($missingChannels)) {
@@ -46,7 +47,7 @@ class SlackReceptionist extends AbstractWorker
                 }
 
                 $allowedGroups = Helper::allowedChannels($slackUser, true);
-                $memberOfGroups = app('warlof.slackbot.slack')->member($slackUser->slack_id, true);
+                $memberOfGroups = app(SlackApi::class)->member($slackUser->slack_id, true);
                 $missingGroups = array_diff($allowedGroups, $memberOfGroups);
 
                 if (!empty($missingGroups)) {
@@ -69,7 +70,7 @@ class SlackReceptionist extends AbstractWorker
     private function processMemberInvitation(User $user)
     {
         try {
-            app('warlof.slackbot.slack')->inviteToTeam($user->email);
+            app(SlackApi::class)->inviteToTeam($user->email);
 
             // update Slack user relation
             SlackUser::create([
@@ -94,7 +95,7 @@ class SlackReceptionist extends AbstractWorker
     {
         // iterate over each channel ID and invite the user
         foreach ($channels as $channelId) {
-            app('warlof.slackbot.slack')->invite($slackUser->slack_id, $channelId, false);
+            app(SlackApi::class)->invite($slackUser->slack_id, $channelId, false);
         }
     }
 
@@ -109,7 +110,7 @@ class SlackReceptionist extends AbstractWorker
     {
         // iterate over each group ID and invite the user
         foreach ($groups as $groupId) {
-            app('warlof.slackbot.slack')->invite($slackUser->slack_id, $groupId, true);
+            app(SlackApi::class)->invite($slackUser->slack_id, $groupId, true);
         }
     }
 }

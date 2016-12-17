@@ -6,72 +6,99 @@
  */
 
 Route::group([
-    'namespace' => 'Seat\Slackbot\Http\Controllers',
+    'namespace' => 'Warlof\Seat\Slackbot\Http\Controllers',
     'prefix' => 'slackbot'
 ], function(){
-    Route::get('/', [
-        'as' => 'slackbot.list',
-        'uses' => 'SlackbotController@getRelations',
-        'middleware' => 'bouncer:slackbot.view'
-    ]);
 
-    Route::get('/public/{channel_id}/remove', [
-        'as' => 'slackbot.public.remove',
-        'uses' => 'SlackbotController@getRemovePublic',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+    Route::group([
+        'middleware' => 'web'
+    ], function() {
 
-    Route::get('/users/{user_id}/{channel_id}/remove', [
-        'as' => 'slackbot.user.remove',
-        'uses' => 'SlackbotController@getRemoveUser',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+        // Endpoints with Configuration Permission
+        Route::group([
+            'middleware' => 'bouncer:slackbot.setup'
+        ], function(){
 
-    Route::get('/roles/{role_id}/{channel_id}/remove', [
-        'as' => 'slackbot.role.remove',
-        'uses' => 'SlackbotController@getRemoveRole',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+            Route::get('/configuration', [
+                'as' => 'slackbot.configuration',
+                'uses' => 'SlackbotController@getConfiguration'
+            ]);
 
-    Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
-        'as' => 'slackbot.corporation.remove',
-        'uses' => 'SlackbotController@getRemoveCorporation',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+            Route::get('/oauth/callback', [
+                'as' => 'slack.oauth.callback',
+                'uses' => 'OAuthController@callback'
+            ]);
 
-    Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
-        'as' => 'slackbot.alliance.remove',
-        'uses' => 'SlackbotController@getRemoveAlliance',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+            Route::post('/oauth/configuration', [
+                'as' => 'slack.oauth.configuration.post',
+                'uses' => 'OAuthController@postConfiguration'
+            ]);
 
-    Route::post('/', [
-        'as' => 'slackbot.add',
-        'uses' => 'SlackbotController@postRelation',
-        'middleware' => 'bouncer:slackbot.create'
-    ]);
+            Route::get('/run/{commandName}', [
+                'as' => 'slackbot.command.run',
+                'uses' => 'SlackbotController@getSubmitJob'
+            ]);
 
-    Route::get('/configuration', [
-        'as' => 'slackbot.configuration',
-        'uses' => 'SlackbotController@getConfiguration',
-        'middleware' => 'bouncer:slackbot.setup'
-    ]);
-    
-    Route::get('/logs', [
-        'as' => 'slackbot.logs',
-        'uses' => 'SlackbotController@getLogs',
-        'middleware' => 'bouncer:slackbot.setup'
-    ]);
+        });
 
-    Route::get('/run/{commandName}', [
-        'as' => 'slackbot.command.run',
-        'uses' => 'SlackbotController@getSubmitJob',
-        'middleware' => 'bouncer:slackbot.setup'
-    ]);
+        Route::group([
+            'middleware' => 'bouncer:slackbot.create'
+        ], function(){
 
-    Route::post('/configuration', [
-        'as' => 'slackbot.configuration.post',
-        'uses' => 'SlackbotController@postConfiguration',
-        'middleware' => 'bouncer:slackbot.setup'
+            Route::get('/public/{channel_id}/remove', [
+                'as' => 'slackbot.public.remove',
+                'uses' => 'SlackbotController@getRemovePublic',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+            Route::get('/users/{user_id}/{channel_id}/remove', [
+                'as' => 'slackbot.user.remove',
+                'uses' => 'SlackbotController@getRemoveUser',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+            Route::get('/roles/{role_id}/{channel_id}/remove', [
+                'as' => 'slackbot.role.remove',
+                'uses' => 'SlackbotController@getRemoveRole',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+            Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
+                'as' => 'slackbot.corporation.remove',
+                'uses' => 'SlackbotController@getRemoveCorporation',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+            Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
+                'as' => 'slackbot.alliance.remove',
+                'uses' => 'SlackbotController@getRemoveAlliance',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+            Route::post('/', [
+                'as' => 'slackbot.add',
+                'uses' => 'SlackbotController@postRelation',
+                'middleware' => 'bouncer:slackbot.create'
+            ]);
+
+        });
+
+        Route::get('/', [
+            'as' => 'slackbot.list',
+            'uses' => 'SlackbotController@getRelations',
+            'middleware' => 'bouncer:slackbot.view'
+        ]);
+
+        Route::get('/logs', [
+            'as' => 'slackbot.logs',
+            'uses' => 'SlackbotController@getLogs',
+            'middleware' => 'bouncer:slackbot.security'
+        ]);
+
+    });
+
+    Route::post('/event/callback', [
+        'as' => 'slack.event.callback',
+        'uses' => 'EventController@callback'
     ]);
 });
