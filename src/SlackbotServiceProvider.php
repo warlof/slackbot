@@ -8,7 +8,7 @@ use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
 use Warlof\Seat\Slackbot\Commands\SlackUpdate;
 use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
 use Warlof\Seat\Slackbot\Commands\SlackUsersUpdate;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -81,7 +81,7 @@ class SlackbotServiceProvider extends ServiceProvider
 
     private function registerServices()
     {
-        $slackToken = setting('slack_token', true);
+        $slackToken = setting('warlof.slackbot.credentials.access_token', true);
 
         // Ensure slack has been set
         if ($slackToken == null) {
@@ -89,7 +89,7 @@ class SlackbotServiceProvider extends ServiceProvider
         }
 
         // Load the Slack Api on boot time
-        $this->app->singleton(SlackApi::class, function() use ($slackToken) {
+        $this->app->singleton('warlof.slackbot.slack', function() use ($slackToken) {
             return new SlackApi($slackToken);
         });
     }

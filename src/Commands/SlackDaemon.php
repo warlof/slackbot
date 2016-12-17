@@ -9,13 +9,12 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use React\EventLoop\Factory;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
@@ -33,10 +32,10 @@ class SlackDaemon extends Command
 
     public function handle()
     {
-        $token = setting('slack_token', true);
+        $token = setting('warlof.slackbot.credentials.access_token', true);
 
         if ($token == null) {
-            throw new SlackSettingException("missing slack_token in settings");
+            throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
         }
 
         // call rtm method in order to get a fresh new WSS uri
@@ -143,10 +142,10 @@ class SlackDaemon extends Command
     private function restoreGroup($groupId)
     {
         // load token and team uri from settings
-        $token = setting('slack_token', true);
+        $token = setting('warlof.slackbot.credentials.access_token', true);
 
         if ($token == null) {
-            throw new SlackSettingException("missing slack_token in settings");
+            throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
         }
 
         $slackApi = new SlackApi($token);

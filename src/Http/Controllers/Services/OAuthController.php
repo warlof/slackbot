@@ -5,13 +5,13 @@
  * Time: 21:15
  */
 
-namespace Warlof\Seat\Slackbot\Http\Controllers;
+namespace Warlof\Seat\Slackbot\Http\Controllers\Services;
 
 
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Seat\Web\Http\Controllers\Controller;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 use Warlof\Seat\Slackbot\Http\Validation\ValidateOAuth;
 
 class OAuthController extends Controller
@@ -24,7 +24,10 @@ class OAuthController extends Controller
         (setting('warlof.slackbot.credentials.client_id', true) == $request->input('slack-configuration-client')) &&
         (setting('warlof.slackbot.credentials.client_secret', true) == $request->input('slack-configuration-secret')) &&
         ($request->input('slack-configuration-verification') != '')) {
-            setting(['warlof.slackbot.credentials.verification_token', $request->input('slack-configuration-verification')], true);
+            setting([
+                'warlof.slackbot.credentials.verification_token',
+                $request->input('slack-configuration-verification')
+            ], true);
             return redirect()->back()->with('success', 'Change has been successfully applied.');
         }
 
@@ -67,7 +70,8 @@ class OAuthController extends Controller
             ]);
 
             if ($response->getStatusCode() != 200) {
-                throw new \Exception('Returned status code : ' . $response->getStatusCode() . ' is not matching with 200.');
+                throw new \Exception('Returned status code : ' . $response->getStatusCode() .
+                    ' is not matching with 200.');
             }
 
             $result = json_decode($response->getBody(), true);
@@ -86,17 +90,23 @@ class OAuthController extends Controller
 
             // Used by event API
             if ($oauthCredentials['verification_token'] != null) {
-                setting(['warlof.slackbot.credentials.verification_token', $oauthCredentials['verification_token']], true);
+                setting([
+                    'warlof.slackbot.credentials.verification_token',
+                    $oauthCredentials['verification_token']
+                ], true);
             }
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'An error occured while trying to confirm OAuth credentials with Slack. ' .
+            return redirect()->back()
+                ->with('error', 'An error occured while trying to confirm OAuth credentials with Slack. ' .
                 $e->getMessage());
         }
 
         // update slack api instance
-        app()->singleton(SlackApi::class, function() {
-            return new SlackApi(setting('warlof.slackbot.credentials.access_token', true));
+        app()->singleton('warlof.slackbot.slack', function($app) {
+            return $app->singleton('warlof.slackbot.slack', function() {
+                return new SlackApi(setting('warlof.slackbot.credentials.access_token', true));
+            });
         });
 
         return redirect()->route('slackbot.configuration')
@@ -106,7 +116,7 @@ class OAuthController extends Controller
     private function oAuthAuthorization($clientId, $state)
     {
         $baseUri = 'https://slack.com/oauth/authorize?';
-        $scope = 'channels:read channels:write groups:read groups:write groups:history users:read';
+        $scope = 'channels:read channels:write channels:history groups:read groups:write groups:history users:read';
 
         return $baseUri . http_build_query([
             'client_id' => $clientId,

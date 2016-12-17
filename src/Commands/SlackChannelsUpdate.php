@@ -9,9 +9,7 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
-use Seat\Services\Settings\Seat;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 class SlackChannelsUpdate extends Command
@@ -27,17 +25,15 @@ class SlackChannelsUpdate extends Command
 
     public function handle()
     {
-        $token = Seat::get('slack_token');
-
-        if ($token == null) {
-            throw new SlackSettingException("missing slack_token in settings");
+        if (setting('warlof.slackbot.credentials.access_token', true) == null) {
+            throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
         }
 
-        // init Slack Api using token
-        $api = new SlackApi($token);
-
         // make a call in order to fetch both public and private channels
-        $channels = array_merge($api->channels(false), $api->channels(true));
+        $channels = array_merge(
+            app('warlof.slackbot.slack')->channels(false),
+            app('warlof.slackbot.slack')->channels(true)
+        );
 
         $slackChannelIds = [];
 

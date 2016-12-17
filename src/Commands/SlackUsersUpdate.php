@@ -9,9 +9,9 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackUsersUpdate extends Command
@@ -27,34 +27,35 @@ class SlackUsersUpdate extends Command
 
     public function handle()
     {
-        $token = setting('slack_token', true);
-
-        if ($token == null) {
-            throw new SlackSettingException("missing slack_token in settings");
+        if (setting('warlof.slackbot.credentials.access_token', true) == null) {
+            throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
         }
 
         // get members list from slack team
-        app()->singleton('warlof.slackbot.slack', function() use ($token){
-            return new SlackApi($token);
-        });
-
         $members = app('warlof.slackbot.slack')->members();
 
-        // iterate over each member, check if the user mail match with a seat account and update the relation table
-        foreach ($members as $m) {
-            if ($m['id'] != 'USLACKBOT' && $m['deleted'] == false && $m['is_bot'] ==  false &&
-                !key_exists('api_app_id', $m['profile'])) {
-                $user = User::where('email', '=', $m['profile']['email'])->first();
-                if ($user != null) {
-                    $slackUser = SlackUser::find($user->id);
-                    if ($slackUser == null) {
-                        $slackUser = new SlackUser();
-                        $slackUser->user_id = $user->id;
-                        $slackUser->invited = true;
-                    }
+        // iterate over each member and try to make aggregation
+        foreach ($members as $member) {
+            // exclude SLACK BOT user from user list
+            // exclude bot from user list
+            // exclude token owner from list
+            if ($member['id'] != 'USLACKBOT' && $member['deleted'] == false && $member['is_bot'] ==  false &&
+                !key_exists('api_app_id', $member['profile'])) {
 
-                    $slackUser->slack_id = $m['id'];
-                    $slackUser->save();
+                // if it appears to be a new user (at least, unknown from SeAT
+                if (($slackUser = SlackUser::where('slack_id', $member['id'])->first()) == null) {
+
+                    // and we're able to match him using email address
+                    if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
+
+                        // so, we create the association
+                        SlackUser::create([
+                            'user_id' => $seatUser->id,
+                            'slack_id' => $member['id']
+                        ]);
+
+                        Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
+                    }
                 }
             }
         }

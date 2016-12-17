@@ -24,20 +24,28 @@ Route::group([
                 'uses' => 'SlackbotController@getConfiguration'
             ]);
 
-            Route::get('/oauth/callback', [
-                'as' => 'slack.oauth.callback',
-                'uses' => 'OAuthController@callback'
-            ]);
-
-            Route::post('/oauth/configuration', [
-                'as' => 'slack.oauth.configuration.post',
-                'uses' => 'OAuthController@postConfiguration'
-            ]);
-
             Route::get('/run/{commandName}', [
                 'as' => 'slackbot.command.run',
                 'uses' => 'SlackbotController@getSubmitJob'
             ]);
+
+            // OAuth
+            Route::group([
+                'namespace' => 'Services',
+                'prefix' => 'oauth'
+            ], function(){
+
+                Route::get('/callback', [
+                    'as' => 'slack.oauth.callback',
+                    'uses' => 'OAuthController@callback'
+                ]);
+
+                Route::post('/configuration', [
+                    'as' => 'slack.oauth.configuration.post',
+                    'uses' => 'OAuthController@postConfiguration'
+                ]);
+
+            });
 
         });
 
@@ -97,8 +105,16 @@ Route::group([
 
     });
 
-    Route::post('/event/callback', [
-        'as' => 'slack.event.callback',
-        'uses' => 'EventController@callback'
-    ]);
+    Route::group([
+        'prefix' => 'event',
+        'namespace' => 'Services'
+    ], function(){
+
+        Route::post('/callback', [
+            'as' => 'slack.event.callback',
+            'uses' => 'EventController@callback'
+        ]);
+
+    });
+
 });

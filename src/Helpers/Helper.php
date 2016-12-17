@@ -10,6 +10,7 @@ namespace Warlof\Seat\Slackbot\Helpers;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Web\Models\User;
@@ -97,5 +98,18 @@ class Helper
         }
 
         return $channels;
+    }
+
+    public static function getSlackUserInformation(string $slackUserId) : array
+    {
+        if (($data = Redis::get('seat:warlof:slackbot:channels.' . $slackUserId)) == null) {
+            $userInfo = app('warlof.slackbot.slack')->userInfo($slackUserId);
+            $userInfo['channels'] = app('warlof.slackbot.slack')->memberOf($slackUserId, false);
+            $userInfo['groups'] = app('warlof.slackbot.slack')->memberOf($slackUserId, true);
+        } else {
+            $userInfo = json_decode($data, true);
+        }
+
+        return $userInfo;
     }
 }

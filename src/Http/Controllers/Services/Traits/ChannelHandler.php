@@ -1,25 +1,24 @@
 <?php
 /**
  * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 14/12/2016
- * Time: 19:21
+ * Date: 17/12/2016
+ * Time: 22:54
  */
 
-namespace Warlof\Seat\Slackbot\Http\Controllers;
+namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
 use Illuminate\Support\Facades\Redis;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
-class EventChannelController
+trait ChannelHandler
 {
-    const REDIS_TABLE = 'seat:warlof:slackbot:channels.';
+    private $redisTable = 'seat:warlof:slackbot:channels.';
 
-    public static function postChannelCreated($channel)
+    public function createChannel($channel)
     {
         // built an unique record key which will be used in order to store and access channel information
-        $redisRecordKey = self::REDIS_TABLE . $channel['id'];
+        $redisRecordKey = $this->redisTable . $channel['id'];
 
         // store channel information into redis
         Redis::set($redisRecordKey, json_encode($channel));
@@ -33,9 +32,9 @@ class EventChannelController
         ]);
     }
 
-    public static function postChannelDeleted($channelId)
+    public function deleteChannel($channelId)
     {
-        $redisRecordKey = self::REDIS_TABLE . $channelId;
+        $redisRecordKey = $this->redisTable . $channelId;
 
         // remove information from redis
         Redis::del($redisRecordKey);
@@ -44,9 +43,9 @@ class EventChannelController
         SlackChannel::find($channelId)->delete();
     }
 
-    public function postChannelRename($channel)
+    public function renameChannel($channel)
     {
-        $redisRecordKey = self::REDIS_TABLE . $channel['id'];
+        $redisRecordKey = $this->redisTable . $channel['id'];
 
         $redisData = json_decode(Redis::get($redisRecordKey), true);
 
@@ -58,9 +57,9 @@ class EventChannelController
         ]);
     }
 
-    public static function postChannelArchive($channelId)
+    public function archiveChannel($channelId)
     {
-        $redisRecordKey = self::REDIS_TABLE . $channelId;
+        $redisRecordKey = $this->redisTable . $channelId;
 
         Redis::del($redisRecordKey);
 
@@ -69,11 +68,11 @@ class EventChannelController
         }
     }
 
-    public static function postChannelUnarchive($channelId)
+    public function unarchiveChannel($channelId)
     {
-        $redisRecordKey = self::REDIS_TABLE . $channelId;
+        $redisRecordKey = $this->redisTable . $channelId;
 
-        $channel = app(SlackApi::class)->info($channelId, false);
+        $channel = app('warlof.slackbot.slack')->info($channelId, false);
 
         Redis::set($redisRecordKey, json_encode($channel));
 
@@ -85,5 +84,4 @@ class EventChannelController
             'is_general' => false
         ]);
     }
-
 }

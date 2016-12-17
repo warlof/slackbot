@@ -5,7 +5,7 @@
  * Time: 10:58
  */
 
-namespace Warlof\Seat\Slackbot\Helpers;
+namespace Warlof\Seat\Slackbot\Repositories;
 
 use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
 use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
@@ -105,7 +105,7 @@ class SlackApi
      * @throws SlackGroupException
      * @return array
      */
-    public function member(string $slackId, bool $private) : array
+    public function memberOf(string $slackId, bool $private) : array
     {
         $channels = [];
         $type = 'channels';
@@ -383,6 +383,17 @@ class SlackApi
 
         // return the short life token which should be used with RTM Api
         return $result['url'];
+    }
+
+    public function userInfo($slackId)
+    {
+        $result = $this->post('/users.info', ['user' => $slackId]);
+
+        if ($result['ok'] == false) {
+            throw new SlackApiException($result['error']);
+        }
+
+        return $result['user'];
     }
 
     /**

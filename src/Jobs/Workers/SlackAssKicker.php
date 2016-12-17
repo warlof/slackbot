@@ -9,7 +9,6 @@ namespace Warlof\Seat\Slackbot\Jobs\Workers;
 
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Warlof\Seat\Slackbot\Helpers\Helper;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class SlackAssKicker extends AbstractWorker
@@ -26,44 +25,25 @@ class SlackAssKicker extends AbstractWorker
 
         if ($slackUser != null) {
             // get channels into which current user is already member
-            $channels = app(SlackApi::class)->member($slackUser->slack_id, false);
-            $groups = app(SlackApi::class)->member($slackUser->slack_id, true);
+
+            $userInfo = Helper::getSlackUserInformation($slackUser->slack_id);
 
             // if key are not valid OR account no longer paid
             // kick the user from all channels to which he's member
             if (Helper::isEnabledKey($keys) == false) {
 
-                if (!empty($channels)) {
-                    $this->processChannelsKick($slackUser, $channels);
-                    $this->logEvent('kick', $channels);
-                }
+                $this->processChannelsKick($slackUser, $userInfo['channels'], true);
 
-                if (!empty($groups)) {
-                    $this->processGroupsKick($slackUser, $groups);
-                    $this->logEvent('kick', $groups);
-                }
+                $this->processGroupsKick($slackUser, $userInfo['groups'], true);
 
                 return;
             }
 
-            // in other way, compute the gap and kick only the user
-            // to channel from which he's no longer granted to be in
-            $allowedChannels = Helper::allowedChannels($slackUser, false);
-            $extraChannels = array_diff($channels, $allowedChannels);
-
             // remove channels in which user is already in from all granted channels and invite him
-            if (!empty($extraChannels)) {
-                $this->processChannelsKick($slackUser, $extraChannels);
-                $this->logEvent('kick', $extraChannels);
-            }
+            $this->processChannelsKick($slackUser, $userInfo['channels'], false);
 
             // remove granted channels from channels in which user is already in and kick him
-            $allowedGroups = Helper::allowedChannels($slackUser, true);
-            $extraGroups = array_diff($groups, $allowedGroups);
-            if (!empty($extraGroups)) {
-                $this->processGroupsKick($slackUser, array_diff($groups, $extraGroups));
-                $this->logEvent('kick', $extraGroups);
-            }
+            $this->processGroupsKick($slackUser, $userInfo['groups'], false);
         }
 
         return;
@@ -73,14 +53,27 @@ class SlackAssKicker extends AbstractWorker
      * Kick an user from each channel
      *
      * @param SlackUser $slackUser
-     * @param $channels
+     * @param $currentChannels
+     * @param $all
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackChannelException
      */
-    private function processChannelsKick(SlackUser $slackUser, $channels)
+    private function processChannelsKick(SlackUser $slackUser, array $currentChannels, bool $all)
     {
-        // iterate channel ID and call kick method from Slack Api
-        foreach ($channels as $channelId) {
-            app(SlackApi::class)->kick($slackUser->slack_id, $channelId, false);
+        if ($all) {
+            $extraChannels = $currentChannels;
+        } else {
+            $allowedChannels = Helper::allowedChannels($slackUser, false);
+            $extraChannels = array_diff($currentChannels, $allowedChannels);
+        }
+
+        if (!empty($extraChannels)) {
+
+            // iterate channel ID and call kick method from Slack Api
+            foreach ($extraChannels as $channelId) {
+                app('warlof.slackbot.slack')->kick($slackUser->slack_id, $channelId, false);
+            }
+
+            $this->logEvent('kick', $extraChannels);
         }
     }
 
@@ -88,14 +81,27 @@ class SlackAssKicker extends AbstractWorker
      * Kick an user from each group
      *
      * @param SlackUser $slackUser
-     * @param $groups
+     * @param $currentGroups
+     * @param $all
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackGroupException
      */
-    private function processGroupsKick(SlackUser $slackUser, $groups)
+    private function processGroupsKick(SlackUser $slackUser, array $currentGroups, bool $all)
     {
-        // iterate group ID and call kick method from Slack Api
-        foreach ($groups as $groupId) {
-            app(SlackApi::class)->kick($slackUser->slack_id, $groupId, true);
+        if ($all) {
+            $extraGroups = $currentGroups;
+        } else {
+            $allowedGroups = Helper::allowedChannels($slackUser, true);
+            $extraGroups = array_diff($currentGroups, $allowedGroups);
+        }
+
+        if (!empty($extraGroups)) {
+
+            // iterate group ID and call kick method from Slack Api
+            foreach ($extraGroups as $groupId) {
+                app('warlof.slackbot.slack')->kick($slackUser->slack_id, $groupId, true);
+            }
+
+            $this->logEvent('kick', $extraGroups);
         }
     }
 
