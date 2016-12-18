@@ -3,7 +3,6 @@
 namespace Warlof\Seat\Slackbot;
 
 use Illuminate\Support\ServiceProvider;
-use Warlof\Seat\Slackbot\Commands\SlackDaemon;
 use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
 use Warlof\Seat\Slackbot\Commands\SlackUpdate;
 use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
@@ -51,7 +50,6 @@ class SlackbotServiceProvider extends ServiceProvider
             SlackChannelsUpdate::class,
             SlackUsersUpdate::class,
             SlackLogsClear::class,
-            SlackDaemon::class
         ]);
     }
     
