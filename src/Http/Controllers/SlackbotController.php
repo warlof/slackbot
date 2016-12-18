@@ -23,6 +23,7 @@ use Warlof\Seat\Slackbot\Models\SlackChannelCorporation;
 use Warlof\Seat\Slackbot\Models\SlackChannelAlliance;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Http\Validation\AddRelation;
+use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller
 {
@@ -54,9 +55,19 @@ class SlackbotController extends Controller
     
     public function getLogs()
     {
-        $logs = SlackLog::orderBy('created_at', 'desc')->take(30)->get();
+        $logCount = SlackLog::count();
+        return view('slackbot::logs', compact('logCount'));
+    }
 
-        return view('slackbot::logs', compact('logs'));
+    public function getLogData()
+    {
+        $logs = SlackLog::orderBy('created_at', 'desc')->get();
+
+        return Datatables::of($logs)
+            ->editColumn('created_at', function($row){
+                return view('slackbot::logs.partial.date', compact('row'));
+            })
+            ->make(true);
     }
 
     public function postRelation(AddRelation $request)

@@ -103,6 +103,12 @@ Route::group([
             'middleware' => 'bouncer:slackbot.security'
         ]);
 
+        Route::get('/json/logs', [
+            'as' => 'slackbot.json.logs',
+            'uses' => 'SlackbotController@getLogData',
+            'middleware' => 'bouncer:slackbot.security'
+        ]);
+
     });
 
     Route::group([

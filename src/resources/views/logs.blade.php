@@ -40,7 +40,7 @@
             <h3 class="panel-title">Last Event logs</h3>
         </div>
         <div class="panel-body">
-            <table class="table table-condensed table-hover table-responsive no-margin">
+            <table class="table table-condensed table-hover table-responsive no-margin" id="logs-table" data-page-length="25">
                 <thead>
                     <tr>
                         <th>{{ trans('web::seat.date') }}</th>
@@ -48,31 +48,10 @@
                         <th>{{ trans('web::seat.message') }}</th>
                     </tr>
                 </thead>
-                <tbody>
-
-                    @foreach($logs as $log)
-                    <tr>
-                        <td>{{ $log->created_at }}</td>
-                        <td>
-                            @if ($log->event == 'mail')
-                            <span class="label label-danger">{{ $log->event }}</span>
-                            @elseif($log->event == 'invite')
-                            <span class="label label-success">{{ $log->event }}</span>
-                            @elseif($log->event == 'kick' || $log->event == 'sync')
-                            <span class="label label-warning">{{ $log->event }}</span>
-                            @else
-                            <span class="label label-info">{{ $log->event }}</span>
-                            @endif
-                        </td>
-                        <td>{{ $log->message }}</td>
-                    </tr>
-                    @endforeach
-
-                </tbody>
             </table>
         </div>
         <div class="panel-footer clearfix">
-            @if($logs->count() == 0)
+            @if($logCount == 0)
                 <a href="#" type="button" class="btn btn-danger btn-sm pull-right disabled" role="button">
                     Clear</a>
             @else
@@ -82,3 +61,36 @@
         </div>
     </div>
 @stop
+
+@push('javascript')
+<script type="text/javascript">
+    $(function(){
+        $('table#logs-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route('slackbot.json.logs') }}',
+            columns: [
+                {data: 'created_at'},
+                {data: 'event', render: function(data){
+                    switch (data) {
+                        case 'invite':
+                            return '<span class="label label-success">' + data + '</span>';
+                        case 'kick':
+                            return '<span class="label label-warning">' + data + '</span>';
+                        case 'sync':
+                            return '<span class="label label-danger">' + data + '</span>';
+                        default:
+                            return '<span class="label label-info">' + data + '</span>';
+                    }
+                }},
+                {data: 'message'}
+            ],
+            "fnDrawCallback": function(){
+                $(document).ready(function(){
+                    $('img').unveil(100);
+                });
+            }
+        });
+    });
+</script>
+@endpush
