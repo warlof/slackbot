@@ -8,7 +8,7 @@ use Seat\Web\Models\User;
 class SlackUser extends Model
 {
     protected $fillable = [
-        'user_id', 'slack_id', 'invited'
+        'user_id', 'slack_id'
     ];
 
     protected $primaryKey = 'user_id';
