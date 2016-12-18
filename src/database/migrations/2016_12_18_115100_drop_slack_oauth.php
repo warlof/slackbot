@@ -14,7 +14,9 @@ class DropSlackOauth extends Migration
      */
     public function up()
     {
-        Schema::drop('slack_users');
+        if (Schema::hasTable('slack_users')) {
+            Schema::drop('slack_users');
+        }
     }
 
     public function down()

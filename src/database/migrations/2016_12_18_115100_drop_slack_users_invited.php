@@ -15,7 +15,9 @@ class DropSlackUsersInvited extends Migration
     public function up()
     {
         Schema::table('slack_users', function (Blueprint $table) {
-            $table->dropColumn('invited');
+            if (Schema::hasColumn('slack_users', 'invited')) {
+                $table->dropColumn('invited');
+            }
         });
     }
 

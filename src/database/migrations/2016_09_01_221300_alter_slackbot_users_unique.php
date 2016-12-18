@@ -20,8 +20,8 @@ class AlterSlackbotUsersUnique extends Migration
         foreach ($users as $user) {
             if ($user->slack_id == $lastUser) {
                 $user->delete();
-
             }
+
             $lastUser = $user->slack_id;
         }
 
