@@ -102,7 +102,7 @@ class Helper
 
     public static function getSlackUserInformation(string $slackUserId) : array
     {
-        if (($data = Redis::get('seat:warlof:slackbot:channels.' . $slackUserId)) == null) {
+        if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) == null) {
             $userInfo = app('warlof.slackbot.slack')->userInfo($slackUserId);
             $userInfo['channels'] = app('warlof.slackbot.slack')->memberOf($slackUserId, false);
             $userInfo['groups'] = app('warlof.slackbot.slack')->memberOf($slackUserId, true);

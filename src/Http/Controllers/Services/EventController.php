@@ -19,8 +19,6 @@ class EventController extends Controller
 
     public function callback(Request $request)
     {
-        logger()->debug('Slack::callback', ['token' => $request->input('token')]);
-
         if ($request->input('token') == null || $request->input('type') == null ||
             !in_array($request->input('type'), ['url_verification', 'event_callback'])) {
 
@@ -68,7 +66,7 @@ class EventController extends Controller
                 }
 
                 $this->eventHandler($request->input('event'));
-                return response();
+                return response()->json(['ok' => true], 200);
         }
 
         return response()->json(['error' => 'Unsupported event type'], 501);
@@ -76,8 +74,6 @@ class EventController extends Controller
 
     private function eventHandler($event)
     {
-        logger()->debug('Slack::eventHandler', $event);
-
         switch ($event['type']) {
             //
             // channel events

@@ -1,3 +1,19 @@
+# Version 2.0.0 announcement
+This new version is compatible with SeAT 2.x. I choose to follow SeAT major version in order to make life easiest for maintainers.
+
+Slack RTM has been replaced by Slack Event API which is easier to set than using a Daemon.
+
+Due to this change, Slackbot is no longer processing **Team Invitation**. Team invitation is a non official endpoint which is only usable with test token, and Slack Event require official OAuth token.
+
+**Warning**
+> You have to create new credentials in `Slackbot Settings` (follow the link bellow credentials fields).
+
+> Slackbot namespace has changed for `Warlof\Seat\Slackbot` and Slack credentials are now stored into official `Seat` setting table.
+
+> Supervisor configuration related to Slackbot Daemon is non longer required
+
+Redis is now used in order to reduce call amount through Slack REST API.
+
 # Version 0.7.5
 Handle `Team Invitation` exception in logs in order to avoid to barrely spam SeAT stats with unrelevant exception.
 Introduce a new event kind called "sync" into which those exception are published.

@@ -19,7 +19,6 @@ class SlackAssKicker extends AbstractWorker
         $keys = ApiKey::where('user_id', $this->user->id)->get();
         // get the Slack Api User
         $slackUser = SlackUser::where('user_id', $this->user->id)
-            ->where('invited', true)
             ->whereNotNull('slack_id')
             ->first();
 

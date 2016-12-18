@@ -10,8 +10,8 @@ namespace Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
 use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackChannelsUpdateTest extends TestCase
 {

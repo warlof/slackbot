@@ -13,12 +13,12 @@ use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 trait ChannelHandler
 {
-    private $redisTable = 'seat:warlof:slackbot:channels.';
+    private $channelTable = 'seat:warlof:slackbot:channels.';
 
     public function createChannel($channel)
     {
         // built an unique record key which will be used in order to store and access channel information
-        $redisRecordKey = $this->redisTable . $channel['id'];
+        $redisRecordKey = $this->channelTable . $channel['id'];
 
         // store channel information into redis
         Redis::set($redisRecordKey, json_encode($channel));
@@ -27,14 +27,14 @@ trait ChannelHandler
         SlackChannel::create([
             'id' => $channel['id'],
             'name' => $channel['name'],
-            'is_group' => (strpos($channel['id'], 'C') === 0) ? false : true,
+            'is_group' => false,
             'is_general' => false
         ]);
     }
 
     public function deleteChannel($channelId)
     {
-        $redisRecordKey = $this->redisTable . $channelId;
+        $redisRecordKey = $this->channelTable . $channelId;
 
         // remove information from redis
         Redis::del($redisRecordKey);
@@ -45,7 +45,7 @@ trait ChannelHandler
 
     public function renameChannel($channel)
     {
-        $redisRecordKey = $this->redisTable . $channel['id'];
+        $redisRecordKey = $this->channelTable . $channel['id'];
 
         $redisData = json_decode(Redis::get($redisRecordKey), true);
 
@@ -59,7 +59,7 @@ trait ChannelHandler
 
     public function archiveChannel($channelId)
     {
-        $redisRecordKey = $this->redisTable . $channelId;
+        $redisRecordKey = $this->channelTable . $channelId;
 
         Redis::del($redisRecordKey);
 
@@ -70,7 +70,7 @@ trait ChannelHandler
 
     public function unarchiveChannel($channelId)
     {
-        $redisRecordKey = $this->redisTable . $channelId;
+        $redisRecordKey = $this->channelTable . $channelId;
 
         $channel = app('warlof.slackbot.slack')->info($channelId, false);
 

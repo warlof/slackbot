@@ -48,6 +48,8 @@ class SlackUsersUpdate extends Command
                     // and we're able to match him using email address
                     if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
 
+                        SlackUser::find($seatUser->id)->delete();
+
                         // so, we create the association
                         SlackUser::create([
                             'user_id' => $seatUser->id,

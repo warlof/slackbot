@@ -10,15 +10,16 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
+use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
 trait UserHandler
 {
-    private $redisTable = 'seat:warlof:slackbot:users.';
+    private $userTable = 'seat:warlof:slackbot:users.';
 
     public function joinTeam($user)
     {
-        $redisRecordKey = $this->redisTable . $user['id'];
+        $redisRecordKey = $this->userTable . $user['id'];
 
         if (($seatUser = User::where('email', $user['profile']['email'])->first()) != null) {
             SlackUser::create([
@@ -32,18 +33,16 @@ trait UserHandler
 
     public function joinChannel($channel)
     {
-        $redisRecordKey = $this->redisTable . $channel['user'];
+        $redisRecordKey = $this->userTable . $channel['user'];
 
         $redisData = Redis::get($redisRecordKey);
 
         if ($redisData == null) {
-            $userInfo = app('warlof.slackbot.slack')->userInfo($channel['user']);
-            $userInfo['channels'] = [];
-            $userInfo['groups'] = [];
-        } else {
-            $userInfo = json_decode($redisData, true);
+            Redis::set($redisRecordKey, json_encode(Helper::getSlackUserInformation($channel['user'])));
+            return;
         }
 
+        $userInfo = json_decode($redisData, true);
         $userInfo['channels'][] = $channel['channel'];
 
         Redis::set($redisRecordKey, json_encode($userInfo));
@@ -51,11 +50,12 @@ trait UserHandler
 
     public function leaveChannel($channel)
     {
-        $redisRecordKey = $this->redisTable . $channel['user'];
+        $redisRecordKey = $this->userTable . $channel['user'];
 
         $redisData = Redis::get($redisRecordKey);
 
         if ($redisData == null) {
+            Helper::getSlackUserInformation($channel['user']);
             return;
         }
 
@@ -71,16 +71,16 @@ trait UserHandler
 
     public function joinGroup($group)
     {
-        $redisRecordKey = $this->redisTable . $group['user'];
+        $redisRecordKey = $this->userTable . $group['user'];
 
         $redisData = Redis::get($redisRecordKey);
 
         if ($redisData == null) {
-            $userInfo = ['channels' => [], 'groups' => []];
-        } else {
-            $userInfo = json_decode($redisData, true);
+            Redis::set($redisRecordKey, json_encode(Helper::getSlackUserInformation($group['user'])));
+            return;
         }
 
+        $userInfo = json_decode($redisData, true);
         $userInfo['groups'][] = $group['channel'];
 
         Redis::set($redisRecordKey, json_encode($userInfo));
@@ -88,12 +88,14 @@ trait UserHandler
 
     public function leaveGroup($group)
     {
-        $redisRecordKey = $this->redisTable . $group['user'];
+        $redisRecordKey = $this->userTable . $group['user'];
 
         $redisData = Redis::get($redisRecordKey);
 
-        if ($redisData == null)
+        if ($redisData == null) {
+            Helper::getSlackUserInformation($group['user']);
             return;
+        }
 
         $userInfo = json_decode($redisData, true);
         $key = array_search($group['channel'], $userInfo['groups']);

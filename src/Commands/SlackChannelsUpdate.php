@@ -42,29 +42,16 @@ class SlackChannelsUpdate extends Command
             // init channels ids array which will be used later in order to remove outdate channels
             $slackChannelIds[] = $channel['id'];
 
-            // init flags to default value
-            $isGroup = true;
-            $isGeneral = false;
-
             // try to get channel object from SeAT
             $slackChannel = SlackChannel::find($channel['id']);
-
-            // Determine if this is a group (private channel) or a channel
-            if (substr($channel['id'], 0, 1) === 'C') {
-                $isGroup = false;
-            }
-
-            if ($isGroup == false) {
-                $isGeneral = (boolean) $channel['is_general'];
-            }
 
             // create the channel if it doesn't exist
             if ($slackChannel == null) {
                 SlackChannel::create([
                     'id' => $channel['id'],
                     'name' => $channel['name'],
-                    'is_group' => $isGroup,
-                    'is_general' => $isGeneral
+                    'is_group' => (strpos($channel['id'], 'C') === 0) ? false : true,
+                    'is_general' => (strpos($channel['id'], 'C') === 0) ? $channel['is_general'] : false
                 ]);
 
                 continue;
@@ -73,7 +60,7 @@ class SlackChannelsUpdate extends Command
             // update the channel if it is already known by SeAT
             $slackChannel->update([
                 'name' => $channel['name'],
-                'is_general' => $isGeneral
+                'is_general' => (strpos('C', $channel['id']) === 0) ? $channel['is_general'] : false
             ]);
         }
 

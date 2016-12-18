@@ -56,8 +56,7 @@ abstract class AbstractWorker
             $channelsString =  $slackChannels->implode('name', ', ');
         }
 
-        switch ($eventType)
-        {
+        switch ($eventType) {
             case 'invite':
                 $message = 'The user ' . $this->user->name . ' has been invited to following channels : ' .
                     $channelsString;

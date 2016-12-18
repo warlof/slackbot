@@ -160,7 +160,7 @@ class SlackUpdater implements ShouldQueue
     private function trackOrDismiss()
     {
         // Retrieve job tracking record we added when queuing the job
-        $this->jobTracker = JobTracking::find($this->getJobId());
+        $this->jobTracker = JobTracking::find($this->job->getJobId());
 
         // If no tracking record is found, just put the job back in the queue after a few seconds.
         // It could be that the job to add it has not finished yet
@@ -176,7 +176,7 @@ class SlackUpdater implements ShouldQueue
 
             // Remove yourself from the queue
             logger()->error(
-                'Error finding a JobTracker for job ' . $this->job->getJobID()
+                'Error finding a JobTracker for job ' . $this->job->getJobId()
             );
 
             $this->delete();

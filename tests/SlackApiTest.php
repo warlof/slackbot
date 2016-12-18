@@ -9,7 +9,7 @@
 namespace Warlof\Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
-use \Warlof\Seat\Slackbot\Helpers\SlackApi;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackApiTest extends TestCase
 {
@@ -49,7 +49,7 @@ class SlackApiTest extends TestCase
     {
         $slackUserId = "U1Z8TCZAT";
         $slackChannelsId = ["C1Z920QKC"];
-        $apiResponse = app('warlof.slackbot.slack')->member($slackUserId, false);
+        $apiResponse = app('warlof.slackbot.slack')->memberOf($slackUserId, false);
 
         $this->assertEquals($slackChannelsId, $apiResponse);
     }
@@ -58,7 +58,7 @@ class SlackApiTest extends TestCase
     {
         $slackUserId = "U1Z8TCZAT";
         $slackChannelsId = ["G1Z9267L1", "G1Z9CBCP8", "G1ZUXJZSL"];
-        $apiResponse = app('warlof.slackbot.slack')->member($slackUserId, true);
+        $apiResponse = app('warlof.slackbot.slack')->memberOf($slackUserId, true);
 
         $this->assertEquals($apiResponse, $slackChannelsId);
     }
