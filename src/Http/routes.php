@@ -103,11 +103,35 @@ Route::group([
             'middleware' => 'bouncer:slackbot.security'
         ]);
 
-        Route::get('/json/logs', [
-            'as' => 'slackbot.json.logs',
-            'uses' => 'SlackbotController@getLogData',
-            'middleware' => 'bouncer:slackbot.security'
+        Route::get('/users', [
+            'as' => 'slackbot.users',
+            'uses' => 'SlackbotController@getUsers',
+            'middleware' => 'bouncer:slackbot.view'
         ]);
+
+        Route::group([
+            'prefix' => 'json'
+        ], function(){
+
+            Route::get('/logs', [
+                'as' => 'slackbot.json.logs',
+                'uses' => 'SlackbotController@getLogData',
+                'middleware' => 'bouncer:slackbot.security'
+            ]);
+
+            Route::get('/users', [
+                'as' => 'slackbot.json.users',
+                'uses' => 'SlackbotController@getUsersData',
+                'middleware' => 'bouncer:slackbot.view'
+            ]);
+
+            Route::post('/user/remove', [
+                'as' => 'slackbot.json.user.remove',
+                'uses' => 'SlackbotController@postRemoveUserMapping',
+                'middleware' => 'bouncer:slackbot.security'
+            ]);
+
+        });
 
     });
 

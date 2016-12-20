@@ -17,6 +17,11 @@ return [
                 'route' => 'slackbot.list',
             ],
             [
+                'name' => 'Slack User Mapping',
+                'icon' => 'fa-exchange',
+                'route' => 'slackbot.users'
+            ],
+            [
                 'name'  => 'Slackbot Settings',
                 'icon'  => 'fa-cogs',
                 'route' => 'slackbot.configuration',

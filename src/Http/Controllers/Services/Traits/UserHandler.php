@@ -17,6 +17,36 @@ trait UserHandler
 {
     private $userTable = 'seat:warlof:slackbot:users.';
 
+    public function userChange($user)
+    {
+        $channels = [];
+        $groups = [];
+
+        $redisRecordKey = $this->userTable . $user['id'];
+
+        if (($seatUser = SlackUser::where('slack_id', $user['id'])->first()) != null) {
+            $seatUser->name = $user['name'];
+            $seatUser->save();
+        }
+
+        if (($data = Redis::get($redisRecordKey)) != null) {
+            $data = json_decode($data, true);
+
+            if (key_exists('channels', $data)) {
+                $channels = $data['channels'];
+            }
+
+            if (key_exists('groups', $data)) {
+                $groups = $data['groups'];
+            }
+        }
+
+        $user['channels'] = $channels;
+        $user['groups'] = $groups;
+
+        Redis::set($redisRecordKey, json_encode($user));
+    }
+
     public function joinTeam($user)
     {
         $redisRecordKey = $this->userTable . $user['id'];
@@ -24,9 +54,13 @@ trait UserHandler
         if (($seatUser = User::where('email', $user['profile']['email'])->first()) != null) {
             SlackUser::create([
                 'user_id' => $seatUser->id,
-                'slack_id' => $user['id']
+                'slack_id' => $user['id'],
+                'name' => $user['name']
             ]);
         }
+
+        $user['channels'] = [];
+        $user['groups'] = [];
 
         Redis::set($redisRecordKey, json_encode($user));
     }

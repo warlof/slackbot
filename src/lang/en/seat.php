@@ -7,6 +7,7 @@
 
 return [
     'management' => 'Slackbot Access Management',
+    'mapping' => 'Slackbot User Mapping',
     'quick_create' => 'Quick create',
     'type' => 'Type',
     'username' => 'Username',
@@ -26,5 +27,6 @@ return [
     'alliance' => 'Alliance',
     'remove' => 'Remove',
     'enabled' => 'Enabled',
-    'settings' => 'Slackbot Settings'
+    'settings' => 'Slackbot Settings',
+    'user_list' => 'User List'
 ];

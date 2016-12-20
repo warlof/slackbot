@@ -23,6 +23,7 @@ use Warlof\Seat\Slackbot\Models\SlackChannelCorporation;
 use Warlof\Seat\Slackbot\Models\SlackChannelAlliance;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Http\Validation\AddRelation;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller
@@ -41,9 +42,16 @@ class SlackbotController extends Controller
         $alliances = AllianceList::all();
         $channels = SlackChannel::all();
 
-        return view('slackbot::list',
+        return view('slackbot::access.list',
             compact('channelPublic', 'channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances',
                 'users', 'roles', 'corporations', 'alliances', 'channels'));
+    }
+
+    public function getUsers()
+    {
+        $slackUsers = SlackUser::all();
+
+        return view('slackbot::users.list', compact('slackUsers'));
     }
 
     public function getConfiguration()
@@ -56,7 +64,7 @@ class SlackbotController extends Controller
     public function getLogs()
     {
         $logCount = SlackLog::count();
-        return view('slackbot::logs', compact('logCount'));
+        return view('slackbot::logs.list', compact('logCount'));
     }
 
     public function getLogData()
@@ -66,6 +74,45 @@ class SlackbotController extends Controller
         return Datatables::of($logs)
             ->editColumn('created_at', function($row){
                 return view('slackbot::logs.partial.date', compact('row'));
+            })
+            ->make(true);
+    }
+
+    public function postRemoveUserMapping()
+    {
+        $slackId = request()->input('slack_id');
+
+        if ($slackId != '') {
+
+            if (($slackUser = SlackUser::where('slack_id', $slackId)->first()) != null) {
+                $slackUser->delete();
+
+                return redirect()->back()->with('success', 'System successfully remove the mapping between SeAT (' .
+                    $slackUser->user->name . ') and Slack (' . $slackUser->name . ').');
+            }
+
+            return redirect()->back()->with('error', 'System cannot find any suitable mapping for Slack (' . $slackId . ').');
+        }
+
+        return redirect()->back('error', 'An error occurred while processing the request.');
+    }
+
+    public function getUsersData()
+    {
+        $users = SlackUser::all();
+
+        return Datatables::of($users)
+            ->addColumn('user_id', function($row){
+                return $row->user_id;
+            })
+            ->addColumn('user_name', function($row){
+                return $row->user->name;
+            })
+            ->addColumn('slack_id', function($row){
+                return $row->slack_id;
+            })
+            ->addColumn('slack_name', function($row){
+                return $row->name;
             })
             ->make(true);
     }

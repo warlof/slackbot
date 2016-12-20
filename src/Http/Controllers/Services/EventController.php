@@ -114,6 +114,9 @@ class EventController extends Controller
             //
             // user events
             //
+            case 'user_change':
+                $this->userChange($event['user']);
+                break;
             case 'team_join':
                 $this->joinTeam($event['user']);
                 break;

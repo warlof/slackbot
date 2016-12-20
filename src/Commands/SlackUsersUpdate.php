@@ -56,7 +56,8 @@ class SlackUsersUpdate extends Command
                         // so, we create the association
                         SlackUser::create([
                             'user_id' => $seatUser->id,
-                            'slack_id' => $member['id']
+                            'slack_id' => $member['id'],
+                            'name' => $member['name']
                         ]);
 
                         Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
