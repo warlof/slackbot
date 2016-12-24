@@ -15,6 +15,7 @@ use Seat\Web\Models\User;
 use Seat\Web\Models\Acl\Role;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
+use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
@@ -99,6 +100,21 @@ class SlackbotController extends Controller
 
     public function getUsersData()
     {
+        $users = SlackUser::whereNull('name')->get();
+
+        if ($users->count()) {
+            foreach ($users as $user) {
+                try {
+                    $member = app('warlof.slackbot.slack')->userInfo($user->slack_id);
+                    $user->update([
+                        'name' => $member['name']
+                    ]);
+                } catch (SlackApiException $e) {
+
+                }
+            }
+        }
+
         $users = SlackUser::all();
 
         return Datatables::of($users)

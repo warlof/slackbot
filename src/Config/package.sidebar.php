@@ -25,7 +25,7 @@ return [
                 'name'  => 'Slackbot Settings',
                 'icon'  => 'fa-cogs',
                 'route' => 'slackbot.configuration',
-                'permission' => 'slackbot:setup'
+                'permission' => 'slackbot.setup'
             ],
             [
                 'name'  => 'Slackbot Logs',
@@ -33,6 +33,6 @@ return [
                 'route' => 'slackbot.logs'
             ]
         ],
-        'permission' => 'slackbot:view'
+        'permission' => 'slackbot.view'
     ]
 ];
