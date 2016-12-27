@@ -103,9 +103,10 @@ class Helper
     public static function getSlackUserInformation(string $slackUserId) : array
     {
         if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) == null) {
-            $userInfo = app('warlof.slackbot.slack')->userInfo($slackUserId);
-            $userInfo['channels'] = app('warlof.slackbot.slack')->memberOf($slackUserId, false);
-            $userInfo['groups'] = app('warlof.slackbot.slack')->memberOf($slackUserId, true);
+            $userInfo = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($slackUserId);
+            $userInfo['channels'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackUserId, false);
+            $userInfo['groups'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackUserId, true);
+            Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
         } else {
             $userInfo = json_decode($data, true);
         }

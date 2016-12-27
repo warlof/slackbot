@@ -72,7 +72,7 @@ trait GroupHandler
     {
         $redisRecordKey = $this->groupTable . $groupId;
 
-        $channel = app('warlof.slackbot.slack')->info($groupId, true);
+        $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($groupId, true);
 
         Redis::set($redisRecordKey, json_encode($channel));
 

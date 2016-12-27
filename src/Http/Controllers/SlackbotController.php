@@ -105,7 +105,7 @@ class SlackbotController extends Controller
         if ($users->count()) {
             foreach ($users as $user) {
                 try {
-                    $member = app('warlof.slackbot.slack')->userInfo($user->slack_id);
+                    $member = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($user->slack_id);
                     $user->update([
                         'name' => $member['name']
                     ]);

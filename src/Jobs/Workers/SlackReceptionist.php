@@ -28,17 +28,18 @@ class SlackReceptionist extends AbstractWorker
 
             // in other case, invite him to channels and groups
             // get the attached slack user
-            $slackUser = SlackUser::where('user_id', $this->user->id)->first();
+            if (($slackUser = SlackUser::where('user_id', $this->user->id)->first()) != null) {
 
-            // control that we already know it's slack ID (mean that he creates his account)
-            if ($slackUser->slack_id != null) {
+                // control that we already know it's slack ID (mean that he creates his account)
+                if ($slackUser->slack_id != null) {
 
-                // fetch user information from caching service
-                $userInfo = Helper::getSlackUserInformation($slackUser->slack_id);
+                    // fetch user information from caching service
+                    $userInfo = Helper::getSlackUserInformation($slackUser->slack_id);
 
-                $this->processChannelsInvitation($slackUser, $userInfo['channels']);
+                    $this->processChannelsInvitation($slackUser, $userInfo['channels']);
 
-                $this->processGroupsInvitation($slackUser, $userInfo['groups']);
+                    $this->processGroupsInvitation($slackUser, $userInfo['groups']);
+                }
             }
         }
 
@@ -56,7 +57,7 @@ class SlackReceptionist extends AbstractWorker
     private function processMemberInvitation(User $user)
     {
         try {
-            app('warlof.slackbot.slack')->inviteToTeam($user->email);
+            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->inviteToTeam($user->email);
 
             // update Slack user relation
             SlackUser::create([
@@ -79,12 +80,12 @@ class SlackReceptionist extends AbstractWorker
      */
     private function processChannelsInvitation(SlackUser $slackUser, array $currentChannels)
     {
-        $allowedChannels = Helper::allowedChannels($slackUser, true);
+        $allowedChannels = Helper::allowedChannels($slackUser, false);
         $missingChannels = array_diff($allowedChannels, $currentChannels);
 
         // iterate over each channel ID and invite the user
         foreach ($missingChannels as $channelId) {
-            app('warlof.slackbot.slack')->invite($slackUser->slack_id, $channelId, false);
+            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $channelId, false);
         }
 
         $this->logEvent('invite', $missingChannels);
@@ -106,7 +107,7 @@ class SlackReceptionist extends AbstractWorker
 
             // iterate over each group ID and invite the user
             foreach ($missingGroups as $groupId) {
-                app('warlof.slackbot.slack')->invite($slackUser->slack_id, $groupId, true);
+                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $groupId, true);
             }
 
             $this->logEvent('invite', $missingGroups);

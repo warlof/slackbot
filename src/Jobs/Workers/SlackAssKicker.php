@@ -69,7 +69,7 @@ class SlackAssKicker extends AbstractWorker
 
             // iterate channel ID and call kick method from Slack Api
             foreach ($extraChannels as $channelId) {
-                app('warlof.slackbot.slack')->kick($slackUser->slack_id, $channelId, false);
+                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $channelId, false);
             }
 
             $this->logEvent('kick', $extraChannels);
@@ -97,7 +97,7 @@ class SlackAssKicker extends AbstractWorker
 
             // iterate group ID and call kick method from Slack Api
             foreach ($extraGroups as $groupId) {
-                app('warlof.slackbot.slack')->kick($slackUser->slack_id, $groupId, true);
+                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $groupId, true);
             }
 
             $this->logEvent('kick', $extraGroups);

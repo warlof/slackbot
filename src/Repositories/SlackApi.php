@@ -208,32 +208,23 @@ class SlackApi
 
         // The request is for a private channel, call groups endpoint
         if ($private) {
-            $group = $this->info($channelId, $private);
 
-            // check that the specified user is not already part from the channel
-            if (in_array($userId, $group['members']) == false) {
-                // send a request to Slack in order to invite the user into the channel
-                $result = $this->post('/groups.invite', $params);
+            $result = $this->post('/groups.invite', $params);
 
-                // check that the request has been handled successfully. If not, fire an exception
-                if ($result['ok'] == false) {
-                    throw new SlackGroupException($result['error']);
-                }
+            // check that the request has been handled successfully. If not, fire an exception
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
             }
 
             return;
         }
 
         // The request is for a public channel, call channels endpoint
-        $channel = $this->info($channelId, $private);
+        $result = $this->post('/channels.invite', $params);
 
-        if (in_array($userId, $channel['members']) == false) {
-            $result = $this->post('/channels.invite', $params);
-
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
-            }
+        // check that the request has been handled successfully. If not, fire an exception
+        if ($result['ok'] == false) {
+            throw new SlackChannelException($result['error']);
         }
     }
 
@@ -262,18 +253,12 @@ class SlackApi
 
         // The request is for a private channel, call groups endpoint
         if ($private) {
-            // fetch group information from Slack API in order to avoid to kick somebody who's not in the channel
-            $group = $this->info($channelId, $private);
+            // send a request to Slack in order to kick the user from the channel
+            $result = $this->post('/groups.kick', $params);
 
-            // check that the specified user is member of the channel
-            if (in_array($userId, $group['members']) == true) {
-                // send a request to Slack in order to kick the user from the channel
-                $result = $this->post('/groups.kick', $params);
-
-                // check that the request has been handled successfully. If not, fire an exception
-                if ($result['ok'] == false) {
-                    throw new SlackGroupException($result['error']);
-                }
+            // check that the request has been handled successfully. If not, fire an exception
+            if ($result['ok'] == false) {
+                throw new SlackGroupException($result['error']);
             }
 
             return;

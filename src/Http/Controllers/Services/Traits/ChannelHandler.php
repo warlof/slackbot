@@ -72,7 +72,7 @@ trait ChannelHandler
     {
         $redisRecordKey = $this->channelTable . $channelId;
 
-        $channel = app('warlof.slackbot.slack')->info($channelId, false);
+        $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($channelId, false);
 
         Redis::set($redisRecordKey, json_encode($channel));
 

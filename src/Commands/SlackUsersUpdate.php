@@ -32,7 +32,7 @@ class SlackUsersUpdate extends Command
         }
 
         // get members list from slack team
-        $members = app('warlof.slackbot.slack')->members();
+        $members = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->members();
 
         // iterate over each member and try to make aggregation
         foreach ($members as $member) {

@@ -31,8 +31,8 @@ class SlackChannelsUpdate extends Command
 
         // make a call in order to fetch both public and private channels
         $channels = array_merge(
-            app('warlof.slackbot.slack')->channels(false),
-            app('warlof.slackbot.slack')->channels(true)
+            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->channels(false),
+            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->channels(true)
         );
 
         $slackChannelIds = [];
