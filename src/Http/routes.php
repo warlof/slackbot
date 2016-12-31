@@ -131,6 +131,12 @@ Route::group([
                 'middleware' => 'bouncer:slackbot.security'
             ]);
 
+            Route::get('/users/channels', [
+                'as' => 'slackbot.json.user.channels',
+                'uses' => 'SlackbotController@getJsonUserChannelsData',
+                'middleware' => 'bouncer:slackbot.security'
+            ]);
+
         });
 
     });

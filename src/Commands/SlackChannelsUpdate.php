@@ -9,6 +9,7 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
@@ -27,6 +28,11 @@ class SlackChannelsUpdate extends Command
     {
         if (setting('warlof.slackbot.credentials.access_token', true) == null) {
             throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
+        }
+
+        $channelsAndGroups = array_merge(Redis::keys('seat:warlof:slackbot:channels*'), Redis::keys('seat:warlof:slackbot:groups*'));
+        foreach ($channelsAndGroups as $channelOrGroup) {
+            Redis::del($channelOrGroup);
         }
 
         // make a call in order to fetch both public and private channels
@@ -60,8 +66,14 @@ class SlackChannelsUpdate extends Command
             // update the channel if it is already known by SeAT
             $slackChannel->update([
                 'name' => $channel['name'],
-                'is_general' => (strpos('C', $channel['id']) === 0) ? $channel['is_general'] : false
+                'is_general' => (strpos($channel['id'], 'C') === 0) ? $channel['is_general'] : false
             ]);
+
+            if (strpos($channel['id'], 'C') === 0) {
+                Redis::set('seat:warlof:slackbot:channels.' . $channel['id'], json_encode($channel));
+            } else {
+                Redis::set('seat:warlof:slackbot:groups.' . $channel['id'], json_encode($channel));
+            }
         }
 
         // get all known channels from SeAT and remove them if they are no longer existing

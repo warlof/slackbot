@@ -10,12 +10,14 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 use GuzzleHttp\Client;
 use Guzzle\Http\Exception\RequestException;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Redis;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\User;
 use Seat\Web\Models\Acl\Role;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Eve\AllianceList;
 use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
+use Warlof\Seat\Slackbot\Http\Validation\UserChannel;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
@@ -50,9 +52,7 @@ class SlackbotController extends Controller
 
     public function getUsers()
     {
-        $slackUsers = SlackUser::all();
-
-        return view('slackbot::users.list', compact('slackUsers'));
+        return view('slackbot::users.list');
     }
 
     public function getConfiguration()
@@ -131,6 +131,43 @@ class SlackbotController extends Controller
                 return $row->name;
             })
             ->make(true);
+    }
+
+    public function getJsonUserChannelsData(UserChannel $request)
+    {
+        $slackId = $request->input('slack_id');
+
+        if (($member = json_decode(Redis::get('seat:warlof:slackbot:users.' . $slackId), true)) == null) {
+            $member = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($slackId);
+            $member['channels'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackId, false);
+            $member['groups'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackId, true);
+
+            Redis::set('seat:warlof:slackbot:users.' . $slackId, json_encode($member));
+        }
+
+        $channels = [];
+        foreach ($member['channels'] as $channelId) {
+            if (($channel = json_decode(Redis::get('seat:warlof:slackbot:channels.' . $channelId), true)) == null) {
+                $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($channelId, false);
+
+                Redis::set('seat:warlof:slackbot:channels.' . $channelId, json_encode($channel));
+            }
+
+            $channels[] = [$channel['id'], $channel['name'], count($channel['members'])];
+        }
+
+        $groups = [];
+        foreach ($member['groups'] as $groupId) {
+            if (($group = json_decode(Redis::get('seat:warlof:slackbot:groups.' . $groupId), true)) == null) {
+                $group = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($groupId, true);
+
+                Redis::set('seat:warlof:slackbot:groups.' . $groupId, json_encode($group));
+            }
+
+            $groups[] = [$group['id'], $group['name'], count($group['members'])];
+        }
+
+        return response()->json(['channels' => $channels, 'groups' => $groups]);
     }
 
     public function postRelation(AddRelation $request)

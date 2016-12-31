@@ -58,6 +58,8 @@ class SlackAssKicker extends AbstractWorker
      */
     private function processChannelsKick(SlackUser $slackUser, array $currentChannels, bool $all)
     {
+        $kickedChannels = [];
+
         if ($all) {
             $extraChannels = $currentChannels;
         } else {
@@ -69,10 +71,12 @@ class SlackAssKicker extends AbstractWorker
 
             // iterate channel ID and call kick method from Slack Api
             foreach ($extraChannels as $channelId) {
-                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $channelId, false);
+                if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $channelId, false)) {
+                    $kickedChannels[] = $channelId;
+                }
             }
 
-            $this->logEvent('kick', $extraChannels);
+            $this->logEvent('kick', $kickedChannels);
         }
     }
 
@@ -86,6 +90,8 @@ class SlackAssKicker extends AbstractWorker
      */
     private function processGroupsKick(SlackUser $slackUser, array $currentGroups, bool $all)
     {
+        $kickedGroups = [];
+
         if ($all) {
             $extraGroups = $currentGroups;
         } else {
@@ -97,10 +103,12 @@ class SlackAssKicker extends AbstractWorker
 
             // iterate group ID and call kick method from Slack Api
             foreach ($extraGroups as $groupId) {
-                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $groupId, true);
+                if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $groupId, true)) {
+                    $kickedGroups[] = $groupId;
+                }
             }
 
-            $this->logEvent('kick', $extraGroups);
+            $this->logEvent('kick', $kickedGroups);
         }
     }
 

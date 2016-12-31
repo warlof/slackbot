@@ -1,3 +1,10 @@
+# Version 2.0.1
+* Fix few issues related to Slack implementation (you need to **restart** supervisor in order change are took in account)
+* Improve cachability
+* `Update Slack channels and groups` and `Update Slack users` commands in settings are now refreshing cache
+* Slack log is no longer displaying an entry every time the bot is proceeding invitation
+* Improve Slack User Mapping with the channels list where an user is in
+
 # Version 2.0.0 announcement
 This new version is compatible with SeAT 2.x. I choose to follow SeAT major version in order to make life easiest for maintainers.
 
@@ -15,7 +22,7 @@ Due to this change, Slackbot is no longer processing **Team Invitation**. Team i
 Redis is now used in order to reduce call amount through Slack REST API.
 
 # Version 0.7.5
-Handle `Team Invitation` exception in logs in order to avoid to barrely spam SeAT stats with unrelevant exception.
+Handle `Team Invitation` exception in logs in order to avoid to barely spam SeAT stats with unrelevant exception.
 Introduce a new event kind called "sync" into which those exception are published.
 
 # Version 0.7.4

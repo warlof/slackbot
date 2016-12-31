@@ -124,35 +124,6 @@
                     </span>
                 </div>
             </div>
-
-            <div class="form-group">
-                <div class="col-md-12">
-                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
-                        <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
-                    @else
-                        <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Update Slack Member</a>
-                    @endif
-                    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
-                    <span class="help-block">
-                        Warning, this will kick all Slack member the bot is not able to link to SeAT user account.
-                        The bot is using both SeAT user mail and Slack member mail in order to bind the account.
-                    </span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <div class="col-md-12">
-                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
-                        <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
-                    @else
-                        <a href="#" type="button" class="btn btn-warning btn-md col-md-12 disabled" role="button">Kick SeAT User</a>
-                    @endif
-                    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Will be implemented in a later release"></i>
-                    <span class="help-block">
-                        This will kick all Slack member which not met the channels and groups rules.
-                    </span>
-                </div>
-            </div>
         </div>
     </div>
 @stop

@@ -53,16 +53,20 @@ class SlackUsersUpdate extends Command
                             $slackUser->delete();
                         };
 
-                        // so, we create the association
+                        // Create the new association
                         SlackUser::create([
                             'user_id' => $seatUser->id,
                             'slack_id' => $member['id'],
                             'name' => $member['name']
                         ]);
-
-                        Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
                     }
                 }
+
+                // Update cache information
+                $member['channels'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($member['id'], false);
+                $member['groups'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($member['id'], true);
+
+                Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
             }
         }
     }

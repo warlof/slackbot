@@ -33,6 +33,58 @@
         </div>
     </div>
 
+    <div class="modal fade" id="user-channels" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <!--
+                    <button type="button" class="btn btn-xs pull-right" style="background: none">
+                        <i class="fa fa-refresh"></i>
+                    </button>
+                    -->
+                    <h4 class="modal-title">
+                        <span id="slack_username"></span>
+                        (<span id="seat_username"></span>) is member of following
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-condensed table-hover" id="channels">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th># Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-condensed table-hover" id="groups">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th># Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('javascript')
@@ -51,7 +103,7 @@
                 {
                     data: null,
                     targets: -1,
-                    defaultContent: '<button class="btn btn-sm btn-danger">Remove</button>',
+                    defaultContent: '<button class="btn btn-xs btn-info">Channels</button> <button class="btn btn-xs btn-danger">Remove</button>',
                     orderable: false
                 }
                 @endif
@@ -63,7 +115,39 @@
             }
         });
 
-        $('#users-table tbody').on('click', 'button', function(){
+        $('#users-table tbody').on('click', 'button.btn-info', function(){
+            var row = table.row($(this).parents('tr')).data();
+
+            $.ajax({
+                url: '{{ route('slackbot.json.user.channels', ['id' => null]) }}',
+                data: {'slack_id' : row.slack_id},
+                success: function(data){
+                    $('#channels').find('tbody tr').remove();
+                    $('#groups').find('tbody tr').remove();
+
+                    $('#slack_username').text(row.slack_name);
+                    $('#seat_username').text(row.user_name);
+
+                    if (data['channels']) {
+                        for (var i = 0; i < data['channels'].length; i++) {
+                            $('#channels').find('tbody').append('<tr><td>' + data['channels'][i][0] + '</td><td>' +
+                                    data['channels'][i][1] + '</td><td>' + data['channels'][i][2] + '</td></tr>');
+                        }
+                    }
+
+                    if (data['groups']) {
+                        for (var i = 0; i < data['groups'].length; i++) {
+                            $('#groups').find('tbody').append('<tr><td>' + data['groups'][i][0] + '</td><td>' +
+                                    data['groups'][i][1] + '</td><td>' + data['groups'][i][2] + '</td></tr>');
+                        }
+                    }
+                }
+            });
+
+            $('#user-channels').modal('show');
+        });
+
+        $('#users-table tbody').on('click', 'button.btn-danger', function(){
             var data = table.row($(this).parents('tr')).data();
             $('#user-remove').find('input[name="slack_id"]').val(data.slack_id).parent().submit();
         });

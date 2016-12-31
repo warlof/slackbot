@@ -195,10 +195,9 @@ class SlackApi
      * @param string $channelId Slack channel id (ie: C6547987)
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
-     * @throws SlackGroupException
-     * @throws SlackChannelException
+     * @return bool
      */
-    public function invite(string $userId, string $channelId, bool $private)
+    public function invite(string $userId, string $channelId, bool $private) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
@@ -211,21 +210,13 @@ class SlackApi
 
             $result = $this->post('/groups.invite', $params);
 
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
-            }
-
-            return;
+            return $result['ok'];
         }
 
         // The request is for a public channel, call channels endpoint
         $result = $this->post('/channels.invite', $params);
 
-        // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
-        }
+        return $result['ok'];
     }
 
     /**
@@ -235,10 +226,9 @@ class SlackApi
      * @param string $channelId Slack channel id (ie: C6547987)
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
-     * @throws SlackGroupException
-     * @throws SlackChannelException
+     * @return bool
      */
-    public function kick(string $userId, string $channelId, bool $private)
+    public function kick(string $userId, string $channelId, bool $private) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
@@ -248,7 +238,7 @@ class SlackApi
 
         // We can't kick token owner himself
         if ($userId == $this->tokenOwnerId) {
-            return;
+            return false;
         }
 
         // The request is for a private channel, call groups endpoint
@@ -256,12 +246,7 @@ class SlackApi
             // send a request to Slack in order to kick the user from the channel
             $result = $this->post('/groups.kick', $params);
 
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
-            }
-
-            return;
+            return $result['ok'];
         }
 
         // The request is for a public channel, call channels endpoint
@@ -272,11 +257,10 @@ class SlackApi
             // send a request to Slack in order to kick the user from the channel
             $result = $this->post('/channels.kick', $params);
 
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackChannelException($result['error']);
-            }
+            return $result['ok'];
         }
+
+        return false;
     }
 
     /**

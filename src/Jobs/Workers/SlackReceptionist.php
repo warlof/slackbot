@@ -80,15 +80,18 @@ class SlackReceptionist extends AbstractWorker
      */
     private function processChannelsInvitation(SlackUser $slackUser, array $currentChannels)
     {
+        $invitedChannels = [];
         $allowedChannels = Helper::allowedChannels($slackUser, false);
         $missingChannels = array_diff($allowedChannels, $currentChannels);
 
         // iterate over each channel ID and invite the user
         foreach ($missingChannels as $channelId) {
-            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $channelId, false);
+            if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $channelId, false)) {
+                $invitedChannels[] = $channelId;
+            }
         }
 
-        $this->logEvent('invite', $missingChannels);
+        $this->logEvent('invite', $invitedChannels);
     }
 
     /**
@@ -100,6 +103,7 @@ class SlackReceptionist extends AbstractWorker
      */
     private function processGroupsInvitation(SlackUser $slackUser, array $currentGroups)
     {
+        $invitedGroups = [];
         $allowedGroups = Helper::allowedChannels($slackUser, true);
         $missingGroups = array_diff($allowedGroups, $currentGroups);
 
@@ -107,10 +111,12 @@ class SlackReceptionist extends AbstractWorker
 
             // iterate over each group ID and invite the user
             foreach ($missingGroups as $groupId) {
-                app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $groupId, true);
+                if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $groupId, true)) {
+                    $invitedGroups[] = $groupId;
+                }
             }
 
-            $this->logEvent('invite', $missingGroups);
+            $this->logEvent('invite', $invitedGroups);
         }
     }
 }
