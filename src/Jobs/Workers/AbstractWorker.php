@@ -48,13 +48,13 @@ abstract class AbstractWorker
     protected function logEvent(string $eventType, array $channels = null)
     {
         $message = '';
-        $channelsString = '';
+
+        if (empty($channels)) {
+            return;
+        }
 
         $slackChannels = SlackChannel::whereIn('id', $channels)->get();
-
-        if ($channels != null) {
-            $channelsString =  $slackChannels->implode('name', ', ');
-        }
+        $channelsString =  $slackChannels->implode('name', ', ');
 
         switch ($eventType) {
             case 'invite':
