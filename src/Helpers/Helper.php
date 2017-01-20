@@ -76,6 +76,21 @@ class Helper
                     ->where('slack_channels.is_general', (int) false)
                     ->select('channel_id')
             )->union(
+                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=',
+                    'eve_api_keys.key_id')
+                    ->join('character_character_sheet_corporation_titles',
+                        'character_character_sheet_corporation_titles.characterID', '=',
+                        'account_api_key_info_characters.characterID')
+                    ->join('slack_channel_titles', function($join){
+                        $join->on('slack_channel_titles.corporation_id', '=', 'account_api_key_info_characters.corporationID');
+                        $join->on('slack_channel_titles.title_id', '=', 'character_character_sheet_corporation_titles.titleID');
+                    })
+                    ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
+                    ->where('eve_api_keys.user_id', $slackUser->user_id)
+                    ->where('slack_channels.is_group', (int) $private)
+                    ->where('slack_channels.is_general', (int) false)
+                    ->select('channel_id')
+            )->union(
                 CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=',
                     'character_character_sheets.allianceID')
                     ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')

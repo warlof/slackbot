@@ -77,6 +77,12 @@ Route::group([
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
+            Route::get('/corporation/{corporation_id}/{title_id}/{channel_id}/remove', [
+                'as' => 'slackbot.title.remove',
+                'uses' => 'SlackbotController@getRemoveTitle',
+                'middleware' => 'bouncer:slackbot:create'
+            ]);
+
             Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
                 'as' => 'slackbot.alliance.remove',
                 'uses' => 'SlackbotController@getRemoveAlliance',
@@ -135,6 +141,12 @@ Route::group([
                 'as' => 'slackbot.json.user.channels',
                 'uses' => 'SlackbotController@getJsonUserChannelsData',
                 'middleware' => 'bouncer:slackbot.security'
+            ]);
+
+            Route::get('/titles', [
+                'as' => 'slackbot.json.titles',
+                'uses' => 'SlackbotController@getJsonTitle',
+                'middleware' => 'bouncer:slackbot.create'
             ]);
 
         });

@@ -1,3 +1,6 @@
+# Version 2.1.0
+* Add a filter for corporation title
+
 # Version 2.0.1
 * Fix few issues related to Slack implementation (you need to **restart** supervisor in order change are took in account)
 * Improve cachability

@@ -11,6 +11,7 @@ use GuzzleHttp\Client;
 use Guzzle\Http\Exception\RequestException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Redis;
+use Seat\Eveapi\Models\Corporation\Title;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\User;
 use Seat\Web\Models\Acl\Role;
@@ -20,6 +21,7 @@ use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
 use Warlof\Seat\Slackbot\Http\Validation\UserChannel;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
+use Warlof\Seat\Slackbot\Models\SlackChannelTitle;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
 use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Warlof\Seat\Slackbot\Models\SlackChannelCorporation;
@@ -37,6 +39,7 @@ class SlackbotController extends Controller
         $channelUsers = SlackChannelUser::all();
         $channelRoles = SlackChannelRole::all();
         $channelCorporations = SlackChannelCorporation::all();
+        $channelTitles = SlackChannelTitle::all();
         $channelAlliances = SlackChannelAlliance::all();
         
         $users = User::all();
@@ -46,8 +49,8 @@ class SlackbotController extends Controller
         $channels = SlackChannel::all();
 
         return view('slackbot::access.list',
-            compact('channelPublic', 'channelUsers', 'channelRoles', 'channelCorporations', 'channelAlliances',
-                'users', 'roles', 'corporations', 'alliances', 'channels'));
+            compact('channelPublic', 'channelUsers', 'channelRoles', 'channelCorporations', 'channelTitles',
+                'channelAlliances', 'users', 'roles', 'corporations', 'alliances', 'channels'));
     }
 
     public function getUsers()
@@ -170,11 +173,31 @@ class SlackbotController extends Controller
         return response()->json(['channels' => $channels, 'groups' => $groups]);
     }
 
+    public function getJsonTitle()
+    {
+        $corporation_id = request()->input('corporation_id');
+
+        if (!empty($corporation_id)) {
+            $titles = Title::where('corporationID', $corporation_id)->select('titleID', 'titleName')
+                ->get();
+
+            return response()->json($titles->map(
+                function($item){
+                    return [
+                        'titleID' => $item->titleID,
+                        'titleName' => strip_tags($item->titleName)
+                    ];
+                })
+            );
+        }
+    }
+
     public function postRelation(AddRelation $request)
     {
         $userId = $request->input('slack-user-id');
         $roleId = $request->input('slack-role-id');
         $corporationId = $request->input('slack-corporation-id');
+        $titleId = $request->input('slack-title-id');
         $allianceId = $request->input('slack-alliance-id');
         $channelId = $request->input('slack-channel-id');
 
@@ -189,6 +212,8 @@ class SlackbotController extends Controller
                 return $this->postRoleRelation($channelId, $roleId);
             case 'corporation':
                 return $this->postCorporationRelation($channelId, $corporationId);
+            case 'title':
+                return $this->postTitleRelation($channelId, $corporationId, $titleId);
             case 'alliance':
                 return $this->postAllianceRelation($channelId, $allianceId);
             default:
@@ -254,6 +279,22 @@ class SlackbotController extends Controller
 
         return redirect()->back()
             ->with('error', 'An error occurs while trying to remove the Slack relation for the corporation.');
+    }
+
+    public function getRemoveTitle($corporationId, $titleId, $channelId)
+    {
+        $channelTitle = SlackChannelTitle::where('corporation_id', $corporationId)
+            ->where('title_id', $titleId)
+            ->where('channel_id', $channelId);
+
+        if ($channelTitle != null) {
+            $channelTitle->delete();
+            return redirect()->back()
+                ->with('success', 'The slack relation for the title has been removed');
+        }
+
+        return redirect()->back()
+            ->with('error', 'An error occures while trying to remove the Slack relation for the title.');
     }
 
     public function getRemoveAlliance($allianceId, $channelId)
@@ -379,6 +420,29 @@ class SlackbotController extends Controller
 
             return redirect()->back()
                 ->with('success', 'New slack corporation relation has been created');
+        }
+
+        return redirect()->back()
+            ->with('error', 'This relation already exists');
+    }
+
+    private function postTitleRelation($channelId, $corporationId, $titleId)
+    {
+        $relation = SlackChannelTitle::where('corporation_id', '=', $corporationId)
+            ->where('title_id', '=', $titleId)
+            ->where('channel_id', '=', $channelId)
+            ->get();
+
+        if ($relation->count() == 0) {
+            SlackChannelTitle::create([
+                'corporation_id' => $corporationId,
+                'title_id' => $titleId,
+                'channel_id' => $channelId,
+                'enable' => true
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'New slack title relation has been created');
         }
 
         return redirect()->back()

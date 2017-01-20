@@ -24,6 +24,7 @@ class AddRelation extends FormRequest
             'slack-user-id' => 'string',
             'slack-role-id' => 'string',
             'slack-corporation-id' => 'string',
+            'slack-title-id' => 'string',
             'slack-alliance-id' => 'string',
             'slack-channel-id' => 'required|string',
             'slack-enabled' => 'boolean'

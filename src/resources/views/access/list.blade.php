@@ -20,6 +20,7 @@
                             <option value="user">{{ trans('slackbot::seat.user_filter') }}</option>
                             <option value="role">{{ trans('slackbot::seat.role_filter') }}</option>
                             <option value="corporation">{{ trans('slackbot::seat.corporation_filter') }}</option>
+                            <option value="title">{{ trans('slackbot::seat.title_filter') }}</option>
                             <option value="alliance">{{ trans('slackbot::seat.alliance_filter') }}</option>
                             <option value="public">{{ trans('slackbot::seat.public_filter') }}</option>
                         </select>
@@ -50,6 +51,11 @@
                             <option value="{{ $corporation->corporationID }}">{{ $corporation->corporationName }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slack-title-id">{{ trans('slackbot::seat.title') }}</label>
+                        <select name="slack-title-id" id="slack-title-id" class="form-control" disabled="disabled"></select>
                     </div>
 
                     <div class="form-group">
@@ -105,6 +111,9 @@
                 </li>
                 <li role="presentation">
                     <a href="#slackbot-corporation" role="tab" data-toggle="tab">{{ trans('slackbot::seat.corporation_filter') }}</a>
+                </li>
+                <li role="presentation">
+                    <a href="#slackbot-title" role="tab" data-toggle="tab">{{ trans('slackbot::seat.title_filter') }}</a>
                 </li>
                 <li role="presentation">
                     <a href="#slackbot-alliance" role="tab" data-toggle="tab">{{ trans('slackbot::seat.alliance_filter') }}</a>
@@ -240,6 +249,40 @@
                         </tbody>
                     </table>
                 </div>
+                <div role="tabpanel" class="tab-pane fade" id="slackbot-title">
+                    <table class="table table-condensed table-hover table-responsive">
+                        <thead>
+                        <tr>
+                            <th>{{ trans('slackbot::seat.corporation') }}</th>
+                            <th>{{ trans('slackbot::seat.title') }}</th>
+                            <th>{{ trans('slackbot::seat.channel') }}</th>
+                            <th>{{ trans('slackbot::seat.created') }}</th>
+                            <th>{{ trans('slackbot::seat.updated') }}</th>
+                            <th>{{ trans('slackbot::seat.status') }}</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($channelTitles as $channel)
+                            <tr>
+                                <td>{{ $channel->corporation->corporationName }}</td>
+                                <td>{{ strip_tags($channel->title->titleName) }}</td>
+                                <td>{{ $channel->channel->name }}</td>
+                                <td>{{ $channel->created_at }}</td>
+                                <td>{{ $channel->updated_at }}</td>
+                                <td>{{ $channel->enable }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ route('slackbot.title.remove', ['corporation_id' => $channel->corporation_id, 'title_id' => $channel->title_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
+                                            {{ trans('web::seat.remove') }}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-alliance">
                     <table class="table table-condensed table-hover table-responsive">
                         <thead>
@@ -279,21 +322,51 @@
 
 @push('javascript')
     <script type="application/javascript">
+        function getCorporationTitle() {
+            console.debug('in');
+            $('#slack-title-id').empty();
+
+            $.ajax('{{ route('slackbot.json.titles') }}', {
+                data: {
+                    corporation_id: $('#slack-corporation-id').val()
+                },
+                dataType: 'json',
+                method: 'GET',
+                success: function(data){
+                    for (var i = 0; i < data.length; i++) {
+                        $('#slack-title-id').append($('<option></option>').attr('value', data[i].titleID).text(data[i].titleName));
+                    }
+                }
+            });
+        }
+
         $('#slack-type').change(function(){
-            $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-alliance-id'], function(key, value){
+            $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-title-id', 'slack-alliance-id'], function(key, value){
                 if (value == ('slack-' + $('#slack-type').val() + '-id')) {
                     $(('#' + value)).prop('disabled', false);
                 } else {
                     $(('#' + value)).prop('disabled', true);
                 }
             });
+
+            if ($('#slack-type').val() == 'title') {
+                $('#slack-corporation-id, #slack-title-id').prop('disabled', false);
+            }
         }).select2();
 
-        $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-alliance-id, #slack-channel-id').select2();
+        $('#slack-corporation-id').change(function(){
+            getCorporationTitle();
+        });
+
+        $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-title-id, #slack-alliance-id, #slack-channel-id').select2();
 
         $('#slack-tabs').find('a').click(function(e){
             e.preventDefault();
             $(this).tab('show');
-        })
+        });
+
+        $(document).ready(function(){
+            getCorporationTitle();
+        });
     </script>
 @endpush
