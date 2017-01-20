@@ -53,18 +53,17 @@ class SlackAssKicker extends AbstractWorker
      *
      * @param SlackUser $slackUser
      * @param $currentChannels
-     * @param $all
+     * @param $kickFromAllChannels
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackChannelException
      */
-    private function processChannelsKick(SlackUser $slackUser, array $currentChannels, bool $all)
+    private function processChannelsKick(SlackUser $slackUser, array $currentChannels, bool $kickFromAllChannels)
     {
         $kickedChannels = [];
+        $allowedChannels = Helper::allowedChannels($slackUser, false);
+        $extraChannels = array_diff($currentChannels, $allowedChannels);
 
-        if ($all) {
+        if ($kickFromAllChannels) {
             $extraChannels = $currentChannels;
-        } else {
-            $allowedChannels = Helper::allowedChannels($slackUser, false);
-            $extraChannels = array_diff($currentChannels, $allowedChannels);
         }
 
         if (!empty($extraChannels)) {
@@ -85,18 +84,17 @@ class SlackAssKicker extends AbstractWorker
      *
      * @param SlackUser $slackUser
      * @param $currentGroups
-     * @param $all
+     * @param $kickFromAllGroups
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackGroupException
      */
-    private function processGroupsKick(SlackUser $slackUser, array $currentGroups, bool $all)
+    private function processGroupsKick(SlackUser $slackUser, array $currentGroups, bool $kickFromAllGroups)
     {
         $kickedGroups = [];
+        $allowedGroups = Helper::allowedChannels($slackUser, true);
+        $extraGroups = array_diff($currentGroups, $allowedGroups);
 
-        if ($all) {
+        if ($kickFromAllGroups) {
             $extraGroups = $currentGroups;
-        } else {
-            $allowedGroups = Helper::allowedChannels($slackUser, true);
-            $extraGroups = array_diff($currentGroups, $allowedGroups);
         }
 
         if (!empty($extraGroups)) {
