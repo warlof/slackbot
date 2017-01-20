@@ -47,31 +47,6 @@ class SlackReceptionist extends AbstractWorker
     }
 
     /**
-     * Invite the user to a slack team
-     *
-     * @param User $user
-     * @throws SlackMailException
-     * @throws SlackTeamInvitationException
-     * @deprecated Since not an official endpoint and event API is not usable with test token
-     */
-    private function processMemberInvitation(User $user)
-    {
-        try {
-            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->inviteToTeam($user->email);
-
-            // update Slack user relation
-            SlackUser::create([
-                'user_id' => $user->id,
-                'invited' => true
-            ]);
-        } catch (SlackMailException $e) {
-            $this->logEvent('mail');
-        } catch (SlackTeamInvitationException $e) {
-            $this->logEvent('sync');
-        }
-    }
-
-    /**
      * Invite an user to each channel
      * 
      * @param SlackUser $slackUser

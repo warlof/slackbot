@@ -69,11 +69,12 @@ class SlackChannelsUpdate extends Command
                 'is_general' => (strpos($channel['id'], 'C') === 0) ? $channel['is_general'] : false
             ]);
 
+            $redisKey = 'seat:warlof:slackbot:groups.' . $channel['id'];
             if (strpos($channel['id'], 'C') === 0) {
-                Redis::set('seat:warlof:slackbot:channels.' . $channel['id'], json_encode($channel));
-            } else {
-                Redis::set('seat:warlof:slackbot:groups.' . $channel['id'], json_encode($channel));
+                $redisKey = 'seat:warlof:slackbot:channels.' . $channel['id'];
             }
+
+            Redis::set($redisKey, json_encode($channel));
         }
 
         // get all known channels from SeAT and remove them if they are no longer existing
