@@ -39,26 +39,28 @@ class SlackUsersUpdate extends Command
             // exclude SLACK BOT user from user list
             // exclude bot from user list
             // exclude token owner from list
-            if ($member['id'] != 'USLACKBOT' && $member['deleted'] == false && $member['is_bot'] ==  false &&
+            if ($member['id'] != 'USLACKBOT' && $member['deleted'] == false && $member['is_bot'] == false &&
                 !key_exists('api_app_id', $member['profile'])) {
 
                 // if it appears to be a new user (at least, unknown from SeAT
                 if (SlackUser::where('slack_id', $member['id'])->first() == null) {
 
                     // and we're able to match him using email address
-                    if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
+                    if (key_exists('email', $member['profile'])) {
+                        if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
 
-                        // drop any existing association
-                        if ($slackUser = SlackUser::find($seatUser->id)) {
-                            $slackUser->delete();
-                        };
+                            // drop any existing association
+                            if ($slackUser = SlackUser::find($seatUser->id)) {
+                                $slackUser->delete();
+                            };
 
-                        // Create the new association
-                        SlackUser::create([
-                            'user_id' => $seatUser->id,
-                            'slack_id' => $member['id'],
-                            'name' => $member['name']
-                        ]);
+                            // Create the new association
+                            SlackUser::create([
+                                'user_id' => $seatUser->id,
+                                'slack_id' => $member['id'],
+                                'name' => $member['name']
+                            ]);
+                        }
                     }
                 }
 
