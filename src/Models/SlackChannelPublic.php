@@ -8,6 +8,8 @@ class SlackChannelPublic extends Model
 {
     protected $primaryKey = 'channel_id';
 
+    public $incrementing = false;
+
     protected $fillable = ['channel_id', 'enable'];
 
     protected $table = 'slack_channel_public';
