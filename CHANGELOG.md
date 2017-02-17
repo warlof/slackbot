@@ -1,3 +1,7 @@
+# Version 2.1.3
+* Fix an issue which was preventing to remove public filter
+* Fix an issue which was returning the wrong channel name on public filter
+
 # Version 2.1.2
 * Add new user:email.read scope which has been added by Slack Team on November 9th.
 
