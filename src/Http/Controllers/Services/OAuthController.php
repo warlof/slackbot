@@ -116,7 +116,7 @@ class OAuthController extends Controller
     private function oAuthAuthorization($clientId, $state)
     {
         $baseUri = 'https://slack.com/oauth/authorize?';
-        $scope = 'channels:read channels:write channels:history groups:read groups:write groups:history users:read';
+        $scope = 'channels:read channels:write channels:history groups:read groups:write groups:history users:read users:read.email';
 
         return $baseUri . http_build_query([
             'client_id' => $clientId,

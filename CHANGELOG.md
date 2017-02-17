@@ -1,3 +1,14 @@
+# Version 2.1.2
+* Add new user:email.read scope which has been added by Slack Team on November 9th.
+
+**Warning**
+> If you already had a working bot prior to this date, the update isn't mandatory and you have nothing to do.
+
+> If you've setting up a new installation, between November 9th and February 18th, you **MUST** drop the existing 
+application and create a new one. As soon as the new application has been created, you have to hit the red rubber Button 
+on both `Client ID` and `Client Secret` fields into SeAT and fill them with the new credentials. Finally, you can hit the
+`update` button which will redirect you to Slack Authentication as a fresh bot install.
+
 # Version 2.1.0
 * Add a filter for corporation title
 
