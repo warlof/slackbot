@@ -2,6 +2,7 @@
 
 namespace Warlof\Seat\Slackbot;
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
 use Warlof\Seat\Slackbot\Commands\SlackUpdate;
@@ -79,7 +80,9 @@ class SlackbotServiceProvider extends ServiceProvider
 
     private function registerServices()
     {
-        $slackToken = setting('warlof.slackbot.credentials.access_token', true);
+        $slackToken = '';
+        if (Schema::hasTable('global_settings'))
+            $slackToken = setting('warlof.slackbot.credentials.access_token', true);
 
         // Ensure slack has been set
         if ($slackToken == null) {

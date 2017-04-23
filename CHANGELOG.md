@@ -1,3 +1,6 @@
+# Version 2.1.4
+* Fix an issue which was preventing a new instance to be deployed if this package was already present in `composer.json` file
+
 # Version 2.1.3
 * Fix an issue which was preventing to remove public filter
 * Fix an issue which was returning the wrong channel name on public filter
