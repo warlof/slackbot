@@ -24,7 +24,7 @@ class SlackReceptionist extends AbstractWorker
         $keys = ApiKey::where('user_id', $this->user->id)->get();
 
         // invite user only if both account are subscribed and keys active
-        if (Helper::isEnabledKey($keys)) {
+        if ($this->user->active == true || Helper::isEnabledKey($keys)) {
 
             // in other case, invite him to channels and groups
             // get the attached slack user
