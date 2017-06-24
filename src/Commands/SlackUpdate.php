@@ -34,7 +34,7 @@ class SlackUpdate extends Command
         // Counter for the number of keys queued
         $queuedKeys = 0;
 
-        User::where('active', true)->chunk(10, function($users) use ($job, &$queuedKeys) {
+        User::all()->chunk(10, function($users) use ($job, &$queuedKeys) {
 
             foreach ($users as $user) {
                 $job->api = 'Slack';

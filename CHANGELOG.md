@@ -1,3 +1,6 @@
+# Version 2.1.5
+* Fix an issue which was preventing disabled account to be monitored by the bot (thanks @herpaderp)
+
 # Version 2.1.4
 * Fix an issue which was preventing a new instance to be deployed if this package was already present in `composer.json` file
 
