@@ -1,3 +1,6 @@
+# Version 2.1.8-dev
+* Add a 1 second cool down on Slack Api request according to their limitation
+
 # Version 2.1.5
 * Fix an issue which was preventing disabled account to be monitored by the bot (thanks @herpaderp)
 

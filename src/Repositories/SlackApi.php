@@ -376,6 +376,10 @@ class SlackApi
      */
     private function post(string $endpoint, array $parameters = []) : array
     {
+        // Process cool down according to Slack restriction
+        // https://api.slack.com/docs/rate-limits
+        sleep(1);
+
         // add slack token to the post parameters
         $parameters['token'] = $this->token;
 
