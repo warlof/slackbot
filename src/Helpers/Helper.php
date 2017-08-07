@@ -128,4 +128,9 @@ class Helper
 
         return $userInfo;
     }
+
+    public static function getSlackRedisKey($table, $id)
+    {
+        return $table . '.' . $id;
+    }
 }

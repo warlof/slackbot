@@ -334,27 +334,6 @@ class SlackApi
         return $result['members'];
     }
 
-    /**
-     * Call rtm.start endpoint for RTM Api usage
-     * It will return a short life token which should be used in order to connect to Slack Team using RTM
-     *
-     * @return string
-     * @throws SlackApiException
-     */
-    public function rtmStart() : string
-    {
-        // send request to Slack API and fetch result
-        $result = $this->post('/rtm.start');
-
-        // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
-            throw new SlackApiException($result['error']);
-        }
-
-        // return the short life token which should be used with RTM Api
-        return $result['url'];
-    }
-
     public function userInfo($slackId)
     {
         $result = $this->post('/users.info', ['user' => $slackId]);

@@ -175,10 +175,10 @@ class SlackbotController extends Controller
 
     public function getJsonTitle()
     {
-        $corporation_id = request()->input('corporation_id');
+        $corporationId = request()->input('corporation_id');
 
-        if (!empty($corporation_id)) {
-            $titles = Title::where('corporationID', $corporation_id)->select('titleID', 'titleName')
+        if (!empty($corporationId)) {
+            $titles = Title::where('corporationID', $corporationId)->select('titleID', 'titleName')
                 ->get();
 
             return response()->json($titles->map(

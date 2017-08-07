@@ -9,19 +9,17 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
 use Illuminate\Support\Facades\Redis;
+use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 trait GroupHandler
 {
-    private $groupTable = 'seat:warlof:slackbot:groups.';
+    private $groupTable = 'seat:warlof:slackbot:groups';
 
     public function createGroup($group)
     {
-        // built an unique record key which will be used in order to store and access channel information
-        $redisRecordKey = $this->groupTable . $group['id'];
-
         // store channel information into redis
-        Redis::set($redisRecordKey, json_encode($group));
+        Redis::set(Helper::getSlackRedisKey($this->groupTable, $group['id']), json_encode($group));
 
         // update database information
         SlackChannel::create([
@@ -34,10 +32,8 @@ trait GroupHandler
 
     public function deleteGroup($groupId)
     {
-        $redisRecordKey = $this->groupTable . $groupId;
-
         // remove information from redis
-        Redis::del($redisRecordKey);
+        Redis::del(Helper::getSlackRedisKey($this->groupTable, $groupId));
 
         // update database information
         SlackChannel::find($groupId)->delete();
@@ -45,12 +41,11 @@ trait GroupHandler
 
     public function renameGroup($group)
     {
-        $redisRecordKey = $this->groupTable . $group['id'];
-
-        $redisData = json_decode(Redis::get($redisRecordKey), true);
+        $redisData = json_decode(Redis::get(Helper::getSlackRedisKey($this->groupTable, $group['id'])), true);
 
         $redisData['name'] = $group['name'];
-        Redis::set($redisRecordKey, json_encode($redisData));
+
+        Redis::set(Helper::getSlackRedisKey($this->groupTable, $group['id']), json_encode($redisData));
 
         SlackChannel::find($group['id'])->update([
             'name' => $group['name']
@@ -59,9 +54,7 @@ trait GroupHandler
 
     public function archiveGroup($groupId)
     {
-        $redisRecordKey = $this->groupTable . $groupId;
-
-        Redis::del($redisRecordKey);
+        Redis::del(Helper::getSlackRedisKey($this->groupTable, $groupId));
 
         if ($channel = SlackChannel::find($groupId)) {
             $channel->delete();
@@ -70,11 +63,9 @@ trait GroupHandler
 
     public function unarchiveGroup($groupId)
     {
-        $redisRecordKey = $this->groupTable . $groupId;
-
         $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($groupId, true);
 
-        Redis::set($redisRecordKey, json_encode($channel));
+        Redis::set(Helper::getSlackRedisKey($this->groupTable, $groupId), json_encode($channel));
 
         // update database information
         SlackChannel::create([
