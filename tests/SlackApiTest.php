@@ -208,17 +208,6 @@ class SlackApiTest extends TestCase
         $this->assertNotEmpty($apiResponse);
     }
 
-    /**
-     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackApiException
-     */
-    public function testRtmException()
-    {
-        $wrongToken = 'xoxp-67298154005-67299441317-67405867777-819c741ccb';
-        $testApi = new SlackApi($wrongToken);
-
-        $testApi->rtmStart();
-    }
-
     public function testOwnerKick()
     {
         $testUser = 'U1Z8TCZAT';

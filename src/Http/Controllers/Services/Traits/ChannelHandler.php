@@ -9,19 +9,17 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
 use Illuminate\Support\Facades\Redis;
+use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 trait ChannelHandler
 {
-    private $channelTable = 'seat:warlof:slackbot:channels.';
+    private $channelTable = 'seat:warlof:slackbot:channels';
 
     public function createChannel($channel)
     {
-        // built an unique record key which will be used in order to store and access channel information
-        $redisRecordKey = $this->channelTable . $channel['id'];
-
         // store channel information into redis
-        Redis::set($redisRecordKey, json_encode($channel));
+        Redis::set(Helper::getSlackRedisKey($this->channelTable, $channel['id']), json_encode($channel));
 
         // update database information
         SlackChannel::create([
@@ -34,10 +32,8 @@ trait ChannelHandler
 
     public function deleteChannel($channelId)
     {
-        $redisRecordKey = $this->channelTable . $channelId;
-
         // remove information from redis
-        Redis::del($redisRecordKey);
+        Redis::del(Helper::getSlackRedisKey($this->channelTable, $channelId));
 
         // update database information
         SlackChannel::find($channelId)->delete();
@@ -45,12 +41,11 @@ trait ChannelHandler
 
     public function renameChannel($channel)
     {
-        $redisRecordKey = $this->channelTable . $channel['id'];
-
-        $redisData = json_decode(Redis::get($redisRecordKey), true);
+        $redisData = json_decode(Redis::get(Helper::getSlackRedisKey($this->channelTable, $channel['id'])), true);
 
         $redisData['name'] = $channel['name'];
-        Redis::set($redisRecordKey, json_encode($redisData));
+
+        Redis::set(Helper::getSlackRedisKey($this->channelTable, $channel['id']), json_encode($redisData));
 
         SlackChannel::find($channel['id'])->update([
             'name' => $channel['name']
@@ -59,9 +54,7 @@ trait ChannelHandler
 
     public function archiveChannel($channelId)
     {
-        $redisRecordKey = $this->channelTable . $channelId;
-
-        Redis::del($redisRecordKey);
+        Redis::del(Helper::getSlackRedisKey($this->channelTable, $channelId));
 
         if ($channel = SlackChannel::find($channelId)) {
             $channel->delete();
@@ -70,11 +63,9 @@ trait ChannelHandler
 
     public function unarchiveChannel($channelId)
     {
-        $redisRecordKey = $this->channelTable . $channelId;
-
         $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($channelId, false);
 
-        Redis::set($redisRecordKey, json_encode($channel));
+        Redis::set(Helper::getSlackRedisKey($this->channelTable, $channelId), json_encode($channel));
 
         // update database information
         SlackChannel::create([
