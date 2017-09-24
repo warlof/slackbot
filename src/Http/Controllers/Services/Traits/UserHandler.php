@@ -27,7 +27,7 @@ trait UserHandler
             $seatUser->save();
         }
 
-        if (($data = Redis::get(Helper::getRedisKey($this->userTable, $user['id']))) != null) {
+        if (($data = Redis::get(Helper::getSlackRedisKey($this->userTable, $user['id']))) != null) {
             $data = json_decode($data, true);
 
             if (key_exists('channels', $data)) {
@@ -42,7 +42,7 @@ trait UserHandler
         $user['channels'] = $channels;
         $user['groups'] = $groups;
 
-        Redis::set(Helper::getRedisKey($this->userTable, $user['id']), json_encode($user));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }
 
     public function joinTeam($user)
@@ -58,27 +58,27 @@ trait UserHandler
         $user['channels'] = [];
         $user['groups'] = [];
 
-        Redis::set(Helper::getRedisKey($this->userTable, $user['id']), json_encode($user));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }
 
     public function joinChannel($channel)
     {
-        $redisData = Redis::get(Helper::getRedisKey($this->userTable, $channel['user']));
+        $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $channel['user']));
 
         if ($redisData == null) {
-            Redis::set(Helper::getRedisKey($this->userTable, $channel['user']), json_encode(Helper::getSlackUserInformation($channel['user'])));
+            Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode(Helper::getSlackUserInformation($channel['user'])));
             return;
         }
 
         $userInfo = json_decode($redisData, true);
         $userInfo['channels'][] = $channel['channel'];
 
-        Redis::set(Helper::getRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
     }
 
     public function leaveChannel($channel)
     {
-        $redisData = Redis::get(Helper::getRedisKey($this->userTable, $channel['user']));
+        $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $channel['user']));
 
         if ($redisData == null) {
             Helper::getSlackUserInformation($channel['user']);
@@ -92,27 +92,27 @@ trait UserHandler
             unset($userInfo['channels'][$key]);
         }
 
-        Redis::set(Helper::getRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
     }
 
     public function joinGroup($group)
     {
-        $redisData = Redis::get(Helper::getRedisKey($this->userTable, $group['user']));
+        $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $group['user']));
 
         if ($redisData == null) {
-            Redis::set(Helper::getRedisKey($this->userTable, $group['user']), json_encode(Helper::getSlackUserInformation($group['user'])));
+            Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode(Helper::getSlackUserInformation($group['user'])));
             return;
         }
 
         $userInfo = json_decode($redisData, true);
         $userInfo['groups'][] = $group['channel'];
 
-        Redis::set(Helper::getRedisKey($this->userTable, $group['user']), json_encode($userInfo));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));
     }
 
     public function leaveGroup($group)
     {
-        $redisData = Redis::get(Helper::getRedisKey($this->userTable, $group['user']));
+        $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $group['user']));
 
         if ($redisData == null) {
             Helper::getSlackUserInformation($group['user']);
@@ -126,6 +126,6 @@ trait UserHandler
             unset($userInfo['groups'][$key]);
         }
 
-        Redis::set(Helper::getRedisKey($this->userTable, $group['user']), json_encode($userInfo));
+        Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));
     }
 }
