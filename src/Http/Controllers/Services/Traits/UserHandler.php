@@ -47,6 +47,8 @@ trait UserHandler
 
     public function joinTeam($user)
     {
+        $user = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($user['id']);
+
         if (($seatUser = User::where('email', $user['profile']['email'])->first()) != null) {
             SlackUser::create([
                 'user_id' => $seatUser->id,
