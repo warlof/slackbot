@@ -1,3 +1,6 @@
+# Version 2.1.10
+* Fix an issue related to Slack API policy change for user mail address
+
 # Version 2.1.8
 * Add a 1 second cool down on Slack Api request according to their limitation
 * Code refactorying
