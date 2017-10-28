@@ -48,12 +48,13 @@ class SlackbotJsonController extends Controller
             if (is_null($stats)) {
                 $channel = app(SlackApi::class)->info($channelId);
                 $members = app(SlackApi::class)->channelsMembers($channelId);
-
-                Redis::set('seat:warlof:slackbot:stats.conversations.' . $channelId, json_encode([
+                $stats = [
                     $channelId,
                     $channel['name'],
-                    count($channels['members'])
-                ]));
+                    count($members),
+                ];
+
+                Redis::set('seat:warlof:slackbot:stats.conversations.' . $channelId, json_encode($stats));
             }
 
             switch (strpos($channelId, 'C')) {
