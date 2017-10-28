@@ -218,7 +218,7 @@ class SlackApi
         $channels = $result['channels'];
 
         // recursive call in order to retrieve all paginated results
-        if ($result['response_metadata']['next_cursor'] != "") {
+        if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
             $channels = array_merge($channels, $this->getConversations($result['response_metadata']['next_cursor']));
         }
 
@@ -266,7 +266,7 @@ class SlackApi
 
         $members = $result['members'];
 
-        if ($result['response_metadata']['next_cursor'] != "") {
+        if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
             $members = array_merge($members,
                 $this->getConversationMembers($channelId, $result['response_metadata']['next_cursor']));
         }
@@ -298,7 +298,7 @@ class SlackApi
 
         $members = $result['members'];
 
-        if ($result['response_metadata']['next_cursor'] != "") {
+        if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
             $members = array_merge($members,
                 $this->getTeamMembers($result['response_metadata']['next_cursor']));
         }
