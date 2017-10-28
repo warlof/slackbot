@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services;
 use Illuminate\Http\Request;
 use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\ConversationHandler;
-use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\GroupHandler;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\UserHandler;
 
 class EventController extends Controller
@@ -19,32 +18,26 @@ class EventController extends Controller
 
     public function callback(Request $request)
     {
-        if ($request->input('token') == null || $request->input('type') == null ||
-            !in_array($request->input('type'), ['url_verification', 'event_callback'])) {
-
-            logger()->error('Slack::callback missing either token or type, or the sent type is not supported.', [
-                'token' => $request->input('token'),
-                'type' => $request->input('type')
-            ]);
-
-            return response()->json(['error' => 'token field is required or message type is not supported.'], 400);
-        }
+        $this->validate($request, [
+            'token' => 'required|string',
+            'type' => 'required|in:url_verification,event_callback',
+        ]);
 
         // take back our Slack oauth token
         if (setting('warlof.slackbot.credentials.verification_token', true) == null) {
             logger()->warning('Slack::callback receive a request to event endpoint but there is no OAuth configured ' .
                 'or verification_token is missing.');
 
-            return response()->json(['error' => 'oauth has not been set on this server.'], 500);
+            return response()->json(['error' => 'oauth has not been set yet on this server.'], 501);
         }
 
         // compare our token to the token sent by Slack
-        // if it don't match, inform Slack with 401 Unauthorized header
+        // if it doesn't match, inform Slack with 401 Unauthorized header
         if ($request->input('token') != setting('warlof.slackbot.credentials.verification_token', true)) {
             return response()->json([
                 'token' => $request->input('token'),
                 'type' => 'url_verification',
-                'error' => 'You send me a wrong token.'], 403);
+                'error' => 'You send me a wrong token.'], 401);
         }
 
         switch ($request->input('type')) {
@@ -122,7 +115,7 @@ class EventController extends Controller
                 if (!isset($event['subtype'])) {
                     return response()->json([
                         'ok' => true,
-                        'msg' => sprintf('Expected %s sub-events for message event', implode(', ', $expectedSubEvent))
+                        'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
                     ], 202);
                 }
 
