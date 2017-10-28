@@ -15,6 +15,21 @@ use Warlof\Seat\Slackbot\Helpers\Helper;
 
 class HelperTest extends TestCase
 {
+    public function getEnvironmentSetUp($app)
+    {
+        $app['config']->set('database.default', 'mysql');
+        $app['config']->set('database.connections.mysql', [
+            'driver' => 'mysql',
+            'host' => getenv('database_host'),
+            'database' => getenv('database_name'),
+            'username' => getenv('database_user'),
+            'password' => getenv('database_pass'),
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => ''
+        ]);
+    }
+
     public function testEnabledKey()
     {
         // prepare
