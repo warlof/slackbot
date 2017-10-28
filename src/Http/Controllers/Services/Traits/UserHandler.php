@@ -8,6 +8,7 @@
 namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Helpers\Helper;
@@ -18,7 +19,11 @@ trait UserHandler
 {
     private $userTable = 'seat:warlof:slackbot:users';
 
-    public function userChange($user)
+    private $userEvents = [
+        'user_change', 'team_join',
+    ];
+
+    private function userChange($user)
     {
         $channels = [];
         $groups = [];
@@ -46,7 +51,7 @@ trait UserHandler
         Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }
 
-    public function joinTeam($user)
+    private function joinTeam($user)
     {
         $user = app(SlackApi::class)->getUserInfo($user['id']);
 
@@ -63,7 +68,7 @@ trait UserHandler
         Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }
 
-    public function joinChannel($channel)
+    private function joinChannel($channel)
     {
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $channel['user']));
 
@@ -79,7 +84,7 @@ trait UserHandler
         Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
     }
 
-    public function leaveChannel($channel)
+    private function leaveChannel($channel)
     {
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $channel['user']));
 
@@ -98,7 +103,7 @@ trait UserHandler
         Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
     }
 
-    public function joinGroup($group)
+    private function joinGroup($group)
     {
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $group['user']));
 
@@ -114,7 +119,7 @@ trait UserHandler
         Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));
     }
 
-    public function leaveGroup($group)
+    private function leaveGroup($group)
     {
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $group['user']));
 
@@ -131,5 +136,74 @@ trait UserHandler
         }
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));
+    }
+
+    /**
+     * Business router which is handling Slack user event
+     *
+     * @param array $event A Slack Json event object
+     * @return JsonResponse
+     */
+    private function eventUserHandler(array $event) : JsonResponse
+    {
+        switch ($event['type']) {
+            case 'user_change':
+                $this->userChange($event['user']);
+                break;
+            case 'team_join':
+                $this->joinTeam($event['user']);
+                break;
+        }
+
+        return response()->json(['ok' => true], 200);
+    }
+
+    /**
+     * Business router which is handling Slack message event
+     *
+     * @param array $event A Slack Json event object
+     * @return JsonResponse
+     */
+    private function eventMessageHandler(array $event) : JsonResponse
+    {
+        $expectedSubEvent = [
+            'channel_join',
+            'channel_leave',
+            'group_join',
+            'group_unarchive',
+            'group_leave',
+            'group_archive',
+        ];
+
+        if (!isset($event['subtype'])) {
+            return response()->json([
+                'ok' => true,
+                'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
+            ], 202);
+        }
+
+        switch ($event['subtype']) {
+            case 'channel_join':
+                $this->joinChannel($event);
+                break;
+            case 'channel_leave':
+                $this->leaveChannel($event);
+                break;
+            case 'group_join':
+            case 'group_unarchive':
+                $this->joinGroup($event);
+                break;
+            case 'group_leave':
+            case 'group_archive':
+                $this->leaveGroup($event);
+                break;
+            default:
+                return response()->json([
+                    'ok' => true,
+                    'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
+                ], 202);
+        }
+
+        return response()->json(['ok' => true], 200);
     }
 }

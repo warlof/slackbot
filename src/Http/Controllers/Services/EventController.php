@@ -73,128 +73,21 @@ class EventController extends Controller
      */
     private function eventHandler(array $event) : JsonResponse
     {
-        switch ($event['type']) {
-            //
-            // conversation events
-            //
-            case 'channel_created':
-            case 'group_created':
-            case 'channel_deleted':
-            case 'group_deleted':
-            case 'channel_archive':
-            case 'group_archive':
-            case 'channel_unarchive':
-            case 'group_unarchive':
-            case 'channel_rename':
-            case 'group_rename':
-                $this->eventConversationHandler($event);
-                break;
-            //
-            // user events
-            //
-            case 'user_change':
-            case 'team_join':
-                $this->eventUserHandler($event);
-                break;
-            case 'message':
-                return $this->eventMessageHandler($event);
-            default:
-                return response()->json([
-                    'ok' => true,
-                    'msg' => 'Unhandled event'
-                ], 202);
+        // conversation events
+        if (in_array($event['type'], $this->conversationEvents)) {
+            $this->eventConversationHandler($event);
         }
 
-        return response()->json(['ok' => true], 200);
-    }
-
-    private function eventConversationHandler(array $event) : void
-    {
-        switch ($event['type']) {
-            //
-            // conversation events
-            //
-            case 'channel_created':
-            case 'group_created':
-                $this->createConversation($event['channel']);
-                break;
-            case 'channel_deleted':
-            case 'group_deleted':
-                $this->deleteConversation($event['channel']);
-                break;
-            case 'channel_archive':
-            case 'group_archive':
-                $this->archiveConversation($event['channel']);
-                break;
-            case 'channel_unarchive':
-            case 'group_unarchive':
-                $this->unarchiveConversation($event['channel']);
-                break;
-            case 'channel_rename':
-            case 'group_rename':
-                $this->renameConversation($event['channel']);
-                break;
-        }
-    }
-
-    private function eventUserHandler(array $event) : void
-    {
-        switch ($event['type']) {
-            case 'user_change':
-                $this->userChange($event['user']);
-                break;
-            case 'team_join':
-                $this->joinTeam($event['user']);
-                break;
-        }
-    }
-
-    /**
-     * Business router which is handling Slack message event
-     *
-     * @param array $event A Slack Json event object
-     * @return JsonResponse
-     */
-    private function eventMessageHandler(array $event) : JsonResponse
-    {
-        $expectedSubEvent = [
-            'channel_join',
-            'channel_leave',
-            'group_join',
-            'group_unarchive',
-            'group_leave',
-            'group_archive',
-        ];
-
-        if (!isset($event['subtype'])) {
-            return response()->json([
-                'ok' => true,
-                'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
-            ], 202);
+        // user events
+        if (in_array($event['type'], $this->userEvents)) {
+            $this->eventUserHandler($event);
         }
 
-        switch ($event['subtype']) {
-            case 'channel_join':
-                $this->joinChannel($event);
-                break;
-            case 'channel_leave':
-                $this->leaveChannel($event);
-                break;
-            case 'group_join':
-            case 'group_unarchive':
-                $this->joinGroup($event);
-                break;
-            case 'group_leave':
-            case 'group_archive':
-                $this->leaveGroup($event);
-                break;
-            default:
-                return response()->json([
-                    'ok' => true,
-                    'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
-                ], 202);
+        // message event
+        if ($event['type'] == 'message') {
+            return $this->eventMessageHandler($event);
         }
 
-        return response()->json(['ok' => true], 200);
+        return response()->json(['ok' => true, 'msg' => 'Unhandled event'], 202);
     }
 }
