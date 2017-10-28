@@ -33,7 +33,7 @@ class SlackUsersUpdate extends Command
         }
 
         // get members list from slack team
-        $members = app(SlackApi::class)->members();
+        $members = app(SlackApi::class)->getTeamMembers();
 
         // iterate over each member and try to make aggregation
         foreach ($members as $member) {
@@ -66,7 +66,7 @@ class SlackUsersUpdate extends Command
                 }
 
                 // Update cache information
-                $member['conversations'] = app(SlackApi::class)->memberOf($member['id']);
+                $member['conversations'] = app(SlackApi::class)->getUserConversations($member['id']);
 
                 Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
             }

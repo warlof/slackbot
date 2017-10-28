@@ -37,7 +37,7 @@ class SlackChannelsUpdate extends Command
         }
 
         // make a call in order to fetch both public and private channels
-        $channels = app(SlackApi::class)->channels();
+        $channels = app(SlackApi::class)->getConversations();
 
         $slackChannelIds = [];
 

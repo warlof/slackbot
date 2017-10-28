@@ -51,7 +51,7 @@ class SlackChannelsUpdateTest extends TestCase
         // test
 
         // get list of channels
-        $channels = app(SlackApi::class)->channels();
+        $channels = app(SlackApi::class)->getConversations();
 
         // store all channels in an array of object
         $artifacts = [];

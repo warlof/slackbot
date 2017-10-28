@@ -94,7 +94,7 @@ class SlackAssKicker extends AbstractWorker
 
             // iterate group ID and call kick method from Slack Api
             foreach ($extra as $channelID) {
-                if (app(SlackApi::class)->kick($slackUser->slack_id, $channelID)) {
+                if (app(SlackApi::class)->kickFromConversion($slackUser->slack_id, $channelID)) {
                     $kicked[] = $channelID;
                 }
             }

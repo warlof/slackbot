@@ -58,7 +58,7 @@ class SlackReceptionist extends AbstractWorker
 
         // iterate over each channel ID and invite the user
         foreach ($missingChannels as $channelId) {
-            if (app(SlackApi::class)->invite($slackUser->slack_id, $channelId)) {
+            if (app(SlackApi::class)->inviteIntoConversation($slackUser->slack_id, $channelId)) {
                 $invitedChannels[] = $channelId;
             }
         }
@@ -82,7 +82,7 @@ class SlackReceptionist extends AbstractWorker
 
             // iterate over each group ID and invite the user
             foreach ($missingGroups as $groupId) {
-                if (app(SlackApi::class)->invite($slackUser->slack_id, $groupId)) {
+                if (app(SlackApi::class)->inviteIntoConversation($slackUser->slack_id, $groupId)) {
                     $invitedGroups[] = $groupId;
                 }
             }

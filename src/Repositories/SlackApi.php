@@ -9,8 +9,6 @@ namespace Warlof\Seat\Slackbot\Repositories;
 
 use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
 use Warlof\Seat\Slackbot\Exceptions\SlackConversationException;
-use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
-use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Warlof\Seat\Slackbot\Exceptions\SlackUserException;
 
 class SlackApi
@@ -38,7 +36,7 @@ class SlackApi
     {
         $this->token = $token;
 
-        $tokenInfo = $this->tokenInformation();
+        $tokenInfo = $this->getTokenInformation();
         $this->tokenOwnerId = $tokenInfo['user_id'];
     }
 
@@ -54,7 +52,7 @@ class SlackApi
      * @throws SlackApiException
      * @return array
      */
-    public function tokenInformation() : array
+    public function getTokenInformation() : array
     {
         $result = $this->post('/auth.test');
 
@@ -63,36 +61,6 @@ class SlackApi
         }
 
         return $result;
-    }
-    
-    /**
-     * Invite an user to the Slack team using a specific mail address
-     * 
-     * @param string $mail The new user mail
-     * @throws SlackApiException
-     * @throws SlackMailException
-     * @throws SlackTeamInvitationException
-     * @deprecated Since not an official endpoint and live OAuth tokens don't grant access to it
-     */
-    public function inviteToTeam(string $mail)
-    {
-        $params = [
-            'email' => $mail,
-            'set_active' => true
-        ];
-
-        // check that the user mail is not a "random" mail
-        if (preg_match('/.local/i', $mail) === 1) {
-            throw new SlackMailException();
-        }
-
-        // call invite endpoint from Slack Api in order to invite the user to the team
-        $result = $this->post('/users.admin.invite', $params);
-
-        // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
-            throw new SlackTeamInvitationException($result['error']);
-        }
     }
 
     /**
@@ -104,7 +72,7 @@ class SlackApi
      */
     public function isMemberOf(string $slackId, string $channelId) : bool
     {
-        $channels = $this->memberOf($slackId);
+        $channels = $this->getUserConversations($slackId);
 
         return in_array($channelId, $channels);
     }
@@ -118,10 +86,10 @@ class SlackApi
      * @throws SlackConversationException
      * @return array
      */
-    public function memberOf(string $slackId) : array
+    public function getUserConversations(string $slackId) : array
     {
         $memberOfChannels = [];
-        $channels = $this->channels();
+        $channels = $this->getConversations();
 
         // iterate over channels and check if the current slack user is part of channel
         foreach ($channels as $channel) {
@@ -129,7 +97,7 @@ class SlackApi
             if (!$channel['is_mpim'] && !$channel['is_general']) {
                 // search for Slack User ID into every channel members list
                 // if we find it, append the channel id to the result
-                $members = $this->channelsMembers($channel['id']);
+                $members = $this->getConversationMembers($channel['id']);
                 if (in_array($slackId, $members)) {
                     $memberOfChannels[] = $channel['id'];
                 }
@@ -148,7 +116,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackConversationException
      */
-    public function info(string $channelId) : array
+    public function getConversationInfo(string $channelId) : array
     {
         $params = [
             'channel' => $channelId
@@ -169,17 +137,17 @@ class SlackApi
     /**
      * Invite an user into a specific channel
      *
-     * @param string $userId Slack user id (ie: U3216587)
+     * @param string $slackId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
      * @throws SlackApiException
      * @return bool
      */
-    public function invite(string $userId, string $channelId) : bool
+    public function inviteIntoConversation(string $slackId, string $channelId) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
             'channel' => $channelId,
-            'users' => [$userId],
+            'users' => [$slackId],
         ];
 
         $result = $this->post('/conversations.invite', $params);
@@ -190,30 +158,30 @@ class SlackApi
     /**
      * Kick an user from a specific channel
      * 
-     * @param string $userId Slack user id (ie: U3216587)
+     * @param string $slackId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
      * @return bool
      */
-    public function kick(string $userId, string $channelId) : bool
+    public function kickFromConversion(string $slackId, string $channelId) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
             'channel' => $channelId,
-            'user' => $userId
+            'user' => $slackId
         ];
 
         // We can't kick token owner himself
-        if ($userId == $this->tokenOwnerId) {
+        if ($slackId == $this->tokenOwnerId) {
             return false;
         }
 
         // Retrieve channel information before kicking user
-        $channel = $this->info($channelId);
+        $channel = $this->getConversationInfo($channelId);
 
         // If user is part of the channel and it's not the main channel, kick it
-        if ($this->isMemberOf($userId, $channelId) && !$channel['is_general']) {
+        if ($this->isMemberOf($slackId, $channelId) && !$channel['is_general']) {
             $result = $this->post('/conversations.kick', $params);
             return $result['ok'];
         }
@@ -229,13 +197,13 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackConversationException
      */
-    public function channels(string $cursor = null) : array
+    public function getConversations(string $cursor = null, array $types = ['public_channel', 'private_channel']) : array
     {
         // we don't care from archived channels either they are public or private
         $params = [
             'exclude_archived' => 1,
             'cursor' => $cursor,
-            'types' => 'public_channel,private_channel',
+            'types' => implode(',', $types),
         ];
 
         // send request to Slack API and fetch result
@@ -250,7 +218,7 @@ class SlackApi
 
         // recursive call in order to retrieve all paginated results
         if ($result['response_metadata']['next_cursor'] != "") {
-            $channels = array_merge($channels, $this->channels($result['response_metadata']['next_cursor']));
+            $channels = array_merge($channels, $this->getConversations($result['response_metadata']['next_cursor']));
         }
 
         return $channels;
@@ -261,7 +229,7 @@ class SlackApi
      *
      * @param string $channelId Slack channel id (ie: C6547987)
      */
-    public function join(string $channelId)
+    public function joinConversation(string $channelId)
     {
         $params = [
             'channel' => $channelId,
@@ -275,15 +243,15 @@ class SlackApi
     /**
      * Return a list of members from a specific channel or groups
      *
-     * @param string $channelID
+     * @param string $channelId
      * @param string|null $cursor
      * @return array
      * @throws SlackConversationException
      */
-    public function channelsMembers(string $channelID, string $cursor = null) : array
+    public function getConversationMembers(string $channelId, string $cursor = null) : array
     {
         $params = [
-            'channel' => $channelID,
+            'channel' => $channelId,
             'cursor' => $cursor,
         ];
 
@@ -298,7 +266,7 @@ class SlackApi
         $members = $result['members'];
 
         if ($result['response_metadata']['next_cursor'] != "") {
-            $members = array_merge($members, $this->channelsMembers($channelID, $result['response_metadata']['next_cursor']));
+            $members = array_merge($members, $this->getConversationMembers($channelId, $result['response_metadata']['next_cursor']));
         }
 
         // return only channels array which handle channels information like id or name
@@ -312,7 +280,7 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackUserException
      */
-    public function members() : array
+    public function getTeamMembers() : array
     {
         // send request to Slack API and fetch result
         $result = $this->post('/users.list');
@@ -326,7 +294,7 @@ class SlackApi
         return $result['members'];
     }
 
-    public function userInfo($slackId)
+    public function getUserInfo($slackId)
     {
         $result = $this->post('/users.info', ['user' => $slackId]);
 

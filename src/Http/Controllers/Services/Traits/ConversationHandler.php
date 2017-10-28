@@ -13,7 +13,7 @@ use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
-trait ChannelHandler
+trait ConversationHandler
 {
     private $channelTable = 'seat:warlof:slackbot:conversations';
 
@@ -26,7 +26,7 @@ trait ChannelHandler
         SlackChannel::create([
             'id' => $channel['id'],
             'name' => $channel['name'],
-            'is_group' => false,
+            'is_group' => (strpos($channel['id'], 'C') === 0) ? false : true,
             'is_general' => false
         ]);
     }
@@ -64,7 +64,7 @@ trait ChannelHandler
 
     public function unarchiveChannel($channelId)
     {
-        $channel = app(SlackApi::class)->info($channelId);
+        $channel = app(SlackApi::class)->getConversationInfo($channelId);
 
         Redis::set(Helper::getSlackRedisKey($this->channelTable, $channelId), json_encode($channel));
 

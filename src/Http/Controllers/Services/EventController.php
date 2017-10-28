@@ -9,13 +9,13 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services;
 
 use Illuminate\Http\Request;
 use Seat\Web\Http\Controllers\Controller;
-use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\ChannelHandler;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\ConversationHandler;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\GroupHandler;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\UserHandler;
 
 class EventController extends Controller
 {
-    use ChannelHandler, GroupHandler, UserHandler;
+    use ConversationHandler, UserHandler;
 
     public function callback(Request $request)
     {
@@ -65,51 +65,40 @@ class EventController extends Controller
                     return response()->json(null, 400);
                 }
 
-                $this->eventHandler($request->input('event'));
-                return response()->json(['ok' => true], 200);
+                return $this->eventHandler($request->input('event'));
         }
 
         return response()->json(['error' => 'Unsupported event type'], 501);
     }
 
-    private function eventHandler($event)
+    /**
+     * @param $event array A Slack Json event object
+     */
+    private function eventHandler(array $event)
     {
         switch ($event['type']) {
             //
-            // channel events
+            // conversation events
             //
             case 'channel_created':
+            case 'group_created':
                 $this->createChannel($event['channel']);
                 break;
             case 'channel_deleted':
+            case 'group_deleted':
                 $this->deleteChannel($event['channel']);
                 break;
             case 'channel_archive':
+            case 'group_archive':
                 $this->archiveChannel($event['channel']);
                 break;
             case 'channel_unarchive':
+            case 'group_unarchive':
                 $this->unarchiveChannel($event['channel']);
                 break;
             case 'channel_rename':
-                $this->renameChannel($event['channel']);
-                break;
-            //
-            // group events
-            //
-            case 'group_created':
-                $this->createGroup($event['channel']);
-                break;
-            case 'group_deleted':
-                $this->deleteGroup($event['channel']);
-                break;
-            case 'group_archive':
-                $this->archiveGroup($event['channel']);
-                break;
-            case 'group_unarchive':
-                $this->unarchiveGroup($event['channel']);
-                break;
             case 'group_rename':
-                $this->renameGroup($event['channel']);
+                $this->renameChannel($event['channel']);
                 break;
             //
             // user events
@@ -121,8 +110,20 @@ class EventController extends Controller
                 $this->joinTeam($event['user']);
                 break;
             case 'message':
+                $expectedSubEvent = [
+                    'channel_join',
+                    'channel_leave',
+                    'group_join',
+                    'group_unarchive',
+                    'group_leave',
+                    'group_archive',
+                ];
+
                 if (!isset($event['subtype'])) {
-                    return response();
+                    return response()->json([
+                        'ok' => true,
+                        'msg' => sprintf('Expected %s sub-events for message event',implode(', ', $expectedSubEvent))
+                    ], 202);
                 }
 
                 switch ($event['subtype']) {
@@ -143,7 +144,13 @@ class EventController extends Controller
                 }
 
                 break;
+            default:
+                return response()->json([
+                    'ok' => true,
+                    'msg' => 'Unhandled event'
+                ], 202);
         }
 
+        return response()->json(['ok' => true], 200);
     }
 }

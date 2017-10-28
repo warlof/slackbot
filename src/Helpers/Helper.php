@@ -143,8 +143,8 @@ class Helper
             return json_decode($data, true);
         }
 
-        $userInfo = app(SlackApi::class)->userInfo($slackUserId);
-        $userInfo['conversations'] = app(SlackApi::class)->memberOf($slackUserId);
+        $userInfo = app(SlackApi::class)->getUserInfo($slackUserId);
+        $userInfo['conversations'] = app(SlackApi::class)->getUserConversations($slackUserId);
         Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
 
         return $userInfo;
