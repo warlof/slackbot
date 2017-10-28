@@ -1,4 +1,4 @@
-# Version 2.1.11
+# Version 2.1.19
 * Fix account state check according to SeAT web 2.0.19 breaking change
 
 # Version 2.1.10
