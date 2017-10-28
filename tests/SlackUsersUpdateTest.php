@@ -46,7 +46,7 @@ class SlackUsersUpdateTest extends TestCase
     public function testUserUpdate()
     {
         // pre test
-        setting(['slack_token', getenv('slack_token')], true);
+        setting(['warlof.slackbot.credentials.access_token', getenv('slack_token')], true);
 
         $artifacts = [new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
             new SlackUser(['user_id' => 2, 'slack_id' => 'U1Z9QVCJW']),
@@ -77,7 +77,7 @@ class SlackUsersUpdateTest extends TestCase
     public function testTokenException()
     {
         // pre test
-        setting(['slack_token', ''], true);
+        setting(['warlof.slackbot.credentials.access_token', ''], true);
 
         // test
         $job = new SlackUsersUpdate();

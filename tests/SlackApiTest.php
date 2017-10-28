@@ -25,6 +25,15 @@ class SlackApiTest extends TestCase
         });
     }
 
+    public function testMemberChannels()
+    {
+        $slackUserId = "U1Z8TCZAT";
+        $slackChannelsId = [""];
+        $apiResponse = app(SlackApi::class)->getUserConversations($slackUserId);
+
+        $this->assertEquals($slackChannelsId, $apiResponse);
+    }
+
     public function testMemberPublicChannel()
     {
         $slackUserId = "U1Z8TCZAT";
@@ -129,6 +138,9 @@ class SlackApiTest extends TestCase
         $this->assertTrue(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
     }
 
+    /**
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
+     */
     public function testKickPublicChannelException()
     {
         $slackUserId = "U1Z8TCZA3";

@@ -2,27 +2,24 @@
   "id": "C1Z8J1BFY",
   "name": "general",
   "is_channel": true,
+  "is_group": false,
+  "is_im": false,
   "created": 1470669888,
-  "creator": "U1Z8TCZAT",
   "is_archived": false,
   "is_general": true,
+  "unlinked": 0,
+  "name_normalized": "general",
+  "is_shared": false,
+  "creator": "U1Z8TCZAT",
+  "is_read_only": false,
+  "is_ext_shared": false,
+  "is_org_shared": false,
+  "pending_shared": [],
+  "is_pending_ext_shared": false,
   "is_member": true,
-  "last_read": "0000000000.000000",
-  "latest": {
-    "user": "U1Z9LT9NK",
-    "text": "<@U1Z9LT9NK|test3> has joined the channel",
-    "type": "message",
-    "subtype": "channel_join",
-    "ts": "1470673680.000004"
-  },
-  "unread_count": 0,
-  "unread_count_display": 0,
-  "members": [
-    "U1Z8TCZAT",
-    "U1Z9HSP1T",
-    "U1Z9LT9NK",
-    "U1Z9QVCJW"
-  ],
+  "is_private": false,
+  "is_mpim": false,
+  "last_read": "1483185686.000002",
   "topic": {
     "value": "Company-wide announcements and work-based matters",
     "creator": "",
@@ -32,5 +29,6 @@
     "value": "This channel is for team-wide communication and announcements. All team members are in this channel.",
     "creator": "",
     "last_set": 0
-  }
+  },
+  "previous_names": []
 }
