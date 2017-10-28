@@ -21,12 +21,12 @@ Route::group([
 
             Route::get('/configuration', [
                 'as' => 'slackbot.configuration',
-                'uses' => 'SlackbotController@getConfiguration'
+                'uses' => 'SlackbotSettingsController@getConfiguration'
             ]);
 
             Route::get('/run/{commandName}', [
                 'as' => 'slackbot.command.run',
-                'uses' => 'SlackbotController@getSubmitJob'
+                'uses' => 'SlackbotSettingsController@getSubmitJob'
             ]);
 
             // OAuth
@@ -55,43 +55,43 @@ Route::group([
 
             Route::get('/public/{channel_id}/remove', [
                 'as' => 'slackbot.public.remove',
-                'uses' => 'SlackbotController@getRemovePublic',
+                'uses' => 'SlackbotJsonController@getRemovePublic',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/users/{user_id}/{channel_id}/remove', [
                 'as' => 'slackbot.user.remove',
-                'uses' => 'SlackbotController@getRemoveUser',
+                'uses' => 'SlackbotJsonController@getRemoveUser',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/roles/{role_id}/{channel_id}/remove', [
                 'as' => 'slackbot.role.remove',
-                'uses' => 'SlackbotController@getRemoveRole',
+                'uses' => 'SlackbotJsonController@getRemoveRole',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
                 'as' => 'slackbot.corporation.remove',
-                'uses' => 'SlackbotController@getRemoveCorporation',
+                'uses' => 'SlackbotJsonController@getRemoveCorporation',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/corporation/{corporation_id}/{title_id}/{channel_id}/remove', [
                 'as' => 'slackbot.title.remove',
-                'uses' => 'SlackbotController@getRemoveTitle',
+                'uses' => 'SlackbotJsonController@getRemoveTitle',
                 'middleware' => 'bouncer:slackbot:create'
             ]);
 
             Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
                 'as' => 'slackbot.alliance.remove',
-                'uses' => 'SlackbotController@getRemoveAlliance',
+                'uses' => 'SlackbotJsonController@getRemoveAlliance',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::post('/', [
                 'as' => 'slackbot.add',
-                'uses' => 'SlackbotController@postRelation',
+                'uses' => 'SlackbotJsonController@postRelation',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
@@ -99,13 +99,13 @@ Route::group([
 
         Route::get('/', [
             'as' => 'slackbot.list',
-            'uses' => 'SlackbotController@getRelations',
+            'uses' => 'SlackbotJsonController@getRelations',
             'middleware' => 'bouncer:slackbot.view'
         ]);
 
         Route::get('/logs', [
             'as' => 'slackbot.logs',
-            'uses' => 'SlackbotController@getLogs',
+            'uses' => 'SlackbotLogsController@getLogs',
             'middleware' => 'bouncer:slackbot.security'
         ]);
 
@@ -121,7 +121,7 @@ Route::group([
 
             Route::get('/logs', [
                 'as' => 'slackbot.json.logs',
-                'uses' => 'SlackbotController@getLogData',
+                'uses' => 'SlackbotLogsController@getLogData',
                 'middleware' => 'bouncer:slackbot.security'
             ]);
 
@@ -139,13 +139,13 @@ Route::group([
 
             Route::get('/users/channels', [
                 'as' => 'slackbot.json.user.channels',
-                'uses' => 'SlackbotController@getJsonUserChannelsData',
+                'uses' => 'SlackbotJsonController@getJsonUserChannelsData',
                 'middleware' => 'bouncer:slackbot.security'
             ]);
 
             Route::get('/titles', [
                 'as' => 'slackbot.json.titles',
-                'uses' => 'SlackbotController@getJsonTitle',
+                'uses' => 'SlackbotJsonController@getJsonTitle',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 

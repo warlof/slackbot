@@ -102,8 +102,10 @@ class Helper
                         'character_character_sheet_corporation_titles.characterID', '=',
                         'account_api_key_info_characters.characterID')
                     ->join('slack_channel_titles', function($join){
-                        $join->on('slack_channel_titles.corporation_id', '=', 'account_api_key_info_characters.corporationID');
-                        $join->on('slack_channel_titles.title_id', '=', 'character_character_sheet_corporation_titles.titleID');
+                        $join->on('slack_channel_titles.corporation_id', '=',
+                            'account_api_key_info_characters.corporationID');
+                        $join->on('slack_channel_titles.title_id', '=',
+                            'character_character_sheet_corporation_titles.titleID');
                     })
                     ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
                     ->where('eve_api_keys.user_id', $slackUser->user_id)
@@ -137,13 +139,13 @@ class Helper
 
     public static function getSlackUserInformation(string $slackUserId) : array
     {
-        if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) == null) {
-            $userInfo = app(SlackApi::class)->userInfo($slackUserId);
-            $userInfo['conversations'] = app(SlackApi::class)->memberOf($slackUserId);
-            Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
-        } else {
-            $userInfo = json_decode($data, true);
+        if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) != null) {
+            return json_decode($data, true);
         }
+
+        $userInfo = app(SlackApi::class)->userInfo($slackUserId);
+        $userInfo['conversations'] = app(SlackApi::class)->memberOf($slackUserId);
+        Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
 
         return $userInfo;
     }

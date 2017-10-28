@@ -129,7 +129,7 @@ class SlackApi
             if (!$channel['is_mpim'] && !$channel['is_general']) {
                 // search for Slack User ID into every channel members list
                 // if we find it, append the channel id to the result
-                $members = $this->channels_members($channel['id']);
+                $members = $this->channelsMembers($channel['id']);
                 if (in_array($slackId, $members)) {
                     $memberOfChannels[] = $channel['id'];
                 }
@@ -280,7 +280,7 @@ class SlackApi
      * @return array
      * @throws SlackConversationException
      */
-    public function channels_members(string $channelID, string $cursor = null) : array
+    public function channelsMembers(string $channelID, string $cursor = null) : array
     {
         $params = [
             'channel' => $channelID,
@@ -298,7 +298,7 @@ class SlackApi
         $members = $result['members'];
 
         if ($result['response_metadata']['next_cursor'] != "") {
-            $members = array_merge($members, $this->channels_members($channelID, $result['response_metadata']['next_cursor']));
+            $members = array_merge($members, $this->channelsMembers($channelID, $result['response_metadata']['next_cursor']));
         }
 
         // return only channels array which handle channels information like id or name
