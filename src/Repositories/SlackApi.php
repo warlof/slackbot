@@ -271,7 +271,7 @@ class SlackApi
                 $this->getConversationMembers($channelId, $result['response_metadata']['next_cursor']));
         }
 
-        // return only channels array which handle channels information like id or name
+        // return only members array which handle channels information like id or name
         return $members;
     }
 
@@ -282,18 +282,29 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackUserException
      */
-    public function getTeamMembers() : array
+    public function getTeamMembers(string $cursor = null) : array
     {
+        $params = [
+            'cursor' => $cursor,
+        ];
+
         // send request to Slack API and fetch result
-        $result = $this->post('/users.list');
+        $result = $this->post('/users.list', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
+        if (!$result['ok']) {
             throw new SlackUserException($result['error']);
         }
 
-        // return the slack team members list
-        return $result['members'];
+        $members = $result['members'];
+
+        if ($result['response_metadata']['next_cursor'] != "") {
+            $members = array_merge($members,
+                $this->getTeamMembers($result['response_metadata']['next_cursor']));
+        }
+
+        // return only members
+        return $members;
     }
 
     public function getUserInfo($slackId)

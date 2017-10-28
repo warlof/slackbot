@@ -37,39 +37,51 @@ class SlackUsersUpdate extends Command
 
         // iterate over each member and try to make aggregation
         foreach ($members as $member) {
-            // exclude SLACK BOT user from user list
-            // exclude bot from user list
-            // exclude token owner from list
-            if ($member['id'] != 'USLACKBOT' && $member['deleted'] == false && $member['is_bot'] == false &&
-                !key_exists('api_app_id', $member['profile'])) {
+            // if it appears to be a new user (at least, unknown from SeAT
+            if ($this->isActiveTeamMember($members) && SlackUser::where('slack_id', $member['id'])->first() == null) {
 
-                // if it appears to be a new user (at least, unknown from SeAT
-                if (SlackUser::where('slack_id', $member['id'])->first() == null) {
+                // and we're able to match him using email address
+                if (key_exists('email', $member['profile'])) {
+                    if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
 
-                    // and we're able to match him using email address
-                    if (key_exists('email', $member['profile'])) {
-                        if (($seatUser = User::where('email', $member['profile']['email'])->first()) != null) {
+                        // drop any existing association
+                        if ($slackUser = SlackUser::find($seatUser->id)) {
+                            $slackUser->delete();
+                        };
 
-                            // drop any existing association
-                            if ($slackUser = SlackUser::find($seatUser->id)) {
-                                $slackUser->delete();
-                            };
-
-                            // Create the new association
-                            SlackUser::create([
-                                'user_id' => $seatUser->id,
-                                'slack_id' => $member['id'],
-                                'name' => $member['name']
-                            ]);
-                        }
+                        // Create the new association
+                        SlackUser::create([
+                            'user_id' => $seatUser->id,
+                            'slack_id' => $member['id'],
+                            'name' => $member['name']
+                        ]);
                     }
                 }
-
-                // Update cache information
-                $member['conversations'] = app(SlackApi::class)->getUserConversations($member['id']);
-
-                Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
             }
+
+            // Update cache information
+            $member['conversations'] = app(SlackApi::class)->getUserConversations($member['id']);
+
+            Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
         }
+    }
+
+    /**
+     * Determine if an user is a team member and physical person
+     *
+     * @param array $member
+     * @return bool
+     */
+    private function isActiveTeamMember(array $user) : bool
+    {
+        if ($user['id'] == 'USLACKBOT' || $user['deleted'] || $user['is_bot']) {
+            return false;
+        }
+
+        if (key_exists('api_app_id', $user['profile'])) {
+            return false;
+        }
+
+        return true;
     }
 }
