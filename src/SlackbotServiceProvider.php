@@ -81,8 +81,9 @@ class SlackbotServiceProvider extends ServiceProvider
     private function registerServices()
     {
         $slackToken = '';
-        if (Schema::hasTable('global_settings'))
+        if (Schema::hasTable('global_settings')) {
             $slackToken = setting('warlof.slackbot.credentials.access_token', true);
+        }
 
         // Ensure slack has been set
         if ($slackToken == null) {

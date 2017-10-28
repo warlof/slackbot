@@ -96,7 +96,8 @@ class SlackbotController extends Controller
                     $slackUser->user->name . ') and Slack (' . $slackUser->name . ').');
             }
 
-            return redirect()->back()->with('error', 'System cannot find any suitable mapping for Slack (' . $slackId . ').');
+            return redirect()->back()->with('error', sprintf(
+                'System cannot find any suitable mapping for Slack (%s).', $slackId));
         }
 
         return redirect()->back('error', 'An error occurred while processing the request.');
@@ -159,11 +160,12 @@ class SlackbotController extends Controller
             }
 
             // conversation is a public channel
-            if (strpos($channelId, 'C') === 0)
+            if (strpos($channelId, 'C') === 0) {
                 $channels[] = [$channel['id'], $channel['name'], count($channel['members'])];
-            // conversation is a private group
-            else
+                // conversation is a private group
+            } else {
                 $groups[] = [$channel['id'], $channel['name'], count($channel['members'])];
+            }
         }
 
         return response()->json(['channels' => $channels, 'groups' => $groups]);

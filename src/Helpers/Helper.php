@@ -32,8 +32,9 @@ class Helper
     public static function isEnabledAccount(User $user) : bool
     {
         // mail activation is mandatory but user didn't confirmed its status yet
-        if ((setting('require_activation', true) == 'yes') && ($user->active != 1))
+        if ((setting('require_activation', true) == 'yes') && ($user->active != 1)) {
             return false;
+        }
 
         return $user->account_active();
     }
@@ -147,8 +148,8 @@ class Helper
         return $userInfo;
     }
 
-    public static function getSlackRedisKey($table, $id)
+    public static function getSlackRedisKey($table, $objectId)
     {
-        return $table . '.' . $id;
+        return $table . '.' . $objectId;
     }
 }

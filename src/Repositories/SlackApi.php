@@ -120,7 +120,7 @@ class SlackApi
      */
     public function memberOf(string $slackId) : array
     {
-        $member_of_channels = [];
+        $memberOfChannels = [];
         $channels = $this->channels();
 
         // iterate over channels and check if the current slack user is part of channel
@@ -130,12 +130,13 @@ class SlackApi
                 // search for Slack User ID into every channel members list
                 // if we find it, append the channel id to the result
                 $members = $this->channels_members($channel['id']);
-                if (in_array($slackId, $members))
-                    $member_of_channels[] = $channel['id'];
+                if (in_array($slackId, $members)) {
+                    $memberOfChannels[] = $channel['id'];
+                }
             }
         }
 
-        return $member_of_channels;
+        return $memberOfChannels;
     }
 
     /**
@@ -157,8 +158,9 @@ class SlackApi
         $result = $this->post('/conversations.info', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if (!$result['ok'])
+        if (!$result['ok']) {
             throw new SlackConversationException($result['error']);
+        }
 
         // return only channel array which contains information
         return $result['channel'];
@@ -203,8 +205,9 @@ class SlackApi
         ];
 
         // We can't kick token owner himself
-        if ($userId == $this->tokenOwnerId)
+        if ($userId == $this->tokenOwnerId) {
             return false;
+        }
 
         // Retrieve channel information before kicking user
         $channel = $this->info($channelId);
@@ -239,14 +242,16 @@ class SlackApi
         $result = $this->post('/conversations.list', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if (!$result['ok'])
+        if (!$result['ok']) {
             throw new SlackConversationException($result['error']);
+        }
 
         $channels = $result['channels'];
 
         // recursive call in order to retrieve all paginated results
-        if ($result['response_metadata']['next_cursor'] != "")
+        if ($result['response_metadata']['next_cursor'] != "") {
             $channels = array_merge($channels, $this->channels($result['response_metadata']['next_cursor']));
+        }
 
         return $channels;
     }
@@ -262,8 +267,9 @@ class SlackApi
             'channel' => $channelId,
         ];
 
-        if (!$this->isMemberOf($this->tokenOwnerId, $channelId))
+        if (!$this->isMemberOf($this->tokenOwnerId, $channelId)) {
             $this->post('conversations.join', $params);
+        }
     }
 
     /**
@@ -285,13 +291,15 @@ class SlackApi
         $result = $this->post('/conversations.members', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if (!$result['ok'])
+        if (!$result['ok']) {
             throw new SlackConversationException($result['error']);
+        }
 
         $members = $result['members'];
 
-        if ($result['response_metadata']['next_cursor'] != "")
+        if ($result['response_metadata']['next_cursor'] != "") {
             $members = array_merge($members, $this->channels_members($channelID, $result['response_metadata']['next_cursor']));
+        }
 
         // return only channels array which handle channels information like id or name
         return $members;
