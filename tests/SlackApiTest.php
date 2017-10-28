@@ -86,7 +86,7 @@ class SlackApiTest extends TestCase
         $slackUserId = "U1Z9LT9NK";
         $slackChannelId = "C1Z920QKC";
 
-        $this->assertNull(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
+        $this->assertTrue(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
     }
 
     public function testInvitePrivateChannel()
@@ -94,29 +94,23 @@ class SlackApiTest extends TestCase
         $slackUserId = "U1Z9LT9NK";
         $slackChannelId = "G1Z9267L1";
 
-        $this->assertNull(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
+        $this->assertTrue(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
     }
 
-    /**
-     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
-     */
     public function testInvitePublicChannelException()
     {
         $slackUserId = "U1Z9LT9NP";
         $slackChannelId = "C1Z920QKC";
 
-        app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId);
+        $this->assertFalse(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
     }
 
-    /**
-     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
-     */
     public function testInvitePrivateChannelException()
     {
         $slackUserId = "U1Z9LT9NP";
         $slackChannelId = "G1Z9267L1";
 
-        app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId);
+        $this->assertFalse(app(SlackApi::class)->inviteIntoConversation($slackUserId, $slackChannelId));
     }
 
     public function testKickPublicChannel()
@@ -124,7 +118,7 @@ class SlackApiTest extends TestCase
         $slackUserId = "U1Z9LT9NK";
         $slackChannelId = "C1Z920QKC";
 
-        $this->assertNull(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
+        $this->assertTrue(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
     }
 
     public function testKickPrivateChannel()
@@ -132,45 +126,47 @@ class SlackApiTest extends TestCase
         $slackUserId = "U1Z9LT9NK";
         $slackChannelId = "G1Z9267L1";
 
-        $this->assertNull(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
+        $this->assertTrue(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
     }
 
-    /**
-     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
-     */
     public function testKickPublicChannelException()
     {
         $slackUserId = "U1Z8TCZA3";
         $slackChannelId = "G1Z920QKC";
 
-        app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId);
+        $this->assertFalse(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
     }
 
-    /**
-     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
-     */
     public function testKickPrivateChannelException()
     {
         $slackUserId = "U1Z8TCZA3";
         $slackChannelId = "C1Z8J1BFY";
 
-        app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId);
+        $this->assertFalse(app(SlackApi::class)->kickFromConversion($slackUserId, $slackChannelId));
     }
 
     public function testPublicChannels()
     {
-        $apiResponse = app(SlackApi::class)->getConversations();
+        $apiResponse = app(SlackApi::class)->getConversations(['public_channel']);
         $artifact = $this->getArtifactPath("public_channel.json");
 
-        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[1]));
+        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse));
     }
 
     public function testPrivateChannels()
     {
-        $apiResponse = app(SlackApi::class)->getConversations();
+        $apiResponse = app(SlackApi::class)->getConversations(['private_channel']);
         $artifact = $this->getArtifactPath("private_channel.json");
 
-        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[0]));
+        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse));
+    }
+
+    public function testChannels()
+    {
+        $apiResponse = app(SlackApi::class)->getConversations();
+        $artifact = $this->getArtifactPath("channel.json");
+
+        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse));
     }
 
     public function testMembers()
@@ -178,13 +174,13 @@ class SlackApiTest extends TestCase
         $apiResponse = app(SlackApi::class)->getTeamMembers();
         $artifact = $this->getArtifactPath("member.json");
 
-        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse[3]));
+        $this->assertJsonStringEqualsJsonFile($artifact, json_encode($apiResponse));
     }
 
     public function testOwnerKick()
     {
         $testUser = 'U1Z8TCZAT';
-        $this->assertNull(app(SlackApi::class)->kickFromConversion($testUser, 'C1Z920QKD'));
+        $this->assertFalse(app(SlackApi::class)->kickFromConversion($testUser, 'C1Z920QKD'));
     }
 
     /**

@@ -198,7 +198,7 @@ class SlackApi
      * @throws SlackConversationException
      */
     public function getConversations(
-        string $cursor = null, array $types = ['public_channel', 'private_channel']) : array
+        array $types = ['public_channel', 'private_channel'], string $cursor = null) : array
     {
         // we don't care from archived channels either they are public or private
         $params = [
@@ -219,7 +219,7 @@ class SlackApi
 
         // recursive call in order to retrieve all paginated results
         if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
-            $channels = array_merge($channels, $this->getConversations($result['response_metadata']['next_cursor']));
+            $channels = array_merge($channels, $this->getConversations($params['types'], $result['response_metadata']['next_cursor']));
         }
 
         return $channels;
