@@ -79,32 +79,22 @@ class EventController extends Controller
             //
             case 'channel_created':
             case 'group_created':
-                $this->createChannel($event['channel']);
-                break;
             case 'channel_deleted':
             case 'group_deleted':
-                $this->deleteChannel($event['channel']);
-                break;
             case 'channel_archive':
             case 'group_archive':
-                $this->archiveChannel($event['channel']);
-                break;
             case 'channel_unarchive':
             case 'group_unarchive':
-                $this->unarchiveChannel($event['channel']);
-                break;
             case 'channel_rename':
             case 'group_rename':
-                $this->renameChannel($event['channel']);
+                $this->eventConversationHandler($event);
                 break;
             //
             // user events
             //
             case 'user_change':
-                $this->userChange($event['user']);
-                break;
             case 'team_join':
-                $this->joinTeam($event['user']);
+                $this->eventUserHandler($event);
                 break;
             case 'message':
                 return $this->eventMessageHandler($event);
@@ -116,6 +106,47 @@ class EventController extends Controller
         }
 
         return response()->json(['ok' => true], 200);
+    }
+
+    private function eventConversationHandler(array $event) : void
+    {
+        switch ($event['type']) {
+            //
+            // conversation events
+            //
+            case 'channel_created':
+            case 'group_created':
+                $this->createConversation($event['channel']);
+                break;
+            case 'channel_deleted':
+            case 'group_deleted':
+                $this->deleteConversation($event['channel']);
+                break;
+            case 'channel_archive':
+            case 'group_archive':
+                $this->archiveConversation($event['channel']);
+                break;
+            case 'channel_unarchive':
+            case 'group_unarchive':
+                $this->unarchiveConversation($event['channel']);
+                break;
+            case 'channel_rename':
+            case 'group_rename':
+                $this->renameConversation($event['channel']);
+                break;
+        }
+    }
+
+    private function eventUserHandler(array $event) : void
+    {
+        switch ($event['type']) {
+            case 'user_change':
+                $this->userChange($event['user']);
+                break;
+            case 'team_join':
+                $this->joinTeam($event['user']);
+                break;
+        }
     }
 
     /**

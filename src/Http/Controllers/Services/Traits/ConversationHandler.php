@@ -17,7 +17,7 @@ trait ConversationHandler
 {
     private $channelTable = 'seat:warlof:slackbot:conversations';
 
-    public function createChannel($channel)
+    public function createConversation($channel)
     {
         // store channel information into redis
         Redis::set(Helper::getSlackRedisKey($this->channelTable, $channel['id']), json_encode($channel));
@@ -34,7 +34,7 @@ trait ConversationHandler
         app(SlackApi::class)->joinConversation($channel['id']);
     }
 
-    public function deleteChannel($channelId)
+    public function deleteConversation($channelId)
     {
         // remove information from redis
         Redis::del(Helper::getSlackRedisKey($this->channelTable, $channelId));
@@ -43,7 +43,7 @@ trait ConversationHandler
         SlackChannel::find($channelId)->delete();
     }
 
-    public function renameChannel($channel)
+    public function renameConversation($channel)
     {
         $redisData = json_decode(Redis::get(Helper::getSlackRedisKey($this->channelTable, $channel['id'])), true);
 
@@ -56,7 +56,7 @@ trait ConversationHandler
         ]);
     }
 
-    public function archiveChannel($channelId)
+    public function archiveConversation($channelId)
     {
         Redis::del(Helper::getSlackRedisKey($this->channelTable, $channelId));
 
@@ -65,7 +65,7 @@ trait ConversationHandler
         }
     }
 
-    public function unarchiveChannel($channelId)
+    public function unarchiveConversation($channelId)
     {
         $channel = app(SlackApi::class)->getConversationInfo($channelId);
 
