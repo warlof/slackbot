@@ -122,7 +122,7 @@ class EventController extends Controller
                 if (!isset($event['subtype'])) {
                     return response()->json([
                         'ok' => true,
-                        'msg' => sprintf('Expected %s sub-events for message event',implode(', ', $expectedSubEvent))
+                        'msg' => sprintf('Expected %s sub-events for message event', implode(', ', $expectedSubEvent))
                     ], 202);
                 }
 

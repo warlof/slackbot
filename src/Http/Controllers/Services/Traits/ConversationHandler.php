@@ -29,6 +29,9 @@ trait ConversationHandler
             'is_group' => (strpos($channel['id'], 'C') === 0) ? false : true,
             'is_general' => false
         ]);
+
+        // invite token owner in case he's not the channel creator
+        app(SlackApi::class)->joinConversation($channel['id']);
     }
 
     public function deleteChannel($channelId)

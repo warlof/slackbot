@@ -197,7 +197,8 @@ class SlackApi
      * @throws SlackApiException
      * @throws SlackConversationException
      */
-    public function getConversations(string $cursor = null, array $types = ['public_channel', 'private_channel']) : array
+    public function getConversations(
+        string $cursor = null, array $types = ['public_channel', 'private_channel']) : array
     {
         // we don't care from archived channels either they are public or private
         $params = [
@@ -266,7 +267,8 @@ class SlackApi
         $members = $result['members'];
 
         if ($result['response_metadata']['next_cursor'] != "") {
-            $members = array_merge($members, $this->getConversationMembers($channelId, $result['response_metadata']['next_cursor']));
+            $members = array_merge($members,
+                $this->getConversationMembers($channelId, $result['response_metadata']['next_cursor']));
         }
 
         // return only channels array which handle channels information like id or name
