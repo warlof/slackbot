@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackUsersUpdate extends Command
 {
@@ -32,7 +33,7 @@ class SlackUsersUpdate extends Command
         }
 
         // get members list from slack team
-        $members = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->members();
+        $members = app(SlackApi::class)->members();
 
         // iterate over each member and try to make aggregation
         foreach ($members as $member) {
@@ -65,8 +66,7 @@ class SlackUsersUpdate extends Command
                 }
 
                 // Update cache information
-                $member['channels'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($member['id'], false);
-                $member['groups'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($member['id'], true);
+                $member['conversations'] = app(SlackApi::class)->memberOf($member['id']);
 
                 Redis::set('seat:warlof:slackbot:users.' . $member['id'], json_encode($member));
             }

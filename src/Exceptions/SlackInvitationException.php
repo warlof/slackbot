@@ -8,7 +8,7 @@
 namespace Warlof\Seat\Slackbot\Exceptions;
 
 
-class SlackChannelException extends \Exception
+class SlackInvitationException extends \Exception
 {
     
 }

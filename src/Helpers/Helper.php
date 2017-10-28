@@ -16,6 +16,7 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class Helper
 {
@@ -136,9 +137,8 @@ class Helper
     public static function getSlackUserInformation(string $slackUserId) : array
     {
         if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) == null) {
-            $userInfo = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($slackUserId);
-            $userInfo['channels'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackUserId, false);
-            $userInfo['groups'] = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->memberOf($slackUserId, true);
+            $userInfo = app(SlackApi::class)->userInfo($slackUserId);
+            $userInfo['conversations'] = app(SlackApi::class)->memberOf($slackUserId);
             Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
         } else {
             $userInfo = json_decode($data, true);

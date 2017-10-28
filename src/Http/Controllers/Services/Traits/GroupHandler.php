@@ -11,10 +11,11 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 use Illuminate\Support\Facades\Redis;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 trait GroupHandler
 {
-    private $groupTable = 'seat:warlof:slackbot:groups';
+    private $groupTable = 'seat:warlof:slackbot:conversations';
 
     public function createGroup($group)
     {
@@ -63,7 +64,7 @@ trait GroupHandler
 
     public function unarchiveGroup($groupId)
     {
-        $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($groupId, true);
+        $channel = app(SlackApi::class)->info($groupId);
 
         Redis::set(Helper::getSlackRedisKey($this->groupTable, $groupId), json_encode($channel));
 

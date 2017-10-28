@@ -103,8 +103,8 @@ class OAuthController extends Controller
         }
 
         // update slack api instance
-        app()->singleton('Warlof\Seat\Slackbot\Repositories\SlackApi', function($app) {
-            return $app->singleton('Warlof\Seat\Slackbot\Repositories\SlackApi', function() {
+        app()->singleton(SlackApi::class, function($app) {
+            return $app->singleton(SlackApi::class, function() {
                 return new SlackApi(setting('warlof.slackbot.credentials.access_token', true));
             });
         });

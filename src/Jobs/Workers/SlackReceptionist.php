@@ -7,14 +7,11 @@
 
 namespace Warlof\Seat\Slackbot\Jobs\Workers;
 
-use Seat\Web\Models\User;
 use Seat\Eveapi\Models\Eve\ApiKey;
-use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
-use Warlof\Seat\Slackbot\Exceptions\SlackGroupException;
-use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
-use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
+use Warlof\Seat\Slackbot\Exceptions\SlackConversationException;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackReceptionist extends AbstractWorker
 {
@@ -51,7 +48,7 @@ class SlackReceptionist extends AbstractWorker
      * 
      * @param SlackUser $slackUser
      * @param array $currentChannels
-     * @throws SlackChannelException
+     * @throws SlackConversationException
      */
     private function processChannelsInvitation(SlackUser $slackUser, array $currentChannels)
     {
@@ -61,7 +58,7 @@ class SlackReceptionist extends AbstractWorker
 
         // iterate over each channel ID and invite the user
         foreach ($missingChannels as $channelId) {
-            if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $channelId, false)) {
+            if (app(SlackApi::class)->invite($slackUser->slack_id, $channelId)) {
                 $invitedChannels[] = $channelId;
             }
         }
@@ -74,7 +71,6 @@ class SlackReceptionist extends AbstractWorker
      * 
      * @param SlackUser $slackUser
      * @param array $currentGroups
-     * @throws SlackGroupException
      */
     private function processGroupsInvitation(SlackUser $slackUser, array $currentGroups)
     {
@@ -86,7 +82,7 @@ class SlackReceptionist extends AbstractWorker
 
             // iterate over each group ID and invite the user
             foreach ($missingGroups as $groupId) {
-                if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->invite($slackUser->slack_id, $groupId, true)) {
+                if (app(SlackApi::class)->invite($slackUser->slack_id, $groupId)) {
                     $invitedGroups[] = $groupId;
                 }
             }

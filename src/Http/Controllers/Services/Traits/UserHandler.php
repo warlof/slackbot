@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 trait UserHandler
 {
@@ -47,7 +48,7 @@ trait UserHandler
 
     public function joinTeam($user)
     {
-        $user = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->userInfo($user['id']);
+        $user = app(SlackApi::class)->userInfo($user['id']);
 
         if (($seatUser = User::where('email', $user['profile']['email'])->first()) != null) {
             SlackUser::create([
@@ -57,8 +58,7 @@ trait UserHandler
             ]);
         }
 
-        $user['channels'] = [];
-        $user['groups'] = [];
+        $user['conversations'] = [];
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }

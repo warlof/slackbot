@@ -11,10 +11,11 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 use Illuminate\Support\Facades\Redis;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 trait ChannelHandler
 {
-    private $channelTable = 'seat:warlof:slackbot:channels';
+    private $channelTable = 'seat:warlof:slackbot:conversations';
 
     public function createChannel($channel)
     {
@@ -63,7 +64,7 @@ trait ChannelHandler
 
     public function unarchiveChannel($channelId)
     {
-        $channel = app('Warlof\Seat\Slackbot\Repositories\SlackApi')->info($channelId, false);
+        $channel = app(SlackApi::class)->info($channelId);
 
         Redis::set(Helper::getSlackRedisKey($this->channelTable, $channelId), json_encode($channel));
 

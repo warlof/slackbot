@@ -10,8 +10,8 @@ namespace Seat\Slackbot\Tests;
 
 use Orchestra\Testbench\TestCase;
 use Warlof\Seat\Slackbot\Commands\SlackUsersUpdate;
-use Warlof\Seat\Slackbot\Helpers\SlackApi;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackUsersUpdateTest extends TestCase
 {
@@ -38,7 +38,7 @@ class SlackUsersUpdateTest extends TestCase
         // setup Slack API
         $token = getenv('slack_token');
 
-        app()->singleton('warlof.slackbot.slack', function() use ($token){
+        app()->singleton(SlackApi::class, function() use ($token){
             return new SlackApi($token);
         });
     }

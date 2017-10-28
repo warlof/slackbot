@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackChannelsUpdate extends Command
 {
@@ -30,16 +31,13 @@ class SlackChannelsUpdate extends Command
             throw new SlackSettingException("missing warlof.slackbot.credentials.access_token in settings");
         }
 
-        $channelsAndGroups = array_merge(Redis::keys('seat:warlof:slackbot:channels*'), Redis::keys('seat:warlof:slackbot:groups*'));
+        $channelsAndGroups = Redis::keys('seat:warlof:slackbot:conversations*');
         foreach ($channelsAndGroups as $channelOrGroup) {
             Redis::del($channelOrGroup);
         }
 
         // make a call in order to fetch both public and private channels
-        $channels = array_merge(
-            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->channels(false),
-            app('Warlof\Seat\Slackbot\Repositories\SlackApi')->channels(true)
-        );
+        $channels = app(SlackApi::class)->channels();
 
         $slackChannelIds = [];
 
@@ -69,10 +67,7 @@ class SlackChannelsUpdate extends Command
                 'is_general' => (strpos($channel['id'], 'C') === 0) ? $channel['is_general'] : false
             ]);
 
-            $redisKey = 'seat:warlof:slackbot:groups.' . $channel['id'];
-            if (strpos($channel['id'], 'C') === 0) {
-                $redisKey = 'seat:warlof:slackbot:channels.' . $channel['id'];
-            }
+            $redisKey = 'seat:warlof:slackbot:conversations.' . $channel['id'];
 
             Redis::set($redisKey, json_encode($channel));
         }

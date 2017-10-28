@@ -38,7 +38,7 @@ class SlackChannelsUpdateTest extends TestCase
         // setup Slack API
         $token = getenv('slack_token');
 
-        app()->singleton('warlof.slackbot.slack', function() use ($token){
+        app()->singleton(SlackApi::class, function() use ($token){
             return new SlackApi($token);
         });
     }
@@ -51,10 +51,7 @@ class SlackChannelsUpdateTest extends TestCase
         // test
 
         // get list of channels
-        $channels = array_merge(
-            app('warlof.slackbot.slack')->channels(false),
-            app('warlof.slackbot.slack')->channels(true)
-        );
+        $channels = app(SlackApi::class)->channels();
 
         // store all channels in an array of object
         $artifacts = [];

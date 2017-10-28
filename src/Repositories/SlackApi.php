@@ -8,8 +8,7 @@
 namespace Warlof\Seat\Slackbot\Repositories;
 
 use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
-use Warlof\Seat\Slackbot\Exceptions\SlackChannelException;
-use Warlof\Seat\Slackbot\Exceptions\SlackGroupException;
+use Warlof\Seat\Slackbot\Exceptions\SlackConversationException;
 use Warlof\Seat\Slackbot\Exceptions\SlackMailException;
 use Warlof\Seat\Slackbot\Exceptions\SlackTeamInvitationException;
 use Warlof\Seat\Slackbot\Exceptions\SlackUserException;
@@ -97,55 +96,46 @@ class SlackApi
     }
 
     /**
+     * Determine if an user is member of the specified channel
+     *
+     * @param string $slackId
+     * @param string $channelId
+     * @return bool
+     */
+    public function isMemberOf(string $slackId, string $channelId) : bool
+    {
+        $channels = $this->memberOf($slackId);
+
+        return in_array($channelId, $channels);
+    }
+
+    /**
      * Determine in which channels an user is currently in
      *
      * @param string $slackId Slack user id (ie: U3216587)
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
-     * @throws SlackChannelException
-     * @throws SlackGroupException
+     * @throws SlackConversationException
      * @return array
      */
-    public function memberOf(string $slackId, bool $private) : array
+    public function memberOf(string $slackId) : array
     {
-        $channels = [];
-        $type = 'channels';
-
-        if ($private) {
-            $type = 'groups';
-        }
-
-        // we will use /channels.list endpoint if $private is false
-        // in other case, it will be /groups.list
-        $endpoint = '/' . $type . '.list';
-
-        // send the query to SlackAPI and fetch result
-        $result = $this->post($endpoint);
-
-        // ensure that the request has been handle successfully
-        // if not, throw an exception according to public or private case
-        if ($result['ok'] == false) {
-            if ($private) {
-                throw new SlackGroupException($result['error']);
-            }
-
-            throw new SlackChannelException($result['error']);
-        }
+        $member_of_channels = [];
+        $channels = $this->channels();
 
         // iterate over channels and check if the current slack user is part of channel
-        foreach ($result[$type] as $channel) {
-            // exclude private chat (is_mpim) from result if $private is true
-            if (($type == 'groups' && $channel['is_mpim'] == false) || $type == 'channels' &&
-                ($type == 'channels' && $channel['is_general'] == false)) {
+        foreach ($channels as $channel) {
+            // exclude private chat (is_mpim) and main channel from result
+            if (!$channel['is_mpim'] && !$channel['is_general']) {
                 // search for Slack User ID into every channel members list
                 // if we find it, append the channel id to the result
-                if (in_array($slackId, $channel['members'])) {
-                    $channels[] = $channel['id'];
-                }
+                $members = $this->channels_members($channel['id']);
+                if (in_array($slackId, $members))
+                    $member_of_channels[] = $channel['id'];
             }
         }
 
-        return $channels;
+        return $member_of_channels;
     }
 
     /**
@@ -155,34 +145,20 @@ class SlackApi
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @return array
      * @throws SlackApiException
-     * @throws SlackGroupException
-     * @throws SlackChannelException
+     * @throws SlackConversationException
      */
-    public function info(string $channelId, bool $private) : array
+    public function info(string $channelId) : array
     {
         $params = [
             'channel' => $channelId
         ];
 
-        // The request is for a private channel, call groups endpoint
-        if ($private) {
-            $result = $this->post('/groups.info', $params);
-
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
-            }
-            
-            return $result['group'];
-        }
-
         // The request is for a public channel, call channels endpoint
-        $result = $this->post('/channels.info', $params);
+        $result = $this->post('/conversations.info', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
-        }
+        if (!$result['ok'])
+            throw new SlackConversationException($result['error']);
 
         // return only channel array which contains information
         return $result['channel'];
@@ -193,28 +169,18 @@ class SlackApi
      *
      * @param string $userId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
-     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
      * @return bool
      */
-    public function invite(string $userId, string $channelId, bool $private) : bool
+    public function invite(string $userId, string $channelId) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
             'channel' => $channelId,
-            'user' => $userId
+            'users' => [$userId],
         ];
 
-        // The request is for a private channel, call groups endpoint
-        if ($private) {
-
-            $result = $this->post('/groups.invite', $params);
-
-            return $result['ok'];
-        }
-
-        // The request is for a public channel, call channels endpoint
-        $result = $this->post('/channels.invite', $params);
+        $result = $this->post('/conversations.invite', $params);
 
         return $result['ok'];
     }
@@ -228,7 +194,7 @@ class SlackApi
      * @throws SlackApiException
      * @return bool
      */
-    public function kick(string $userId, string $channelId, bool $private) : bool
+    public function kick(string $userId, string $channelId) : bool
     {
         // set parameters for Slack request, channel id and user id
         $params = [
@@ -237,26 +203,15 @@ class SlackApi
         ];
 
         // We can't kick token owner himself
-        if ($userId == $this->tokenOwnerId) {
+        if ($userId == $this->tokenOwnerId)
             return false;
-        }
 
-        // The request is for a private channel, call groups endpoint
-        if ($private) {
-            // send a request to Slack in order to kick the user from the channel
-            $result = $this->post('/groups.kick', $params);
+        // Retrieve channel information before kicking user
+        $channel = $this->info($channelId);
 
-            return $result['ok'];
-        }
-
-        // The request is for a public channel, call channels endpoint
-        $channel = $this->info($channelId, $private);
-
-        // user can only be kicked from non general channel and if it is already member of it (legit)
-        if ($channel['is_general'] == false && in_array($userId, $channel['members']) == true) {
-            // send a request to Slack in order to kick the user from the channel
-            $result = $this->post('/channels.kick', $params);
-
+        // If user is part of the channel and it's not the main channel, kick it
+        if ($this->isMemberOf($userId, $channelId) && !$channel['is_general']) {
+            $result = $this->post('/conversations.kick', $params);
             return $result['ok'];
         }
 
@@ -269,48 +224,77 @@ class SlackApi
      * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @return array
      * @throws SlackApiException
-     * @throws SlackChannelException
-     * @throws SlackGroupException
+     * @throws SlackConversationException
      */
-    public function channels(bool $private) : array
+    public function channels(string $cursor = null) : array
     {
         // we don't care from archived channels either they are public or private
         $params = [
-            'exclude_archived' => 1
+            'exclude_archived' => 1,
+            'cursor' => $cursor,
+            'types' => 'public_channel,private_channel',
         ];
 
-        // check $private value in order to determine which endpoint will be used
-        if ($private) {
-            // send request to Slack API and fetch result
-            $result = $this->post('/groups.list', $params);
-
-            // check that the request has been handled successfully. If not, fire an exception
-            if ($result['ok'] == false) {
-                throw new SlackGroupException($result['error']);
-            }
-
-            // we only care about private channel, iterate over the result and exclude the MPIM (private message)
-            $data = [];
-            foreach ($result['groups'] as $g) {
-                if ($g['is_mpim'] == false) {
-                    $data[] = $g;
-                }
-            }
-
-            // return only channels array which handle channels information like id or name
-            return $data;
-        }
-
         // send request to Slack API and fetch result
-        $result = $this->post('/channels.list', $params);
+        $result = $this->post('/conversations.list', $params);
 
         // check that the request has been handled successfully. If not, fire an exception
-        if ($result['ok'] == false) {
-            throw new SlackChannelException($result['error']);
-        }
+        if (!$result['ok'])
+            throw new SlackConversationException($result['error']);
+
+        $channels = $result['channels'];
+
+        // recursive call in order to retrieve all paginated results
+        if ($result['response_metadata']['next_cursor'] != "")
+            $channels = array_merge($channels, $this->channels($result['response_metadata']['next_cursor']));
+
+        return $channels;
+    }
+
+    /**
+     * Invite the token owner into a specific channel
+     *
+     * @param string $channelId Slack channel id (ie: C6547987)
+     */
+    public function join(string $channelId)
+    {
+        $params = [
+            'channel' => $channelId,
+        ];
+
+        if (!$this->isMemberOf($this->tokenOwnerId, $channelId))
+            $this->post('conversations.join', $params);
+    }
+
+    /**
+     * Return a list of members from a specific channel or groups
+     *
+     * @param string $channelID
+     * @param string|null $cursor
+     * @return array
+     * @throws SlackConversationException
+     */
+    public function channels_members(string $channelID, string $cursor = null) : array
+    {
+        $params = [
+            'channel' => $channelID,
+            'cursor' => $cursor,
+        ];
+
+        // send request to Slack API and fetch result
+        $result = $this->post('/conversations.members', $params);
+
+        // check that the request has been handled successfully. If not, fire an exception
+        if (!$result['ok'])
+            throw new SlackConversationException($result['error']);
+
+        $members = $result['members'];
+
+        if ($result['response_metadata']['next_cursor'] != "")
+            $members = array_merge($members, $this->channels_members($channelID, $result['response_metadata']['next_cursor']));
 
         // return only channels array which handle channels information like id or name
-        return $result['channels'];
+        return $members;
     }
 
     /**
@@ -372,7 +356,7 @@ class SlackApi
         // ask curl to wait until server answer
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         // inform Slack about who's sending the query
-        curl_setopt($curl, CURLOPT_USERAGENT, 'Seat-Slackbot/0.x mail=loic.leuilliot@gmail.com');
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Seat-Slackbot/2.2.x mail=loic.leuilliot@gmail.com');
 
         // Slack is talking with us using JSON, fetch the result and convert into array
         $result = json_decode(curl_exec($curl), true);

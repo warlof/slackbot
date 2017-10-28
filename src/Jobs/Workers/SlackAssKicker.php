@@ -10,6 +10,7 @@ namespace Warlof\Seat\Slackbot\Jobs\Workers;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackAssKicker extends AbstractWorker
 {
@@ -92,9 +93,9 @@ class SlackAssKicker extends AbstractWorker
         if (!empty($extra)) {
 
             // iterate group ID and call kick method from Slack Api
-            foreach ($extra as $elementId) {
-                if (app('Warlof\Seat\Slackbot\Repositories\SlackApi')->kick($slackUser->slack_id, $elementId, $private)) {
-                    $kicked[] = $elementId;
+            foreach ($extra as $channelID) {
+                if (app(SlackApi::class)->kick($slackUser->slack_id, $channelID)) {
+                    $kicked[] = $channelID;
                 }
             }
 
