@@ -68,7 +68,8 @@ trait UserHandler
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $channel['user']));
 
         if ($redisData == null) {
-            Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode(Helper::getSlackUserInformation($channel['user'])));
+            Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']),
+                json_encode(Helper::getSlackUserInformation($channel['user'])));
             return;
         }
 
@@ -102,7 +103,8 @@ trait UserHandler
         $redisData = Redis::get(Helper::getSlackRedisKey($this->userTable, $group['user']));
 
         if ($redisData == null) {
-            Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode(Helper::getSlackUserInformation($group['user'])));
+            Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']),
+                json_encode(Helper::getSlackUserInformation($group['user'])));
             return;
         }
 

@@ -7,6 +7,7 @@
 
 namespace Warlof\Seat\Slackbot\Http\Controllers\Services;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\ConversationHandler;
@@ -65,9 +66,12 @@ class EventController extends Controller
     }
 
     /**
-     * @param $event array A Slack Json event object
+     * Business router which is handling Slack event
+     *
+     * @param array $event A Slack Json event object
+     * @return JsonResponse
      */
-    private function eventHandler(array $event)
+    private function eventHandler(array $event) : JsonResponse
     {
         switch ($event['type']) {
             //
@@ -103,44 +107,60 @@ class EventController extends Controller
                 $this->joinTeam($event['user']);
                 break;
             case 'message':
-                $expectedSubEvent = [
-                    'channel_join',
-                    'channel_leave',
-                    'group_join',
-                    'group_unarchive',
-                    'group_leave',
-                    'group_archive',
-                ];
-
-                if (!isset($event['subtype'])) {
-                    return response()->json([
-                        'ok' => true,
-                        'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
-                    ], 202);
-                }
-
-                switch ($event['subtype']) {
-                    case 'channel_join':
-                        $this->joinChannel($event);
-                        break;
-                    case 'channel_leave':
-                        $this->leaveChannel($event);
-                        break;
-                    case 'group_join':
-                    case 'group_unarchive':
-                        $this->joinGroup($event);
-                        break;
-                    case 'group_leave':
-                    case 'group_archive':
-                        $this->leaveGroup($event);
-                        break;
-                }
-
-                break;
+                return $this->eventMessageHandler($event);
             default:
                 return response()->json([
                     'ok' => true,
                     'msg' => 'Unhandled event'
+                ], 202);
+        }
+
+        return response()->json(['ok' => true], 200);
+    }
+
+    /**
+     * Business router which is handling Slack message event
+     *
+     * @param array $event A Slack Json event object
+     * @return JsonResponse
+     */
+    private function eventMessageHandler(array $event) : JsonResponse
+    {
+        $expectedSubEvent = [
+            'channel_join',
+            'channel_leave',
+            'group_join',
+            'group_unarchive',
+            'group_leave',
+            'group_archive',
+        ];
+
+        if (!isset($event['subtype'])) {
+            return response()->json([
+                'ok' => true,
+                'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
+            ], 202);
+        }
+
+        switch ($event['subtype']) {
+            case 'channel_join':
+                $this->joinChannel($event);
+                break;
+            case 'channel_leave':
+                $this->leaveChannel($event);
+                break;
+            case 'group_join':
+            case 'group_unarchive':
+                $this->joinGroup($event);
+                break;
+            case 'group_leave':
+            case 'group_archive':
+                $this->leaveGroup($event);
+                break;
+            default:
+                return response()->json([
+                    'ok' => true,
+                    'msg' => sprintf('Expected %s subtype for message event', implode(', ', $expectedSubEvent))
                 ], 202);
         }
 
