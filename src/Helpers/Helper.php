@@ -20,6 +20,24 @@ use Warlof\Seat\Slackbot\Models\SlackUser;
 class Helper
 {
     /**
+     * Return true if account is active
+     *
+     * An account is considered as active when both mail has been confirmed in case of mail activation,
+     * and no administrator disabled it
+     *
+     * @param User $user
+     * @return bool
+     */
+    public static function isEnabledAccount(User $user) : bool
+    {
+        // mail activation is mandatory but user didn't confirmed its status yet
+        if ((setting('require_activation', true) == 'yes') && ($user->active != 1))
+            return false;
+
+        return $user->account_active();
+    }
+
+    /**
      * Return true if all API Key are still enable
      *
      * @param Collection $keys

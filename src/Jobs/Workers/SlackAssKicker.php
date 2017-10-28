@@ -28,7 +28,7 @@ class SlackAssKicker extends AbstractWorker
 
             // if key are not valid OR account no longer enable
             // kick the user from all channels from which he's member
-            if ($this->user->active == false || Helper::isEnabledKey($keys) == false) {
+            if (Helper::isEnabledAccount($this->user) == false || Helper::isEnabledKey($keys) == false) {
 
                 $this->processChannelsKick($slackUser, $userInfo['channels'], true);
 

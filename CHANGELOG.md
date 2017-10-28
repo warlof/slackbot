@@ -1,3 +1,6 @@
+# Version 2.1.11
+* Fix account state check according to SeAT web 2.0.19 breaking change
+
 # Version 2.1.10
 * Fix an issue related to Slack API policy change for user mail address
 
