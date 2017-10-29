@@ -81,7 +81,7 @@ class SlackApi
      * Determine in which channels an user is currently in
      *
      * @param string $slackId Slack user id (ie: U3216587)
-     * @param boolean $private Determine if channels should be private (group) or public (channel)
+     * @param array $types Type of conversation we want check presence
      * @throws SlackApiException
      * @throws SlackConversationException
      * @return array
@@ -111,7 +111,6 @@ class SlackApi
      * Get information from a specific channel
      *
      * @param string $channelId Slack channel id (ie: C465478)
-     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @return array
      * @throws SlackApiException
      * @throws SlackConversationException
@@ -160,7 +159,6 @@ class SlackApi
      * 
      * @param string $slackId Slack user id (ie: U3216587)
      * @param string $channelId Slack channel id (ie: C6547987)
-     * @param boolean $private Determine if channels should be private (group) or public (channel)
      * @throws SlackApiException
      * @return bool
      */
@@ -192,9 +190,9 @@ class SlackApi
     /**
      * Return channels or groups list
      * 
-     * @param boolean $private Determine if channels should be private (group) or public (channel)
+     * @param array $types Types of conversation we want retrieve information
+     * @param string|null The cursor from which we should start to retrieve information
      * @return array
-     * @throws SlackApiException
      * @throws SlackConversationException
      */
     public function getConversations(
@@ -220,7 +218,7 @@ class SlackApi
         // recursive call in order to retrieve all paginated results
         if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
             $channels = array_merge($channels,
-                $this->getConversations($params['types'], $result['response_metadata']['next_cursor']));
+                $this->getConversations($types, $result['response_metadata']['next_cursor']));
         }
 
         return $channels;
@@ -279,8 +277,8 @@ class SlackApi
     /**
      * Return a list of team members
      *
+     * @param string|null $cursor The cursor from which we should start to retrieve information
      * @return array
-     * @throws SlackApiException
      * @throws SlackUserException
      */
     public function getTeamMembers(string $cursor = null) : array
