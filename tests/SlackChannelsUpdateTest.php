@@ -8,6 +8,7 @@
 
 namespace Seat\Slackbot\Tests;
 
+use Illuminate\Support\Facades\Redis;
 use Orchestra\Testbench\TestCase;
 use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
