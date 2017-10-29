@@ -12,6 +12,7 @@ use Orchestra\Testbench\TestCase;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class HelperTest extends TestCase
 {
@@ -154,5 +155,25 @@ class HelperTest extends TestCase
         ]);
 
         $this->assertTrue(Helper::isEnabledAccount($user));
+    }
+
+    public function testAllowedPublicChannels()
+    {
+        $artifact = ['C1Z920QKC'];
+
+        $slackUser = SlackUser::find(1);
+        $channels = Helper::allowedChannels($slackUser, false);
+
+        $this->assertEquals($artifact, $channels);
+    }
+
+    public function testAllowedPrivateGroups()
+    {
+        $artifact = ['G1ZUXJZSL'];
+
+        $slackUser = SlackUser::find(1);
+        $channels = Helper::allowedChannels($slackUser, true);
+
+        $this->assertEquals($artifact, $channels);
     }
 }

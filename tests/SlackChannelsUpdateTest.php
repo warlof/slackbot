@@ -69,6 +69,9 @@ class SlackChannelsUpdateTest extends TestCase
             ]);
         }
 
+        // set random cache key
+        Redis::set('seat:warlof:slackbot:conversations.C65464654', 'test');
+
         // call slack:update:channels command
         $job = new SlackChannelsUpdate();
         $job->handle();

@@ -190,6 +190,22 @@ class SlackApiTest extends TestCase
             json_encode($apiResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
+    /**
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
+     */
+    public function testChannelsException()
+    {
+        app(SlackApi::class)->getConversations(['test']);
+    }
+
+    /**
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackConversationException
+     */
+    public function testChannelMembersException()
+    {
+        app(SlackApi::class)->getConversationMembers('C6464646');
+    }
+
     public function testMembers()
     {
         $apiResponse = app(SlackApi::class)->getTeamMembers();
@@ -197,6 +213,31 @@ class SlackApiTest extends TestCase
 
         $this->assertJsonStringEqualsJsonFile($artifact,
             json_encode($apiResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackUserException
+     */
+    public function testMembersException()
+    {
+        app(SlackApi::class)->getTeamMembers('test-exception');
+    }
+
+    public function testMemberInfo()
+    {
+        $apiResponse = app(SlackApi::class)->getUserInfo('U1Z9QVCJW');
+        $artifact = $this->getArtifactPath('user_info.json');
+
+        $this->assertJsonStringEqualsJsonFile($artifact,
+            json_encode($apiResponse, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @expectedException Warlof\Seat\Slackbot\Exceptions\SlackApiException
+     */
+    public function testMemberInfoException()
+    {
+        app(SlackApi::class)->getUserInfo('UZTEST');
     }
 
     public function testOwnerKick()

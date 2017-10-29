@@ -78,10 +78,6 @@ class SlackUsersUpdate extends Command
             return false;
         }
 
-        if (key_exists('api_app_id', $user['profile'])) {
-            return false;
-        }
-
-        return true;
+        return !key_exists('api_app_id', $user['profile']);
     }
 }
