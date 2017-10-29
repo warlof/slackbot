@@ -1,19 +1,6 @@
-/*
-Navicat MariaDB Data Transfer
-
-Source Server         : Daerie
-Source Server Version : 100126
-Source Host           : localhost:3306
-Source Database       : slackbot
-
-Target Server Type    : MariaDB
-Target Server Version : 100126
-File Encoding         : 65001
-
-Date: 2017-10-29 11:45:42
-*/
-
 SET FOREIGN_KEY_CHECKS=0;
+
+USE seat_test;
 
 -- ----------------------------
 -- Table structure for account_account_statuses

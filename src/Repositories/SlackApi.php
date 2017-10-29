@@ -219,7 +219,8 @@ class SlackApi
 
         // recursive call in order to retrieve all paginated results
         if (array_key_exists('response_metadata', $result) && $result['response_metadata']['next_cursor'] != "") {
-            $channels = array_merge($channels, $this->getConversations($params['types'], $result['response_metadata']['next_cursor']));
+            $channels = array_merge($channels,
+                $this->getConversations($params['types'], $result['response_metadata']['next_cursor']));
         }
 
         return $channels;
