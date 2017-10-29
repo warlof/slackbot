@@ -1,3 +1,9 @@
+# Version 2.2.0
+* Recovering unit tests
+* Replacing channels/groups API call with new conversation endpoints
+* Implementing paginate on API responses
+* Code refactoring
+
 # Version 2.1.19
 * Fix account state check according to SeAT web 2.0.19 breaking change
 
