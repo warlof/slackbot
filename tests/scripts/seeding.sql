@@ -15,11 +15,11 @@ VALUES ('99000006', 'Everto Rex Regis', '666', '1983708877', '3', '2010-11-04 13
 INSERT INTO `roles` (`id`, `title`)
 VALUES ('1', 'Superuser');
 
-INSERT INTO `slack_users` (`user_id`, `slack_id`, `invited`, `created_at`, `updated_at`)
-VALUES ('1', 'U1Z9LT9NM', '1', '2016-08-10 07:43:35', '2016-08-10 07:43:35');
+INSERT INTO `slack_users` (`user_id`, `slack_id`, `name`, `created_at`, `updated_at`)
+VALUES ('1', 'U1Z9LT9NM', 'Unknown', '2016-08-10 07:43:35', '2016-08-10 07:43:35');
 
-INSERT INTO `slack_users` (`user_id`, `slack_id`, `invited`, `created_at`, `updated_at`)
-VALUES ('3', '', '1', '2016-08-10 07:43:35', '2016-08-10 07:43:35');
+INSERT INTO `slack_users` (`user_id`, `slack_id`, `name`, `created_at`, `updated_at`)
+VALUES ('3', '', '', '2016-08-10 07:43:35', '2016-08-10 07:43:35');
 
 INSERT INTO `slack_channels` (`id`, `name`, `is_group`, `is_general`, `created_at`, `updated_at`)
 VALUES ('C1Z920QKC', 'random2', 0, 0, '2016-08-09 20:59:44', '2016-08-09 20:59:44');

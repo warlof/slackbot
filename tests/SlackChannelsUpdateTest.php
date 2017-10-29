@@ -18,6 +18,12 @@ class SlackChannelsUpdateTest extends TestCase
 
     public function getEnvironmentSetUp($app)
     {
+        $app['config']->set('cache.default', 'redis');
+        $app['config']->set('cache.prefix', 'seat');
+        $app['config']->set('cache.stores.redis', [
+            'driver' => 'redis',
+            'connection' => 'default',
+        ]);
         $app['config']->set('database.default', 'mysql');
         $app['config']->set('database.connections.mysql', [
             'driver' => 'mysql',
@@ -27,7 +33,7 @@ class SlackChannelsUpdateTest extends TestCase
             'password' => getenv('database_pass'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
-            'prefix' => ''
+            'prefix' => '',
         ]);
     }
 
