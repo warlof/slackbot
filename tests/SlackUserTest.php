@@ -31,8 +31,8 @@ class SlackUserTest extends TestCase
 
     public function testUser()
     {
-        $slack = SlackUser::where('user_id', '=', 3)->first();
-        $artifact = User::find(3);
+        $slack = SlackUser::where('user_id', '=', 1)->first();
+        $artifact = User::find(1);
 
         $this->assertEquals($artifact, $slack->user);
     }

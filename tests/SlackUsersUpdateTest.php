@@ -64,7 +64,9 @@ class SlackUsersUpdateTest extends TestCase
         $job = new SlackUsersUpdate();
         $job->handle();
 
-        $inDatabaseMember  = SlackUser::all(['user_id', 'slack_id']);
+        $inDatabaseMember  = SlackUser::orderBy('user_id')
+            ->select('user_id', 'slack_id')
+            ->get();
 
         $result = [];
 
