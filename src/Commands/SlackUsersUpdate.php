@@ -38,7 +38,7 @@ class SlackUsersUpdate extends Command
         // iterate over each member and try to make aggregation
         foreach ($members as $member) {
             // if it appears to be a new user (at least, unknown from SeAT
-            if ($this->isActiveTeamMember($members) && SlackUser::where('slack_id', $member['id'])->first() == null) {
+            if ($this->isActiveTeamMember($member) && SlackUser::where('slack_id', $member['id'])->first() == null) {
 
                 // and we're able to match him using email address
                 if (key_exists('email', $member['profile'])) {
