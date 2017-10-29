@@ -46,7 +46,7 @@ class SlackChannelsUpdateTest extends TestCase
     public function testChannelUpdate()
     {
         // pre test
-        setting(['slack_token', getenv('slack_token')], true);
+        setting(['warlof.slackbot.credentials.access_token', getenv('slack_token')], true);
 
         // test
 
@@ -90,7 +90,7 @@ class SlackChannelsUpdateTest extends TestCase
     public function testTokenException()
     {
         // pre test
-        setting(['slack_token', ''], true);
+        setting(['warlof.slackbot.credentials.access_token', ''], true);
 
         // test
         $job = new SlackChannelsUpdate();

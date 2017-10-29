@@ -7,8 +7,8 @@
     "color": "4bbe2e",
     "real_name": "Test Test",
     "tz": "Europe/Amsterdam",
-    "tz_label": "Central European Summer Time",
-    "tz_offset": 7200,
+    "tz_label": "Central European Time",
+    "tz_offset": 3600,
     "profile": {
       "first_name": "Test",
       "last_name": "Test",
@@ -70,8 +70,8 @@
     "color": "3c989f",
     "real_name": "Loïc LEUILLIOT",
     "tz": "Europe/Amsterdam",
-    "tz_label": "Central European Summer Time",
-    "tz_offset": 7200,
+    "tz_label": "Central European Time",
+    "tz_offset": 3600,
     "profile": {
       "first_name": "Loïc",
       "last_name": "LEUILLIOT",
@@ -107,8 +107,8 @@
     "color": "9f69e7",
     "real_name": "Loïc Leuilliot",
     "tz": "Europe/Brussels",
-    "tz_label": "Central European Summer Time",
-    "tz_offset": 7200,
+    "tz_label": "Central European Time",
+    "tz_offset": 3600,
     "profile": {
       "first_name": "Loïc",
       "last_name": "Leuilliot",

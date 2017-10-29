@@ -86,10 +86,10 @@ class SlackApi
      * @throws SlackConversationException
      * @return array
      */
-    public function getUserConversations(string $slackId) : array
+    public function getUserConversations(string $slackId, array $types = ['public_channel', 'private_channel']) : array
     {
         $memberOfChannels = [];
-        $channels = $this->getConversations();
+        $channels = $this->getConversations($types);
 
         // iterate over channels and check if the current slack user is part of channel
         foreach ($channels as $channel) {
@@ -147,7 +147,7 @@ class SlackApi
         // set parameters for Slack request, channel id and user id
         $params = [
             'channel' => $channelId,
-            'users' => [$slackId],
+            'users' => $slackId,
         ];
 
         $result = $this->post('/conversations.invite', $params);
