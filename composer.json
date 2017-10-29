@@ -11,7 +11,8 @@
         "eveseat/services": "^2.0",
         "eveseat/eveapi": "^2.0",
         "eveseat/web": "^2.0",
-        "erusev/parsedown": "^1.6"
+        "erusev/parsedown": "^1.6",
+        "predis/predis": "^1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7",

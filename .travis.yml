@@ -7,7 +7,6 @@ services:
   - redis-server
 install:
   - composer update
-  - composer require predis/predis
 before_script:
   - mysql -e 'create database seat_test;'
   - mysql < tests/scripts/database.sql

@@ -18,6 +18,12 @@ class SlackUsersUpdateTest extends TestCase
 
     public function getEnvironmentSetUp($app)
     {
+        $app['config']->set('cache.default', 'redis');
+        $app['config']->set('cache.prefix', 'seat');
+        $app['config']->set('cache.stores.redis', [
+            'driver' => 'redis',
+            'connection' => 'default',
+        ]);
         $app['config']->set('database.default', 'mysql');
         $app['config']->set('database.connections.mysql', [
             'driver' => 'mysql',
@@ -48,9 +54,11 @@ class SlackUsersUpdateTest extends TestCase
         // pre test
         setting(['warlof.slackbot.credentials.access_token', getenv('slack_token')], true);
 
-        $artifacts = [new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
+        $artifacts = [
+            new SlackUser(['user_id' => 1, 'slack_id' => 'U1Z9LT9NM']),
             new SlackUser(['user_id' => 2, 'slack_id' => 'U1Z9QVCJW']),
-            new SlackUser(['user_id' => 3, 'slack_id' => 'U1Z9LT9NK'])];
+            new SlackUser(['user_id' => 3, 'slack_id' => 'U1Z9LT9NK']),
+        ];
 
         // test
         $job = new SlackUsersUpdate();
