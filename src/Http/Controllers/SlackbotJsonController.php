@@ -47,11 +47,10 @@ class SlackbotJsonController extends Controller
 
             if (is_null($stats)) {
                 $channel = app(SlackApi::class)->getConversationInfo($channelId);
-                $members = app(SlackApi::class)->getConversationMembers($channelId);
                 $stats = [
                     $channelId,
                     $channel['name'],
-                    count($members),
+                    $channel['num_members'],
                 ];
 
                 Redis::set('seat:warlof:slackbot:stats.conversations.' . $channelId, json_encode($stats));
