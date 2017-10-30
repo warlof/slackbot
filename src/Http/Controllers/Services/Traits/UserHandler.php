@@ -45,8 +45,8 @@ trait UserHandler
             }
         }
 
-        $user['channels'] = $channels;
-        $user['groups'] = $groups;
+        $user['conversations'] = $channels;
+        $user['conversations'] = $groups;
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $user['id']), json_encode($user));
     }
@@ -79,7 +79,7 @@ trait UserHandler
         }
 
         $userInfo = json_decode($redisData, true);
-        $userInfo['channels'][] = $channel['channel'];
+        $userInfo['conversations'][] = $channel['channel'];
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
     }
@@ -94,10 +94,10 @@ trait UserHandler
         }
 
         $userInfo = json_decode($redisData, true);
-        $key = array_search($channel['channel'], $userInfo['channels']);
+        $key = array_search($channel['channel'], $userInfo['conversations']);
 
         if ($key !== false) {
-            unset($userInfo['channels'][$key]);
+            unset($userInfo['conversations'][$key]);
         }
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $channel['user']), json_encode($userInfo));
@@ -114,7 +114,7 @@ trait UserHandler
         }
 
         $userInfo = json_decode($redisData, true);
-        $userInfo['groups'][] = $group['channel'];
+        $userInfo['conversations'][] = $group['channel'];
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));
     }
@@ -129,10 +129,10 @@ trait UserHandler
         }
 
         $userInfo = json_decode($redisData, true);
-        $key = array_search($group['channel'], $userInfo['groups']);
+        $key = array_search($group['channel'], $userInfo['conversations']);
 
         if ($key !== false) {
-            unset($userInfo['groups'][$key]);
+            unset($userInfo['conversations'][$key]);
         }
 
         Redis::set(Helper::getSlackRedisKey($this->userTable, $group['user']), json_encode($userInfo));

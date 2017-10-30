@@ -33,9 +33,22 @@ class SlackReceptionist extends AbstractWorker
                     // fetch user information from caching service
                     $userInfo = Helper::getSlackUserInformation($slackUser->slack_id);
 
-                    $this->processChannelsInvitation($slackUser, $userInfo['channels']);
+                    // quick backward compatibility hotfix, must be clean asap
+                    $groups = [];
+                    $channels = [];
 
-                    $this->processGroupsInvitation($slackUser, $userInfo['groups']);
+                    foreach ($userInfo['conversations'] as $conversation) {
+                        if (strpos($conversation, 'C') === 0) {
+                            $channels[] = $conversation;
+                            continue;
+                        }
+
+                        $groups[] = $conversation;
+                    }
+
+                    $this->processChannelsInvitation($slackUser, $channels);
+
+                    $this->processGroupsInvitation($slackUser, $groups);
                 }
             }
         }

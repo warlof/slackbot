@@ -27,22 +27,35 @@ class SlackAssKicker extends AbstractWorker
             // get channels into which current user is already member
             $userInfo = Helper::getSlackUserInformation($slackUser->slack_id);
 
+            // quick backward compatibility hotfix, must be clean asap
+            $channels = [];
+            $groups = [];
+
+            foreach ($userInfo['conversations'] as $channelId) {
+                if (strpos($channelId, 'C') === 0) {
+                    $channels[] = $channelId;
+                    continue;
+                }
+
+                $groups[] = $channelId;
+            }
+
             // if key are not valid OR account no longer enable
             // kick the user from all channels from which he's member
             if (Helper::isEnabledAccount($this->user) == false || Helper::isEnabledKey($keys) == false) {
 
-                $this->processChannelsKick($slackUser, $userInfo['channels'], true);
+                $this->processChannelsKick($slackUser, $channels, true);
 
-                $this->processGroupsKick($slackUser, $userInfo['groups'], true);
+                $this->processGroupsKick($slackUser, $groups, true);
 
                 return;
             }
 
             // remove channels in which user is already in from all granted channels and invite him
-            $this->processChannelsKick($slackUser, $userInfo['channels'], false);
+            $this->processChannelsKick($slackUser, $channels, false);
 
             // remove granted channels from channels in which user is already in and kick him
-            $this->processGroupsKick($slackUser, $userInfo['groups'], false);
+            $this->processGroupsKick($slackUser, $groups, false);
         }
 
         return;

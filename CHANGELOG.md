@@ -1,3 +1,7 @@
+# Version 2.2.1
+* Fixing backward compatibility issues over channels and groups
+* Fixing key cache issues
+
 # Version 2.2.0
 * Recovering unit tests
 * Replacing channels/groups API call with new conversation endpoints

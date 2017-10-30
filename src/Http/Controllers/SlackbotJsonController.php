@@ -43,28 +43,27 @@ class SlackbotJsonController extends Controller
         $channels = [];
 
         foreach ($member['conversations'] as $channelId) {
-            $stats = json_decode(Redis::get('seat:warlof:slackbot:stats.conversations.' . $channelId), true);
+            $stats = json_decode(Redis::get('seat:warlof:slackbot:stats:conversations.' . $channelId), true);
 
             if (is_null($stats)) {
                 $channel = app(SlackApi::class)->getConversationInfo($channelId);
                 $stats = [
                     $channelId,
                     $channel['name'],
-                    $channel['num_members'],
+                    array_key_exists('num_members', $channel) ? $channel['num_members'] : 0, // waiting slack ticket response #1527951
                 ];
 
-                Redis::set('seat:warlof:slackbot:stats.conversations.' . $channelId, json_encode($stats));
+                Redis::set('seat:warlof:slackbot:stats:conversations.' . $channelId, json_encode($stats));
             }
 
-            switch (strpos($channelId, 'C')) {
-                // conversation is a public channel
-                case 0:
-                    $channels[] = $stats;
-                    break;
-                // conversation is a private group
-                default:
-                    $groups[] = $stats;
+            // conversation is a public channel
+            if (strpos($channelId, 'C') === 0) {
+                $channels[] = $stats;
+                continue;
             }
+
+            // conversation is a private group
+            $groups[] = $stats;
         }
 
         return response()->json(['channels' => $channels, 'groups' => $groups]);
