@@ -4,10 +4,9 @@ namespace Warlof\Seat\Slackbot;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
-use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
-use Warlof\Seat\Slackbot\Commands\SlackUpdate;
-use Warlof\Seat\Slackbot\Commands\SlackChannelsUpdate;
-use Warlof\Seat\Slackbot\Commands\SlackUsersUpdate;
+use Warlof\Seat\Slackbot\Commands\SlackUserInvite;
+use Warlof\Seat\Slackbot\Commands\SlackUserKick;
+use Warlof\Seat\Slackbot\Commands\SlackUserSync;
 use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackbotServiceProvider extends ServiceProvider
@@ -47,10 +46,9 @@ class SlackbotServiceProvider extends ServiceProvider
     private function addCommands()
     {
         $this->commands([
-            SlackUpdate::class,
-            SlackChannelsUpdate::class,
-            SlackUsersUpdate::class,
-            SlackLogsClear::class,
+            SlackUserSync::class,
+	        SlackUserInvite::class,
+	        SlackUserKick::class,
         ]);
     }
     
