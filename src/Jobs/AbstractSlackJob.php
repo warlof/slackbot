@@ -28,8 +28,8 @@ abstract class AbstractSlackJob extends Base {
      */
     protected $slack;
 
-    public function __construct( JobPayloadContainer $job_payload ) {
-        parent::__construct( $job_payload );
+    public function __construct(JobPayloadContainer $job_payload) {
+        parent::__construct($job_payload);
 
         $configuration = Configuration::getInstance();
         $configuration->http_user_agent = '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)';

@@ -8,15 +8,11 @@
 namespace Warlof\Seat\Slackbot\Jobs;
 
 
-use Monolog\Logger;
-use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 class AssKicker extends AbstractSlackJob {
 
@@ -58,7 +54,9 @@ class AssKicker extends AbstractSlackJob {
                 if (!in_array($user->slack_id, $members))
                     continue;
 
-                $granted_channels = array_merge(Helper::allowedChannels($user, true), Helper::allowedChannels($user, false));
+                $granted_channels = array_merge(
+                	Helper::allowedChannels($user, true),
+	                Helper::allowedChannels($user, false));
 
                 if (!in_array($channel->id, $granted_channels)) {
                     $this->slack->setBody([

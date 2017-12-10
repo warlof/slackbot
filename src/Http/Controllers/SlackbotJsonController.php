@@ -49,7 +49,7 @@ class SlackbotJsonController extends Controller
                 $stats = [
                     $channelId,
                     $channel['name'],
-                    array_key_exists('num_members', $channel) ? $channel['num_members'] : 0, // waiting slack ticket response #1527951
+                    array_key_exists('num_members', $channel) ? $channel['num_members'] : 0,
                 ];
 
                 Redis::set('seat:warlof:slackbot:stats:conversations.' . $channelId, json_encode($stats));

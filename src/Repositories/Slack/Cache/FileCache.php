@@ -15,86 +15,86 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\CachePathException;
 
 class FileCache implements CacheInterface {
 
-	use HashesStrings;
+    use HashesStrings;
 
-	protected $cache_path;
+    protected $cache_path;
 
-	protected $results_filename = 'results.cache';
+    protected $results_filename = 'results.cache';
 
-	public function __construct() {
-		$this->cache_path = Configuration::getInstance()->file_cache_location;
-		$this->checkCacheDirectory();
-	}
+    public function __construct() {
+        $this->cache_path = Configuration::getInstance()->file_cache_location;
+        $this->checkCacheDirectory();
+    }
 
-	public function set(string $uri, string $query, SlackResponse $data)
-	{
-		$path = $this->buildRelativePath($this->safePath($uri));
+    public function set(string $uri, string $query, SlackResponse $data)
+    {
+        $path = $this->buildRelativePath($this->safePath($uri));
 
-		if (!file_exists($path))
-			mkdir($path, 0775, true);
+        if (!file_exists($path))
+            mkdir($path, 0775, true);
 
-		if ($query != '')
-			file_put_contents($path . $this->hashString($query), serialize($data));
-		else
-			file_put_contents($path . $this->results_filename, serialize($data));
-	}
+        if ($query != '')
+            file_put_contents($path . $this->hashString($query), serialize($data));
+        else
+            file_put_contents($path . $this->results_filename, serialize($data));
+    }
 
-	public function get(string $uri, string $query = '')
-	{
-		$path = $this->buildRelativePath($this->safePath($uri));
-		$cache_file_path = $path . $this->results_filename;
-		if ($query != '')
-			$cache_file_path = $path . $this->hashString($query);
+    public function get(string $uri, string $query = '')
+    {
+        $path = $this->buildRelativePath($this->safePath($uri));
+        $cache_file_path = $path . $this->results_filename;
+        if ($query != '')
+            $cache_file_path = $path . $this->hashString($query);
 
-		if (!is_readable($cache_file_path))
-			return false;
+        if (!is_readable($cache_file_path))
+            return false;
 
-		$file = unserialize(file_get_contents($cache_file_path));
+        $file = unserialize(file_get_contents($cache_file_path));
 
-		if ($file->expired()) {
-			$this->forget($uri, $query);
-			return false;
-		}
+        if ($file->expired()) {
+            $this->forget($uri, $query);
+            return false;
+        }
 
-		return $file;
-	}
+        return $file;
+    }
 
-	public function forget( string $uri, string $query = '' )
-	{
-		$path = $this->buildRelativePath($uri);
-		$cache_file_path = $path . $this->results_filename;
+    public function forget( string $uri, string $query = '' )
+    {
+        $path = $this->buildRelativePath($uri);
+        $cache_file_path = $path . $this->results_filename;
 
-		@unlink($cache_file_path);
-	}
+        @unlink($cache_file_path);
+    }
 
-	public function has(string $uri, string $query = '') : bool
-	{
-		if ($status = $this->get($uri, $query))
-			return true;
+    public function has(string $uri, string $query = '') : bool
+    {
+        if ($status = $this->get($uri, $query))
+            return true;
 
-		return false;
-	}
+        return false;
+    }
 
-	private function safePath(string $uri) : string
-	{
-		return preg_replace('/[^A-Za-z0-9\/]/', '', $uri);
-	}
+    private function safePath(string $uri) : string
+    {
+        return preg_replace('/[^A-Za-z0-9\/]/', '', $uri);
+    }
 
-	private function checkCacheDirectory() : bool
-	{
-		if (!is_dir($this->cache_path) && !@mkdir($this->cache_path, 0775, true))
-			throw new CachePathException('Unable to create cache directory ' . $this->cache_path);
+    private function checkCacheDirectory() : bool
+    {
+        if (!is_dir($this->cache_path) && !@mkdir($this->cache_path, 0775, true))
+            throw new CachePathException('Unable to create cache directory ' . $this->cache_path);
 
-		if (!is_readable($this->cache_path) || !is_writable($this->cache_path))
-			if (!chmod($this->cache_path, 0775))
-				throw new CachePathException($this->cache_path . ' must be readable and writeable.');
+        if (!is_readable($this->cache_path) || !is_writable($this->cache_path))
+            if (!chmod($this->cache_path, 0775))
+                throw new CachePathException($this->cache_path . ' must be readable and writeable.');
 
-		return true;
-	}
+        return true;
+    }
 
-	private function buildRelativePath(string $path) : string
-	{
-		return rtrim(rtrim($this->cache_path, '/') . rtrim($path), '/') . '/';
-	}
+    private function buildRelativePath(string $path) : string
+    {
+        return rtrim(rtrim($this->cache_path, '/') . rtrim($path), '/') . '/';
+    }
 
 }

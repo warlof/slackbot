@@ -49,7 +49,9 @@ class Receptionist extends AbstractSlackJob {
 
         foreach ($users as $user)
         {
-            $granted_channels = array_merge(Helper::allowedChannels($user, true), Helper::allowedChannels($user, false));
+            $granted_channels = array_merge(
+            	Helper::allowedChannels($user, true),
+	            Helper::allowedChannels($user, false));
 
             foreach ($granted_channels as $channel_id) {
                 $this->fetchingSlackConversationMembers($user->slack_id, $channel_id);
