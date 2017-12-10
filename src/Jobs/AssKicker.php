@@ -100,7 +100,9 @@ class AssKicker extends AbstractSlackJob {
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
             sleep(1);
-            $channels = array_merge($channels, $this->fetchingSlackConversations( $response->response_metadata->next_cursor != ''));
+            $channels = array_merge(
+            	$channels,
+	            $this->fetchingSlackConversations( $response->response_metadata->next_cursor != ''));
         }
 
         return $channels;

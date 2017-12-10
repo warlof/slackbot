@@ -19,7 +19,7 @@ class NullCache implements CacheInterface {
 
     public function get(string $uri, string $query = '')
     {
-    	return false;
+        return false;
     }
 
     public function forget(string $uri, string $query = '')
@@ -29,7 +29,7 @@ class NullCache implements CacheInterface {
 
     public function has(string $uri, string $query = '') : bool
     {
-    	return false;
+        return false;
     }
 
 }

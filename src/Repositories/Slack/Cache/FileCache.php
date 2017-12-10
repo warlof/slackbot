@@ -59,7 +59,7 @@ class FileCache implements CacheInterface {
         return $file;
     }
 
-    public function forget( string $uri, string $query = '' )
+    public function forget(string $uri, string $query = '')
     {
         $path = $this->buildRelativePath($uri);
         $cache_file_path = $path . $this->results_filename;
