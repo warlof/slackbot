@@ -342,14 +342,14 @@
 
         $('#slack-type').change(function(){
             $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-title-id', 'slack-alliance-id'], function(key, value){
-                if (value == ('slack-' + $('#slack-type').val() + '-id')) {
+                if (value === ('slack-' + $('#slack-type').val() + '-id')) {
                     $(('#' + value)).prop('disabled', false);
                 } else {
                     $(('#' + value)).prop('disabled', true);
                 }
             });
 
-            if ($('#slack-type').val() == 'title') {
+            if ($('#slack-type').val() === 'title') {
                 $('#slack-corporation-id, #slack-title-id').prop('disabled', false);
             }
         }).select2();

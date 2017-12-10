@@ -8,10 +8,10 @@
 namespace Warlof\Seat\Slackbot\Http\Controllers\Services;
 
 
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Seat\Web\Http\Controllers\Controller;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 use Warlof\Seat\Slackbot\Http\Validation\ValidateOAuth;
 
 class OAuthController extends Controller
@@ -96,18 +96,11 @@ class OAuthController extends Controller
                 ], true);
             }
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
-                ->with('error', 'An error occured while trying to confirm OAuth credentials with Slack. ' .
+                ->with('error', 'An error occurred while trying to confirm OAuth credentials with Slack. ' .
                 $e->getMessage());
         }
-
-        // update slack api instance
-        app()->singleton(SlackApi::class, function($app) {
-            return $app->singleton(SlackApi::class, function() {
-                return new SlackApi(setting('warlof.slackbot.credentials.access_token', true));
-            });
-        });
 
         return redirect()->route('slackbot.configuration')
             ->with('success', 'The bot credentials has been set.');

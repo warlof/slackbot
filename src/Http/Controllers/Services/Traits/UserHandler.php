@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Redis;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 trait UserHandler
 {

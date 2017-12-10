@@ -10,9 +10,9 @@ namespace Warlof\Seat\Slackbot\Repositories\Slack\Containers\Traits;
 
 trait ValidatesContainers {
 
-	public function valid() : bool
-	{
-		return !in_array(null, $this->data, true);
-	}
+    public function valid() : bool
+    {
+        return !in_array(null, $this->data, true);
+    }
 
 }

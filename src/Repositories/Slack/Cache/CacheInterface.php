@@ -12,12 +12,12 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
 
 interface CacheInterface {
 
-	public function set(string $uri, string $query, SlackResponse $data);
+    public function set(string $uri, string $query, SlackResponse $data);
 
-	public function get(string $uri, string $query = '');
+    public function get(string $uri, string $query = '');
 
-	public function forget(string $uri, string $query = '');
+    public function forget(string $uri, string $query = '');
 
-	public function has(string $uri, string $query = '') : bool;
+    public function has(string $uri, string $query = '') : bool;
 
 }

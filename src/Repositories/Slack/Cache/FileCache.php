@@ -28,7 +28,7 @@ class FileCache implements CacheInterface {
 
 	public function set(string $uri, string $query, SlackResponse $data)
 	{
-		$path = $this->buildRelativePath($this->safePath($uri), $query);
+		$path = $this->buildRelativePath($this->safePath($uri));
 
 		if (!file_exists($path))
 			mkdir($path, 0775, true);
@@ -41,7 +41,7 @@ class FileCache implements CacheInterface {
 
 	public function get(string $uri, string $query = '')
 	{
-		$path = $this->buildRelativePath($this->safePath($uri), $query);
+		$path = $this->buildRelativePath($this->safePath($uri));
 		$cache_file_path = $path . $this->results_filename;
 		if ($query != '')
 			$cache_file_path = $path . $this->hashString($query);
@@ -61,7 +61,7 @@ class FileCache implements CacheInterface {
 
 	public function forget( string $uri, string $query = '' )
 	{
-		$path = $this->buildRelativePath($uri, $query);
+		$path = $this->buildRelativePath($uri);
 		$cache_file_path = $path . $this->results_filename;
 
 		@unlink($cache_file_path);
@@ -92,7 +92,7 @@ class FileCache implements CacheInterface {
 		return true;
 	}
 
-	private function buildRelativePath(string $path, string $query = '') : string
+	private function buildRelativePath(string $path) : string
 	{
 		return rtrim(rtrim($this->cache_path, '/') . rtrim($path), '/') . '/';
 	}

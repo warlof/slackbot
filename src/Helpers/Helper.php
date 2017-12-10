@@ -16,7 +16,6 @@ use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class Helper
 {
@@ -28,6 +27,7 @@ class Helper
      *
      * @param User $user
      * @return bool
+     * @throws \Seat\Services\Exceptions\SettingException
      */
     public static function isEnabledAccount(User $user) : bool
     {

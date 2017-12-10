@@ -2,12 +2,10 @@
 
 namespace Warlof\Seat\Slackbot;
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Warlof\Seat\Slackbot\Commands\SlackUserInvite;
 use Warlof\Seat\Slackbot\Commands\SlackUserKick;
 use Warlof\Seat\Slackbot\Commands\SlackUserSync;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -23,7 +21,6 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->addViews();
         $this->addPublications();
         $this->addTranslations();
-        $this->registerServices();
     }
 
     /**
@@ -74,23 +71,5 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/database/migrations/' => database_path('migrations')
         ]);
-    }
-
-    private function registerServices()
-    {
-        $slackToken = '';
-        if (Schema::hasTable('global_settings')) {
-            $slackToken = setting('warlof.slackbot.credentials.access_token', true);
-        }
-
-        // Ensure slack has been set
-        if ($slackToken == null) {
-            return;
-        }
-
-        // Load the Slack Api on boot time
-        $this->app->singleton(SlackApi::class, function() use ($slackToken) {
-            return new SlackApi($slackToken);
-        });
     }
 }

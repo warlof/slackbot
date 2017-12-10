@@ -15,39 +15,40 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 
 class FileLogger implements LogInterface {
 
-	protected $logger;
+    protected $logger;
 
-	public function __construct() {
-		$configuration = Configuration::getInstance();
+    public function __construct() {
 
-		$formatter = new LineFormatter('[%datetime%] %channel%.%level_name%: %message%' . PHP_EOL);
+        $configuration = Configuration::getInstance();
 
-		$stream = new StreamHandler(
-			$configuration->logfile_location,
-			$configuration->logger_level
-		);
-		$stream->setFormatter($formatter);
+        $formatter = new LineFormatter('[%datetime%] %channel%.%level_name%: %message%' . PHP_EOL);
 
-		$this->logger = new Logger('slackapi');
-		$this->logger->pushHandler($stream);
-	}
+        $stream = new StreamHandler(
+            $configuration->logfile_location,
+            $configuration->logger_level
+        );
+        $stream->setFormatter($formatter);
 
-	public function log(string $message)
-	{
-		$this->logger->addInfo($message);
-	}
+        $this->logger = new Logger('slackapi');
+        $this->logger->pushHandler($stream);
+    }
 
-	public function debug(string $message)
-	{
-		$this->logger->addDebug($message);
-	}
+    public function log(string $message)
+    {
+        $this->logger->addInfo($message);
+    }
 
-	public function warning(string $message) {
-		$this->logger->addWarning($message);
-	}
+    public function debug(string $message)
+    {
+        $this->logger->addDebug($message);
+    }
 
-	public function error(string $message) {
-		$this->logger->addError($message);
-	}
+    public function warning(string $message) {
+        $this->logger->addWarning($message);
+    }
+
+    public function error(string $message) {
+        $this->logger->addError($message);
+    }
 
 }

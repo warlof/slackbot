@@ -9,26 +9,10 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Illuminate\Support\Facades\DB;
-use Monolog\Logger;
-use Seat\Eveapi\Jobs\Base;
 use stdClass;
-use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
-class SyncUser extends Base {
-
-	/**
-	 * @var SlackApi
-	 */
-	private $slack;
-
-	/**
-	 * @var SlackAuthentication
-	 */
-	private $auth;
+class SyncUser extends AbstractSlackJob {
 
 	public function handle() {
 
@@ -38,29 +22,6 @@ class SyncUser extends Base {
 		$this->updateJobStatus([
 			'status' => 'Working',
 		]);
-
-		$this->writeInfoJobLog('Checking requirement and initializing job...');
-
-		if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-			throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
-			                                "Ensure you've link SeAT to a valid Slack Team.");
-
-		$configuration = Configuration::getInstance();
-		$configuration->http_user_agent = '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)';
-		$configuration->logger_level = Logger::DEBUG;
-		$configuration->logfile_location = storage_path('logs/slack.log');
-		$configuration->file_cache_location = storage_path('cache/slack/');
-
-		$this->slack = new SlackApi();
-		$this->auth = new SlackAuthentication([
-			'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-			'scopes' => [
-				'users:read',
-				'read',
-				'users:read.email',
-			],
-		]);
-		$this->slack->setAuthentication($this->auth);
 
 		$this->writeInfoJobLog('Starting Slack Sync User...');
 

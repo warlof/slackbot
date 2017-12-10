@@ -17,22 +17,22 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Log\FileLogger;
 
 class SlackConfiguration extends AbstractArrayAccess {
 
-	use ConstructsContainers, ValidatesContainers;
+    use ConstructsContainers, ValidatesContainers;
 
-	protected $data = [
-		'http_user_agent'  => 'SeAT Slack Connector',
+    protected $data = [
+        'http_user_agent'  => 'SeAT Slack Connector',
 
-		// Fetcher
-		'fetcher'             => GuzzleFetcher::class,
+        // Fetcher
+        'fetcher'             => GuzzleFetcher::class,
 
-		// Logger
-		'logger'              => FileLogger::class,
-		'logger_level'        => Logger::INFO,
-		'logfile_location'    => 'logs/slackapi.log',
+        // Logger
+        'logger'              => FileLogger::class,
+        'logger_level'        => Logger::INFO,
+        'logfile_location'    => 'logs/slackapi.log',
 
-		// Cache
-		'cache'               => FileCache::class,
-		'file_cache_location' => 'cache/',
-	];
+        // Cache
+        'cache'               => FileCache::class,
+        'file_cache_location' => 'cache/',
+    ];
 
 }

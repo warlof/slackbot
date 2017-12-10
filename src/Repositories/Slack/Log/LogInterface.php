@@ -10,12 +10,12 @@ namespace Warlof\Seat\Slackbot\Repositories\Slack\Log;
 
 interface LogInterface {
 
-	public function log(string $message);
+    public function log(string $message);
 
-	public function debug(string $message);
+    public function debug(string $message);
 
-	public function warning(string $message);
+    public function warning(string $message);
 
-	public function error(string $message);
+    public function error(string $message);
 
 }

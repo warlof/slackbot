@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Exceptions\SlackApiException;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller

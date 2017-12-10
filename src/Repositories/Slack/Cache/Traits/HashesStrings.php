@@ -10,9 +10,9 @@ namespace Warlof\Seat\Slackbot\Repositories\Slack\Cache\Traits;
 
 trait HashesStrings {
 
-	public function hashString(string $string) : string
-	{
-		return sha1($string);
-	}
+    public function hashString(string $string) : string
+    {
+        return sha1($string);
+    }
 
 }

@@ -3,7 +3,6 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
-use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class DropSlackOauth extends Migration
 {

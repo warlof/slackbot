@@ -115,42 +115,46 @@
             }
         });
 
-        $('#users-table tbody').on('click', 'button.btn-info', function(){
-            var row = table.row($(this).parents('tr')).data();
+        $('#users-table').find('tbody')
+            .on('click', 'button.btn-info', function(){
+                var row = table.row($(this).parents('tr')).data();
 
-            $.ajax({
-                url: '{{ route('slackbot.json.user.channels', ['id' => null]) }}',
-                data: {'slack_id' : row.slack_id},
-                success: function(data){
-                    $('#channels').find('tbody tr').remove();
-                    $('#groups').find('tbody tr').remove();
+                $.ajax({
+                    url: '{{ route('slackbot.json.user.channels', ['id' => null]) }}',
+                    data: {'slack_id' : row.slack_id},
+                    success: function(data){
+                        var i = 0;
+                        var channels = $('#channels');
+                        var groups = $('#groups');
 
-                    $('#slack_username').text(row.slack_name);
-                    $('#seat_username').text(row.user_name);
+                        channels.find('tbody tr').remove();
+                        groups.find('tbody tr').remove();
 
-                    if (data['channels']) {
-                        for (var i = 0; i < data['channels'].length; i++) {
-                            $('#channels').find('tbody').append('<tr><td>' + data['channels'][i][0] + '</td><td>' +
-                                    data['channels'][i][1] + '</td><td>' + data['channels'][i][2] + '</td></tr>');
+                        $('#slack_username').text(row.slack_name);
+                        $('#seat_username').text(row.user_name);
+
+                        if (data['channels']) {
+                            for (i = 0; i < data['channels'].length; i++) {
+                                channels.find('tbody').append('<tr><td>' + data['channels'][i][0] + '</td><td>' +
+                                        data['channels'][i][1] + '</td><td>' + data['channels'][i][2] + '</td></tr>');
+                            }
+                        }
+
+                        if (data['groups']) {
+                            for (i = 0; i < data['groups'].length; i++) {
+                                groups.find('tbody').append('<tr><td>' + data['groups'][i][0] + '</td><td>' +
+                                        data['groups'][i][1] + '</td><td>' + data['groups'][i][2] + '</td></tr>');
+                            }
                         }
                     }
+                });
 
-                    if (data['groups']) {
-                        for (var i = 0; i < data['groups'].length; i++) {
-                            $('#groups').find('tbody').append('<tr><td>' + data['groups'][i][0] + '</td><td>' +
-                                    data['groups'][i][1] + '</td><td>' + data['groups'][i][2] + '</td></tr>');
-                        }
-                    }
-                }
+                $('#user-channels').modal('show');
+            })
+            .on('click', 'button.btn-danger', function(){
+                var data = table.row($(this).parents('tr')).data();
+                $('#user-remove').find('input[name="slack_id"]').val(data.slack_id).parent().submit();
             });
-
-            $('#user-channels').modal('show');
-        });
-
-        $('#users-table tbody').on('click', 'button.btn-danger', function(){
-            var data = table.row($(this).parents('tr')).data();
-            $('#user-remove').find('input[name="slack_id"]').val(data.slack_id).parent().submit();
-        });
     });
 </script>
 @endpush

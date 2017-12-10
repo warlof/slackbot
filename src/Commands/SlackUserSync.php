@@ -17,32 +17,32 @@ use Warlof\Seat\Slackbot\Jobs\SyncUser;
 
 class SlackUserSync extends Command {
 
-	use JobManager;
+    use JobManager;
 
-	protected $signature = 'slack:user:sync {user_id? : The id of a SeAT user}';
+    protected $signature = 'slack:user:sync {user_id? : The id of a SeAT user}';
 
-	protected $description = 'Fire a job which will attempt to bind unlinked SeAT user to Slack user.';
+    protected $description = 'Fire a job which will attempt to bind unlinked SeAT user to Slack user.';
 
-	public function handle(JobPayloadContainer $container)
-	{
-		$container->api   = 'Slack';
-		$container->scope = 'Members';
-		$container->owner_id = 0;
+    public function handle(JobPayloadContainer $container)
+    {
+        $container->api   = 'Slack';
+        $container->scope = 'Members';
+        $container->owner_id = 0;
 
-		if ($this->hasArgument('user_id'))
-			$container->owner_id = intval($this->argument('user_id'));
+        if ($this->hasArgument('user_id'))
+            $container->owner_id = intval($this->argument('user_id'));
 
-		$job_id = $this->addUniqueJob(SyncUser::class, $container);
+        $job_id = $this->addUniqueJob(SyncUser::class, $container);
 
-		$this->info('Job ' . $job_id . ' dispatched!');
+        $this->info('Job ' . $job_id . ' dispatched!');
 
-		dispatch((new Analytics((new AnalyticsContainer())
-			->set('type', 'event')
-			->set('ec', 'queues')
-			->set('ea', 'queue_tokens')
-			->set('el', 'console')
-			->set('ev', 1)))
-		->onQueue('medium'));
-	}
+        dispatch((new Analytics((new AnalyticsContainer())
+            ->set('type', 'event')
+            ->set('ec', 'queues')
+            ->set('ea', 'queue_tokens')
+            ->set('el', 'console')
+            ->set('ev', 1)))
+        ->onQueue('medium'));
+    }
 
 }

@@ -24,7 +24,6 @@ use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Warlof\Seat\Slackbot\Models\SlackChannelTitle;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 class SlackbotJsonController extends Controller
 {
@@ -186,7 +185,7 @@ class SlackbotJsonController extends Controller
         }
 
         return redirect()->back()
-            ->with('error', 'An error occures while trying to remove the Slack relation for the title.');
+            ->with('error', 'An error occurred while trying to remove the Slack relation for the title.');
     }
 
     public function getRemoveAlliance($allianceId, $channelId)

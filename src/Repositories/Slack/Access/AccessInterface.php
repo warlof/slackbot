@@ -10,6 +10,6 @@ namespace Warlof\Seat\Slackbot\Repositories\Slack\Access;
 
 interface AccessInterface {
 
-	public function can(string $method, string $uri, array $scopes) : bool;
+    public function can(string $method, string $uri, array $scopes) : bool;
 
 }

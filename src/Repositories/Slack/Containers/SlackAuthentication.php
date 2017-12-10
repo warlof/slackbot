@@ -13,18 +13,18 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Containers\Traits\ValidatesContainer
 
 class SlackAuthentication extends AbstractArrayAccess {
 
-	use ConstructsContainers, ValidatesContainers;
+    use ConstructsContainers, ValidatesContainers;
 
-	/**
-	 * @var array
-	 */
-	protected $data = [
-		//'client_id'     => null,
-		//'secret'        => null,
-		'access_token'  => '_',
-		//'refresh_token' => null,
-		'token_expires' => '1970-01-01 00:00:00',
-		'scopes'        => [],
-	];
+    /**
+     * @var array
+     */
+    protected $data = [
+        //'client_id'     => null,
+        //'secret'        => null,
+        'access_token'  => '_',
+        //'refresh_token' => null,
+        'token_expires' => '1970-01-01 00:00:00',
+        'scopes'        => [],
+    ];
 
 }

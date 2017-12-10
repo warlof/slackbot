@@ -12,7 +12,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
-use Warlof\Seat\Slackbot\Repositories\SlackApi;
 
 trait ConversationHandler
 {

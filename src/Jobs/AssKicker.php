@@ -9,7 +9,6 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Monolog\Logger;
-use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
@@ -19,197 +18,157 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
 use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
-class AssKicker extends Base {
+class AssKicker extends AbstractSlackJob {
 
-	/**
-	 * @var SlackApi
-	 */
-	private $slack;
+    public function handle() {
 
-	/**
-	 * @var SlackAuthentication
-	 */
-	private $auth;
+        if (!$this->trackOrDismiss())
+            return;
 
-	public function handle() {
+        $this->updateJobStatus([
+            'status' => 'Working',
+        ]);
 
-		if (!$this->trackOrDismiss())
-			return;
+        $this->writeInfoJobLog('Starting Slack Ass Kicker...');
 
-		$this->updateJobStatus([
-			'status' => 'Working',
-		]);
+        $job_start = microtime(true);
 
-		$this->writeInfoJobLog('Checking requirement and initializing job...');
+        $token_info = $this->slack->invoke('get', '/auth.test');
 
-		if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-			throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
-											"Ensure you've link SeAT to a valid Slack Team.");
+        $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
 
-		$configuration = Configuration::getInstance();
-		$configuration->http_user_agent = '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)';
-		$configuration->logger_level = Logger::DEBUG;
-		$configuration->logfile_location = storage_path('logs/slack.log');
-		$configuration->file_cache_location = storage_path('cache/slack/');
+        if ($this->job_payload->owner_id > 0) {
+            $query->where('user_id', (int) $this->job_payload->owner_id);
+            $this->writeInfoJobLog('Restricting job to a single user : ' . $this->job_payload->owner_id);
+        }
 
-		$this->slack = new SlackApi();
-		$this->auth = new SlackAuthentication([
-			'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-			'scopes' => [
-				'channels:read',
-				'channels:write',
-				'groups:read',
-				'groups:write',
-				'im:read',
-				'im:write',
-				'mpim:read',
-				'mpim:write',
-				'read',
-				'post',
-			],
-		]);
-		$this->slack->setAuthentication($this->auth);
+        $users = $query->get();
 
-		$this->writeInfoJobLog('Starting Slack Ass Kicker...');
+        $channels = $this->fetchingSlackConversations();
 
-		$job_start = microtime(true);
+        foreach ($channels as $channel) {
 
-		$token_info = $this->slack->invoke('get', '/auth.test');
+            if ($channel->is_general)
+                continue;
 
-		$query = SlackUser::where('slack_id', '<>', $token_info->user_id);
+            $members = $this->fetchingSlackConversationMembers($channel->id);
 
-		if ($this->job_payload->owner_id > 0) {
-			$query->where('user_id', (int) $this->job_payload->owner_id);
-			$this->writeInfoJobLog('Restricting job to a single user : ' . $this->job_payload->owner_id);
-		}
+            foreach ($users as $user) {
 
-		$users = $query->get();
+                if (!in_array($user->slack_id, $members))
+                    continue;
 
-		$channels = $this->fetchingSlackConversations();
+                $granted_channels = array_merge(Helper::allowedChannels($user, true), Helper::allowedChannels($user, false));
 
-		foreach ($channels as $channel) {
+                if (!in_array($channel->id, $granted_channels)) {
+                    $this->slack->setBody([
+                        'channel' => $channel->id,
+                        'user' => $user->slack_id,
+                    ])->invoke('post', '/conversations.kick');
 
-			if ($channel->is_general)
-				continue;
+                    $this->logKickEvent($channel->id, $user->slack_id);
+                }
+            }
 
-			$members = $this->fetchingSlackConversationMembers($channel->id);
+        }
 
-			foreach ($users as $user) {
+        $this->cleanTemporaryStorage();
 
-				if (!in_array($user->slack_id, $members))
-					continue;
+        $this->writeInfoJobLog('The full kicking process took ' .
+            number_format(microtime(true) - $job_start, 2) . 's to complete.');
 
-				$granted_channels = array_merge(Helper::allowedChannels($user, true), Helper::allowedChannels($user, false));
+        $this->updateJobStatus([
+            'status' => 'Done',
+            'output' => null,
+        ]);
+    }
 
-				if (!in_array($channel->id, $granted_channels)) {
-					$this->slack->setBody([
-						'channel' => $channel->id,
-						'user' => $user->slack_id,
-					])->invoke('post', '/conversations.kick');
+    private function fetchingSlackConversations(string $cursor = null) : array
+    {
+        $this->slack->setQueryString([
+            'types' => implode(',', ['public_channel', 'private_channel']),
+            'exclude_archived' => true,
+        ]);
 
-					$this->logKickEvent($channel->id, $user->slack_id);
-				}
-			}
+        if (!is_null($cursor))
+            $this->slack->setQueryString([
+                'cursor' => $cursor,
+                'types' => implode(',', ['public_channel', 'private_channel']),
+                'exclude_archived' => true,
+            ]);
 
-		}
+        $response = $this->slack->invoke('get', '/conversations.list');
+        $channels = $response->channels;
 
-		$this->cleanTemporaryStorage();
+        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
+            sleep(1);
+            $channels = array_merge($channels, $this->fetchingSlackConversations( $response->response_metadata->next_cursor != ''));
+        }
 
-		$this->writeInfoJobLog('The full kicking process took ' .
-			number_format(microtime(true) - $job_start, 2) . 's to complete.');
+        return $channels;
+    }
 
-		$this->updateJobStatus([
-			'status' => 'Done',
-			'output' => null,
-		]);
-	}
+    private function fetchingSlackConversationMembers(string $channel_id, string $cursor = null) : array
+    {
+        $this->slack->setQueryString([
+            'channel' => $channel_id,
+        ]);
 
-	private function fetchingSlackConversations(string $cursor = null) : array
-	{
-		$this->slack->setQueryString([
-			'types' => implode(',', ['public_channel', 'private_channel']),
-			'exclude_archived' => true,
-		]);
+        if (!is_null($cursor))
+            $this->slack->setQueryString([
+                'channel' => $channel_id,
+                'cursor' => $cursor,
+            ]);
 
-		if (!is_null($cursor))
-			$this->slack->setQueryString([
-				'cursor' => $cursor,
-				'types' => implode(',', ['public_channel', 'private_channel']),
-				'exclude_archived' => true,
-			]);
+        $response = $this->slack->invoke('get', '/conversations.members');
+        $members = $response->members;
 
-		$response = $this->slack->invoke('get', '/conversations.list');
-		$channels = $response->channels;
+        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
+            sleep(1);
+            $members = array_merge(
+                $members,
+                $this->fetchingSlackConversationMembers($channel_id, $response->response_metadata->next_cursor));
+        }
 
-		if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-			sleep(1);
-			$channels = array_merge($channels, $this->fetchingSlackConversations( $response->response_metadata->next_cursor != ''));
-		}
+        return $members;
+    }
 
-		return $channels;
-	}
+    private function cleanTemporaryStorage()
+    {
+        $directory = Configuration::getInstance()->file_cache_location . 'conversationsmembers';
+        $this->rmdir($directory);
+    }
 
-	private function fetchingSlackConversationMembers(string $channel_id, string $cursor = null) : array
-	{
-		$this->slack->setQueryString([
-			'channel' => $channel_id,
-		]);
+    private function rmdir($directory)
+    {
+        if (!file_exists($directory))
+            return;
 
-		if (!is_null($cursor))
-			$this->slack->setQueryString([
-				'channel' => $channel_id,
-				'cursor' => $cursor,
-			]);
+        foreach (scandir($directory) as $file) {
+            if (in_array($file, ['.', '..']))
+                continue;
 
-		$response = $this->slack->setAuthentication($this->auth)->invoke('get', '/conversations.members');
-		$members = $response->members;
+            if (is_dir($directory . DIRECTORY_SEPARATOR . $file)) {
+                $this->rmdir( $directory . DIRECTORY_SEPARATOR . $file );
+                continue;
+            }
 
-		if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-			sleep(1);
-			$members = array_merge(
-				$members,
-				$this->fetchingSlackConversationMembers($channel_id, $response->response_metadata->next_cursor));
-		}
+            unlink($directory . DIRECTORY_SEPARATOR . $file);
+        }
 
-		return $members;
-	}
+        rmdir($directory);
+    }
 
-	private function cleanTemporaryStorage()
-	{
-		$directory = Configuration::getInstance()->file_cache_location . 'conversationsmembers';
-		$this->rmdir($directory);
-	}
+    private function logKickEvent(string $channel_id, string $user_id)
+    {
+        $slackUser = SlackUser::where('slack_id', $user_id)->first();
+        $slackChannel = SlackChannel::find($channel_id);
 
-	private function rmdir($directory)
-	{
-		if (!file_exists($directory))
-			return;
-
-		foreach (scandir($directory) as $file) {
-			if (in_array($file, ['.', '..']))
-				continue;
-
-			if (is_dir($directory . DIRECTORY_SEPARATOR . $file)) {
-				$this->rmdir( $directory . DIRECTORY_SEPARATOR . $file );
-				continue;
-			}
-
-			unlink($directory . DIRECTORY_SEPARATOR . $file);
-		}
-
-		rmdir($directory);
-	}
-
-	private function logKickEvent(string $channel_id, string $user_id)
-	{
-		$slackUser = SlackUser::where('slack_id', $user_id)->first();
-		$slackChannel = SlackChannel::find($channel_id);
-
-		SlackLog::create([
-			'event' => 'kick',
-			'message' => sprintf('The user %s (%s) has been kicked from the following channel : %s',
-				$slackUser->name, $slackUser->user->name, $slackChannel->name),
-		]);
-	}
+        SlackLog::create([
+            'event' => 'kick',
+            'message' => sprintf('The user %s (%s) has been kicked from the following channel : %s',
+                $slackUser->name, $slackUser->user->name, $slackChannel->name),
+        ]);
+    }
 
 }

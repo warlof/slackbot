@@ -12,7 +12,7 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
 
 interface FetcherInterface
 {
-	public function call(string $method, string $uri, array $body, array $headers = []) : SlackResponse;
+    public function call(string $method, string $uri, array $body, array $headers = []) : SlackResponse;
 
-	public function getAuthenticationScopes() : array;
+    public function getAuthenticationScopes() : array;
 }

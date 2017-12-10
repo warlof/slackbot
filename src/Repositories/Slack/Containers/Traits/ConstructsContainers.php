@@ -12,21 +12,21 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataExcep
 
 trait ConstructsContainers {
 
-	public function __construct(array $data = null) {
+    public function __construct(array $data = null) {
 
-		if (!is_null($data)) {
+        if (!is_null($data)) {
 
-			foreach ($data as $key => $value) {
+            foreach ($data as $key => $value) {
 
-				if (!array_key_exists($key, $this->data))
-					throw new InvalidContainerDataException('Key ' . $key . ' is not valid for this container');
+                if (!array_key_exists($key, $this->data))
+                    throw new InvalidContainerDataException('Key ' . $key . ' is not valid for this container');
 
-				$this->$key = $value;
+                $this->$key = $value;
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
 }

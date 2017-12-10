@@ -15,62 +15,62 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Log\LogInterface;
 
 class Configuration {
 
-	private static $instance;
+    private static $instance;
 
-	protected $logger;
+    protected $logger;
 
-	protected $cache;
+    protected $cache;
 
-	protected $configuration;
+    protected $configuration;
 
-	private function __construct() {
-		$this->configuration = new SlackConfiguration();
-	}
+    private function __construct() {
+        $this->configuration = new SlackConfiguration();
+    }
 
-	public static function getInstance() : Configuration
-	{
-		if (is_null(self::$instance))
-			self::$instance = new self();
+    public static function getInstance() : Configuration
+    {
+        if (is_null(self::$instance))
+            self::$instance = new self();
 
-		return self::$instance;
-	}
+        return self::$instance;
+    }
 
-	public function getConfiguration()
-	{
-		return $this->configuration;
-	}
+    public function getConfiguration()
+    {
+        return $this->configuration;
+    }
 
-	public function setConfiguration(SlackConfiguration $configuration)
-	{
-		if (!$configuration->valid())
-			throw new InvalidConfigurationException('The configuration is empty or has invalid values.');
+    public function setConfiguration(SlackConfiguration $configuration)
+    {
+        if (!$configuration->valid())
+            throw new InvalidConfigurationException('The configuration is empty or has invalid values.');
 
-		$this->configuration = $configuration;
-	}
+        $this->configuration = $configuration;
+    }
 
-	public function getLogger() : LogInterface
-	{
-		if (!$this->logger)
-			$this->logger = new $this->configuration->logger;
+    public function getLogger() : LogInterface
+    {
+        if (!$this->logger)
+            $this->logger = new $this->configuration->logger;
 
-		return $this->logger;
-	}
+        return $this->logger;
+    }
 
-	public function getCache() : CacheInterface
-	{
-		if (!$this->cache)
-			$this->cache = new $this->configuration->cache;
+    public function getCache() : CacheInterface
+    {
+        if (!$this->cache)
+            $this->cache = new $this->configuration->cache;
 
-		return $this->cache;
-	}
+        return $this->cache;
+    }
 
-	public function __get(string $name)
-	{
-		return $this->configuration->$name;
-	}
+    public function __get(string $name)
+    {
+        return $this->configuration->$name;
+    }
 
-	public function __set(string $name, string $value)
-	{
-		return $this->configuration->$name = $value;
-	}
+    public function __set(string $name, string $value)
+    {
+        return $this->configuration->$name = $value;
+    }
 }

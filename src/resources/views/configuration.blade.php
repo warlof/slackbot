@@ -155,18 +155,21 @@
 @push('javascript')
     <script type="application/javascript">
         $('#client-eraser').click(function(){
-            $('#slack-configuration-client').val('');
-            $('#slack-configuration-client').removeAttr("readonly");
+            var slack_client = $('#slack-configuration-client');
+            slack_client.val('');
+            slack_client.removeAttr("readonly");
         });
 
         $('#secret-eraser').click(function(){
-            $('#slack-configuration-secret').val('');
-            $('#slack-configuration-secret').removeAttr("readonly");
+            var slack_secret = $('#slack-configuration-secret');
+            slack_secret.val('');
+            slack_secret.removeAttr("readonly");
         });
 
         $('#verification-eraser').click(function(){
-            $('#slack-configuration-verification').val('');
-            $('#slack-configuration-verification').removeAttr("readonly");
+            var slack_verification = $('#slack-configuration-verification');
+            slack_verification.val('');
+            slack_verification.removeAttr("readonly");
         });
 
         $('[data-toggle="tooltip"]').tooltip();
