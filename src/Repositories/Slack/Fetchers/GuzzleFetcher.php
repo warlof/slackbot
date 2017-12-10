@@ -108,10 +108,10 @@ class GuzzleFetcher implements FetcherInterface
 
     private function refreshToken()
     {
-    	$authorizationHeader = 'Basic ' . base64_encode(implode(':', [
-    		$this->authentication->client_id,
-		    $this->authentication->secret
-	    ]));
+        $authorizationHeader = 'Basic ' . base64_encode(implode(':', [
+            $this->authentication->client_id,
+            $this->authentication->secret
+        ]));
 
         $response = $this->httpRequest('post',
             $this->api_base . '/token?grant_type=refresh_token&refresh_token=' .
