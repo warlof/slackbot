@@ -17,6 +17,7 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidAuthenticationException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException;
+use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Fetchers\FetcherInterface;
@@ -137,6 +138,15 @@ class SlackApi {
         return $this;
     }
 
+	/**
+	 * @param string $method
+	 * @param string $uri
+	 * @param array $uri_data
+	 *
+	 * @return SlackResponse
+	 * @throws SlackScopeAccessDeniedException
+	 * @throws RequestFailedException
+	 */
     public function invoke(string $method, string $uri, array $uri_data = []) : SlackResponse
     {
         if (!$this->getAccessChecker()->can($method, $uri, $this->getFetcher()->getAuthenticationScopes())) {

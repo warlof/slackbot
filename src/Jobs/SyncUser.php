@@ -9,8 +9,9 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Illuminate\Support\Facades\DB;
-use stdClass;
+use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
 class SyncUser extends AbstractSlackJob {
 
@@ -39,7 +40,7 @@ class SyncUser extends AbstractSlackJob {
 
         $users = $query->get();
 
-        $this->fetchingSlackTeamMembers($users);
+        $this->bindingSlackUser($users);
 
         $this->writeInfoJobLog('The full syncing process took ' .
             number_format(microtime(true) - $job_start, 2) . 's to complete.');
@@ -52,55 +53,34 @@ class SyncUser extends AbstractSlackJob {
         return;
     }
 
-    private function fetchingSlackTeamMembers($users, string $cursor = null)
+    private function bindingSlackUser($users)
     {
-        if (!is_null($cursor))
-            $this->slack->setQueryString([
-                'cursor' => $cursor,
-            ]);
-
-        $response = $this->slack->invoke('get', 'users.list');
-
         foreach ($users as $user) {
 
-            foreach ($response->members as $member) {
+        	try {
 
-                if (!$this->isActiveTeamMember($member))
-                    continue;
+		        $response = $this->slack->setBody([
+			        'email' => $user->email
+		        ])->invoke('post', '/users.lookupByEmail');
 
-                if (!property_exists($member, 'profile'))
-                    continue;
+		        SlackUser::create([
+			        'user_id'  => $user->id,
+			        'slack_id' => $response->user->id,
+			        'name' => property_exists($response->user, 'name') ? $response->user->name : '',
+		        ]);
 
-                if (!property_exists($member->profile, 'email'))
-                    continue;
+		        sleep(1);
 
-                if ($member->profile->email != $user->email)
-                    continue;
+	        } catch (RequestFailedException $e) {
 
-                SlackUser::create([
-                    'user_id' => $user->id,
-                    'slack_id' => $member->id,
-                ]);
+        		SlackLog::create([
+        			'event' => 'sync',
+			        'message' => sprintf('Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email),
+		        ]);
 
-            }
+	        }
 
         }
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $this->fetchingSlackTeamMembers( $users, $response->response_metadata->next_cursor );
-        }
-    }
-
-    private function isActiveTeamMember(stdClass $user) : bool
-    {
-        if ($user->deleted || $user->is_bot)
-            return false;
-
-        if (!property_exists($user, 'profile'))
-            return false;
-
-        return !property_exists($user->profile, 'api_app_id');
     }
 
 }
