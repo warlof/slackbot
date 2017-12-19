@@ -16,6 +16,12 @@ use Warlof\Seat\Slackbot\Http\Validation\ValidateOAuth;
 
 class OAuthController extends Controller
 {
+	/**
+	 * @param ValidateOAuth $request
+	 *
+	 * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 */
     public function postConfiguration(ValidateOAuth $request)
     {
         $state = time();
@@ -42,6 +48,11 @@ class OAuthController extends Controller
         return redirect($this->oAuthAuthorization($request->input('slack-configuration-client'), $state));
     }
 
+	/**
+	 * @param Request $request
+	 *
+	 * @return \Illuminate\Http\RedirectResponse
+	 */
     public function callback(Request $request)
     {
         // get back pending OAuth credentials validation from session

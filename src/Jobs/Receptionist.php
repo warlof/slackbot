@@ -9,18 +9,31 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Illuminate\Support\Facades\Cache;
+use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
-class Receptionist extends AbstractSlackJob {
+class Receptionist extends Base {
+
+	use SlackApiConnector;
 
     /**
      * @var array
      */
     private $pending_invitations = [];
 
+	/**
+	 * @return mixed|void
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function handle() {
 
         if (!$this->trackOrDismiss())
@@ -37,7 +50,7 @@ class Receptionist extends AbstractSlackJob {
 
         // retrieve information related to the current token
         // so we can remove the user owner from process since we're not able to do things on ourselves
-        $token_info = $this->slack->invoke('get', '/auth.test');
+        $token_info = $this->getConnector()->invoke('get', '/auth.test');
         logger()->debug('Slack Receptionist - Checking token', [
         	'owner' => $token_info->user_id,
         ]);
@@ -66,7 +79,20 @@ class Receptionist extends AbstractSlackJob {
             ]);
 
             foreach ($granted_channels as $channel_id) {
-                $this->fetchingSlackConversationMembers($user->slack_id, $channel_id);
+                $members = $this->fetchSlackConversationMembers($channel_id);
+
+	            // if user is not already member of the channel, put Slack ID in queue
+	            if (!in_array($user->slack_id, $members)) {
+		            logger()->debug('Slack reception - buffering invitation', [
+			            'slack_user_id' => $user->slack_id,
+			            'channel_id' => $channel_id,
+		            ]);
+
+		            if (!array_key_exists($channel_id, $this->pending_invitations))
+			            $this->pending_invitations[$channel_id] = [];
+
+		            $this->pending_invitations[$channel_id][] = $user->slack_id;
+	            }
             }
         }
 
@@ -103,49 +129,6 @@ class Receptionist extends AbstractSlackJob {
         ]);
 
         return;
-    }
-
-    private function fetchingSlackConversationMembers(string $slack_id, string $channel_id, string $cursor = null)
-    {
-        $this->slack->setQueryString([
-            'channel' => $channel_id,
-        ]);
-
-        if (!is_null($cursor))
-            $this->slack->setQueryString([
-                'channel' => $channel_id,
-                'cursor' => $cursor,
-            ]);
-
-        $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
-
-        if (is_null($response)) {
-	        $response = $this->slack->invoke( 'get', '/conversations.members' );
-	        Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
-        }
-
-        logger()->debug('Slack reception - channel members', [
-        	'channel_id' => $channel_id,
-        	'members' => $response->members,
-        ]);
-
-        // if user is not already member of the channel, put Slack ID in queue
-        if (!in_array($slack_id, $response->members)) {
-        	logger()->debug('Slack reception - buffering invitation', [
-        		'slack_user_id' => $slack_id,
-		        'channel_id' => $channel_id,
-	        ]);
-
-            if (!array_key_exists($channel_id, $this->pending_invitations))
-                $this->pending_invitations[$channel_id] = [];
-
-            $this->pending_invitations[$channel_id][] = $slack_id;
-        }
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $this->fetchingSlackConversationMembers($slack_id, $channel_id, $response->response_metadata->next_cursor);
-        }
     }
 
     private function logInvitationEvents(string $channel_id, array $user_ids)

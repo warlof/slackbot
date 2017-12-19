@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 use Illuminate\Console\Command;
 use Seat\Eveapi\Helpers\JobPayloadContainer;
-use Seat\Eveapi\Traits\JobManager;
 use Seat\Services\Helpers\AnalyticsContainer;
 use Seat\Services\Jobs\Analytics;
 use Warlof\Seat\Slackbot\Jobs\Receptionist;
@@ -25,8 +24,8 @@ class SlackUserInvite extends Command {
 
     public function handle(JobPayloadContainer $container)
     {
-        $container->api = 'Slack';
-        $container->scope = 'Invite';
+        $container->api      = 'Slack';
+        $container->scope    = 'Invite';
         $container->owner_id = 0;
 
         if ($this->hasArgument('user_id'))

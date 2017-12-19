@@ -9,12 +9,24 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Illuminate\Support\Facades\DB;
+use Seat\Eveapi\Jobs\Base;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
-class SyncUser extends AbstractSlackJob {
+class SyncUser extends Base {
 
+	use SlackApiConnector;
+
+	/**
+	 * @return mixed|void
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function handle() {
 
         if (!$this->trackOrDismiss())
@@ -53,6 +65,15 @@ class SyncUser extends AbstractSlackJob {
         return;
     }
 
+	/**
+	 * @param $users
+	 *
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     private function bindingSlackUser($users)
     {
     	logger()->debug('bindingSlackUser', ['users' => $users]);
@@ -61,7 +82,7 @@ class SyncUser extends AbstractSlackJob {
 
         	try {
 
-		        $response = $this->slack->setQueryString([
+		        $response = $this->getConnector()->setQueryString([
 		        	'email' => $user->email,
 		        ]) ->invoke('get', '/users.lookupByEmail');
 

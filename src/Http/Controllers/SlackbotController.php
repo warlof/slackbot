@@ -7,18 +7,16 @@
 
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
-use Monolog\Logger;
 use Seat\Web\Http\Controllers\Controller;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller
 {
+	use SlackApiConnector;
+
     public function getUsers()
     {
         return view('slackbot::users.list');
@@ -44,6 +42,14 @@ class SlackbotController extends Controller
         return redirect()->back('error', 'An error occurred while processing the request.');
     }
 
+	/**
+	 * @return mixed
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function getUsersData()
     {
     	if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
@@ -53,38 +59,10 @@ class SlackbotController extends Controller
 
         if ($users->count() > 0) {
 
-	        $configuration = Configuration::getInstance();
-	        $configuration->setConfiguration(new SlackConfiguration([
-		        'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
-		        'logger_level'        => Logger::DEBUG,
-		        'logfile_location'    => storage_path('logs/slack.log'),
-		        'file_cache_location' => storage_path('cache/slack/'),
-	        ]));
-
-	        $auth = new SlackAuthentication([
-		        'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-		        'scopes' => [
-			        'users:read',
-			        'users:read.email',
-			        'channels:read',
-			        'channels:write',
-			        'groups:read',
-			        'groups:write',
-			        'im:read',
-			        'im:write',
-			        'mpim:read',
-			        'mpim:write',
-			        'read',
-			        'post',
-		        ],
-	        ]);
-
-	        $slack = new SlackApi($auth);
-
             foreach ($users as $slackUser) {
 
             	try {
-		            $response = $slack->setQueryString([
+		            $response = $this->getConnector()->setQueryString([
 		            	'email' => $slackUser->user->email,
 		            ])->invoke( 'get', '/users.lookupByEmail' );
 		            $slackUser->update( [

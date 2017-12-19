@@ -52,6 +52,11 @@ class Configuration {
         return $this->configuration;
     }
 
+	/**
+	 * @param SlackConfiguration $configuration
+	 *
+	 * @throws InvalidConfigurationException
+	 */
     public function setConfiguration(SlackConfiguration $configuration)
     {
         if (!$configuration->valid())

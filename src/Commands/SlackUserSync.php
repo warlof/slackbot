@@ -25,8 +25,8 @@ class SlackUserSync extends Command {
 
     public function handle(JobPayloadContainer $container)
     {
-        $container->api   = 'Slack';
-        $container->scope = 'Members';
+        $container->api      = 'Slack';
+        $container->scope    = 'Members';
         $container->owner_id = 0;
 
         if ($this->hasArgument('user_id'))

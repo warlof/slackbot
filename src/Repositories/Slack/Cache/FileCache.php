@@ -21,6 +21,10 @@ class FileCache implements CacheInterface {
 
     protected $results_filename = 'results.cache';
 
+	/**
+	 * FileCache constructor.
+	 * @throws CachePathException
+	 */
     public function __construct() {
         $this->cache_path = Configuration::getInstance()->file_cache_location;
         $this->checkCacheDirectory();
@@ -80,6 +84,10 @@ class FileCache implements CacheInterface {
         return preg_replace('/[^A-Za-z0-9\/]/', '', $uri);
     }
 
+	/**
+	 * @return bool
+	 * @throws CachePathException
+	 */
     private function checkCacheDirectory() : bool
     {
         if (!is_dir($this->cache_path) && !@mkdir($this->cache_path, 0775, true))

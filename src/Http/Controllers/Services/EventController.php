@@ -17,6 +17,17 @@ class EventController extends Controller
 {
     use ConversationHandler, UserHandler;
 
+	/**
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function callback(Request $request)
     {
         $this->validate($request, [
@@ -69,8 +80,16 @@ class EventController extends Controller
      * Business router which is handling Slack event
      *
      * @param array $event A Slack Json event object
+     *
+     * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     *
      * @return JsonResponse
-     */
+	 */
     private function eventHandler(array $event) : JsonResponse
     {
         // conversation events

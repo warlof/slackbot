@@ -1,3 +1,14 @@
+# Version 2.3.0
+* Rewrite the connector in order to be less hammerhead on Slack services
+* Paginated result are now also delayed
+* Job will now use short life cache in order to reduce call amount in despite of versatility of data
+* Small UI improvement at user mapping level
+* New commands for a better management : `slack:conversation:sync`, `slack:user:sync`, `slack:user:invite`, `slack:user:kick`
+* Invite and kick commands can now be used with a SeAT user id as parameter in order to invite or kick specific user
+> Be sure to publish assets, there are some new style tweaks
+
+> Be sure to run migration which will include scheduler update with new commands
+
 # Version 2.2.1
 * Fixing backward compatibility issues over channels and groups
 * Fixing key cache issues

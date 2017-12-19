@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Helpers;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
 use Seat\Eveapi\Models\Character\CharacterSheet;
 use Seat\Eveapi\Models\Eve\ApiKey;
 use Seat\Web\Models\User;
@@ -135,19 +134,6 @@ class Helper
         }
 
         return $channels;
-    }
-
-    public static function getSlackUserInformation(string $slackUserId) : array
-    {
-        if (($data = Redis::get('seat:warlof:slackbot:users.' . $slackUserId)) != null) {
-            return json_decode($data, true);
-        }
-
-        $userInfo = app(SlackApi::class)->getUserInfo($slackUserId);
-        $userInfo['conversations'] = app(SlackApi::class)->getUserConversations($slackUserId);
-        Redis::set('seat:warlof:slackbot:users.' . $slackUserId, json_encode($userInfo));
-
-        return $userInfo;
     }
 
     public static function getSlackRedisKey($table, $objectId)

@@ -8,10 +8,23 @@
 namespace Warlof\Seat\Slackbot\Jobs;
 
 
+use Seat\Eveapi\Jobs\Base;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 
-class SyncConversation extends AbstractSlackJob {
+class SyncConversation extends Base {
 
+	use SlackApiConnector;
+
+	/**
+	 * @return mixed|void
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
 	public function handle()
 	{
 		if (!$this->trackOrDismiss())
@@ -25,7 +38,7 @@ class SyncConversation extends AbstractSlackJob {
 
 		$job_start = microtime(true);
 
-		$conversations = $this->fetchConversations();
+		$conversations = $this->fetchSlackConversations();
 		$conversations_buffer = [];
 
 		foreach ($conversations as $conversation) {
@@ -53,40 +66,6 @@ class SyncConversation extends AbstractSlackJob {
 		]);
 
 		return;
-	}
-
-	private function fetchConversations(string $cursor = null) : array
-	{
-		$this->slack->setQueryString([
-			'types' => implode(',', [
-				'public_channel',
-				'private_channel',
-			]),
-			'exclude_archived' => true,
-		]);
-
-		if (!is_null($cursor))
-			$this->slack->setQueryString([
-				'cursor' => $cursor,
-				'types' => implode(',', [
-					'public_channel',
-					'private_channel',
-				]),
-				'exclude_archived' => true,
-			]);
-
-		$response = $this->slack->invoke('get', '/conversations.list');
-		$conversations = $response->channels;
-
-		if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-			sleep(1);
-			$conversations = array_merge(
-				$conversations,
-				$this->fetchConversations($response->response_metadata->next_cursor)
-			);
-		}
-
-		return $conversations;
 	}
 
 }

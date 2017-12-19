@@ -11,19 +11,27 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 use Illuminate\Http\JsonResponse;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 trait ConversationHandler
 {
+	use SlackApiConnector;
+
     private $conversationEvents = [
         'channel_created', 'group_created', 'channel_deleted', 'group_deleted',
         'channel_archive', 'group_archive', 'channel_unarchive', 'group_unarchive',
         'channel_rename', 'group_rename',
     ];
 
+	/**
+	 * @param $channel
+	 *
+	 * @throws SlackSettingException
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     private function createConversation($channel)
     {
         // update database information
@@ -34,41 +42,11 @@ trait ConversationHandler
             'is_general' => false
         ]);
 
-	    $configuration = Configuration::getInstance();
-	    $configuration->setConfiguration(new SlackConfiguration([
-		    'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
-		    'logger_level'        => Logger::DEBUG,
-		    'logfile_location'    => storage_path('logs/slack.log'),
-		    'file_cache_location' => storage_path('cache/slack/'),
-	    ]));
-
-	    if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-		    throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
-		                                    "Ensure you've link SeAT to a valid Slack Team.");
-
-	    $slack = new SlackApi(new SlackAuthentication([
-		    'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-		    'scopes' => [
-			    'users:read',
-			    'users:read.email',
-			    'channels:read',
-			    'channels:write',
-			    'groups:read',
-			    'groups:write',
-			    'im:read',
-			    'im:write',
-			    'mpim:read',
-			    'mpim:write',
-			    'read',
-			    'post',
-		    ],
-	    ]));
-
-	    $tokenInfo = $slack->invoke('get', '/auth.test');
+	    $tokenInfo = $this->getConnector()->invoke('get', '/auth.test');
 
 	    // invite token owner in case he's not the channel creator
 	    if ($tokenInfo->user_id != $channel['creator']) {
-	    	$slack->setBody([
+	    	$this->getConnector()->setBody([
 	    		'channel' => $channel['id'],
 			    'users' => $tokenInfo->user_id,
 		    ])->invoke('post', '/conversations.invite');
@@ -97,39 +75,19 @@ trait ConversationHandler
         }
     }
 
+	/**
+	 * @param $channelId
+	 *
+	 * @throws SlackSettingException
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     private function unarchiveConversation($channelId)
     {
-	    $configuration = Configuration::getInstance();
-	    $configuration->setConfiguration(new SlackConfiguration([
-		    'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
-		    'logger_level'        => Logger::DEBUG,
-		    'logfile_location'    => storage_path('logs/slack.log'),
-		    'file_cache_location' => storage_path('cache/slack/'),
-	    ]));
-
-	    if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-		    throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
-		                                    "Ensure you've link SeAT to a valid Slack Team.");
-
-	    $slack = new SlackApi(new SlackAuthentication([
-		    'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-		    'scopes' => [
-			    'users:read',
-			    'users:read.email',
-			    'channels:read',
-			    'channels:write',
-			    'groups:read',
-			    'groups:write',
-			    'im:read',
-			    'im:write',
-			    'mpim:read',
-			    'mpim:write',
-			    'read',
-			    'post',
-		    ],
-	    ]));
-
-	    $channel = $slack->setQueryString([
+	    $channel = $this->getConnector()->setQueryString([
 	    	'channel' => $channelId,
 	    ])->invoke('get', '/conversations.info');
 
@@ -142,12 +100,19 @@ trait ConversationHandler
         ]);
     }
 
-    /**
-     * Business router which is handling Slack conversation event
-     *
-     * @param array $event A Slack Json event object
-     * @return JsonResponse
-     */
+	/**
+	 * Business router which is handling Slack conversation event
+	 *
+	 * @param array $event A Slack Json event object* @param array $event A Slack Json event object
+	 *
+	 * @return JsonResponse
+	 * @throws SlackSettingException
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     private function eventConversationHandler(array $event) : JsonResponse
     {
         if (in_array($event['type'], ['channel_created', 'group_created'])) {

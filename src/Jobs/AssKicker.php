@@ -9,13 +9,26 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 
 use Illuminate\Support\Facades\Cache;
+use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 
-class AssKicker extends AbstractSlackJob {
+class AssKicker extends Base {
 
+	use SlackApiConnector;
+
+	/**
+	 * @return mixed|void
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function handle() {
 
         if (!$this->trackOrDismiss())
@@ -29,7 +42,7 @@ class AssKicker extends AbstractSlackJob {
 
         $job_start = microtime(true);
 
-        $token_info = $this->slack->invoke('get', '/auth.test');
+        $token_info = $this->getConnector()->invoke('get', '/auth.test');
 	    logger()->debug('Slack Receptionist - Checking token', [
 		    'owner' => $token_info->user_id,
 	    ]);
@@ -43,7 +56,7 @@ class AssKicker extends AbstractSlackJob {
 
         $users = $query->get();
 
-        $channels = $this->fetchingSlackConversations();
+        $channels = $this->fetchSlackConversations();
 
         logger()->debug('Slack Kicker - channels list', $channels);
 
@@ -52,7 +65,7 @@ class AssKicker extends AbstractSlackJob {
             if ($channel->is_general)
                 continue;
 
-            $members = $this->fetchingSlackConversationMembers($channel->id);
+            $members = $this->fetchSlackConversationMembers($channel->id);
 
             logger()->debug('Slack Kicker - Channel members', [
             	'channel' => $channel->id,
@@ -91,7 +104,7 @@ class AssKicker extends AbstractSlackJob {
 		                'channel' => $channel->id
 	                ]);
 
-                    $this->slack->setBody([
+                    $this->getConnector()->setBody([
                         'channel' => $channel->id,
                         'user' => $user->slack_id,
                     ])->invoke('post', '/conversations.kick');
@@ -112,75 +125,6 @@ class AssKicker extends AbstractSlackJob {
             'status' => 'Done',
             'output' => null,
         ]);
-    }
-
-    private function fetchingSlackConversations(string $cursor = null) : array
-    {
-        $this->slack->setQueryString([
-            'types' => implode(',', ['public_channel', 'private_channel']),
-            'exclude_archived' => true,
-        ]);
-
-        if (!is_null($cursor))
-            $this->slack->setQueryString([
-                'cursor' => $cursor,
-                'types' => implode(',', ['public_channel', 'private_channel']),
-                'exclude_archived' => true,
-            ]);
-
-        $response = Cache::tags(['conversations'])->get(is_null($cursor) ? 'root' : $cursor);
-
-        if (is_null($response)) {
-	        $response = $this->slack->invoke('get', '/conversations.list');
-	        Cache::tags(['conversations'])->put(is_null($cursor) ? 'root' : $cursor, $response);
-        }
-
-        $channels = $response->channels;
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $channels = array_merge(
-            	$channels,
-	            $this->fetchingSlackConversations( $response->response_metadata->next_cursor)
-            );
-        }
-
-        return $channels;
-    }
-
-    private function fetchingSlackConversationMembers(string $channel_id, string $cursor = null) : array
-    {
-        $this->slack->setQueryString([
-            'channel' => $channel_id,
-        ]);
-
-        if (!is_null($cursor))
-            $this->slack->setQueryString([
-                'channel' => $channel_id,
-                'cursor' => $cursor,
-            ]);
-
-        $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
-
-        if (is_null($response)) {
-	        $response = $this->slack->invoke( 'get', '/conversations.members' );
-	        Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
-        }
-
-        $members = $response->members;
-	    logger()->debug('Slack kicker - channel members', [
-		    'channel_id' => $channel_id,
-		    'members' => $response->members,
-	    ]);
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $members = array_merge(
-                $members,
-                $this->fetchingSlackConversationMembers($channel_id, $response->response_metadata->next_cursor));
-        }
-
-        return $members;
     }
 
     private function logKickEvent(string $channel_id, string $user_id)

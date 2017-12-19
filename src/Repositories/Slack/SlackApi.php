@@ -56,6 +56,10 @@ class SlackApi {
         return Configuration::getInstance();
     }
 
+	/**
+	 * @return SlackAuthentication
+	 * @throws InvalidAuthenticationException
+	 */
     public function getAuthentication() : SlackAuthentication
     {
         if (is_null($this->authentication))
@@ -64,6 +68,12 @@ class SlackApi {
         return $this->authentication;
     }
 
+	/**
+	 * @param SlackAuthentication $authentication
+	 *
+	 * @return SlackApi
+	 * @throws InvalidContainerDataException
+	 */
     public function setAuthentication(SlackAuthentication $authentication) : self
     {
         if (!$authentication->valid())
@@ -146,6 +156,7 @@ class SlackApi {
 	 * @return SlackResponse
 	 * @throws SlackScopeAccessDeniedException
 	 * @throws RequestFailedException
+	 * @throws UriDataMissingException
 	 */
     public function invoke(string $method, string $uri, array $uri_data = []) : SlackResponse
     {
@@ -167,11 +178,26 @@ class SlackApi {
         return $result;
     }
 
+	/**
+	 * @param string $method
+	 * @param string $uri
+	 * @param array $body
+	 *
+	 * @return SlackResponse
+	 * @throws RequestFailedException
+	 */
     private function rawFetch(string $method, string $uri, array $body) : SlackResponse
     {
         return $this->getFetcher()->call($method, $uri, $body);
     }
 
+	/**
+	 * @param string $uri
+	 * @param array $data
+	 *
+	 * @return UriInterface
+	 * @throws UriDataMissingException
+	 */
     private function buildDataUri(string $uri, array $data) : UriInterface
     {
         $query_params = $this->getQueryString();
@@ -184,6 +210,13 @@ class SlackApi {
         ]);
     }
 
+	/**
+	 * @param string $uri
+	 * @param array $data
+	 *
+	 * @return string
+	 * @throws UriDataMissingException
+	 */
     private function mapDataToUri(string $uri, array $data) : string
     {
         if (preg_match('/{+(.*?)}/', $uri, $matches)) {

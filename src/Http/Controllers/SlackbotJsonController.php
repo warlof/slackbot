@@ -9,8 +9,6 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 
 
 use Monolog\Logger;
-use Seat\Eseye\Containers\EsiConfiguration;
-use Seat\Eseye\Eseye;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Corporation\Title;
 use Seat\Eveapi\Models\Eve\AllianceList;
@@ -29,12 +27,21 @@ use Warlof\Seat\Slackbot\Models\SlackChannelUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Fetchers\SlackFetcher;
 use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 class SlackbotJsonController extends Controller
 {
 
+	/**
+	 * @param UserChannel $request
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
     public function getJsonUserChannelsData(UserChannel $request)
     {
         $slackId = $request->input('slack_id');
@@ -389,6 +396,15 @@ class SlackbotJsonController extends Controller
 	// Slack Api
 	//
 
+	/**
+	 * @param SlackApi $slack
+	 * @param string|null $cursor
+	 *
+	 * @return array
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
 	private function fetchConversations(SlackApi $slack, string $cursor = null)
 	{
 		$slack->setQueryString([
@@ -418,6 +434,16 @@ class SlackbotJsonController extends Controller
 		return $channels;
 	}
 
+	/**
+	 * @param SlackApi $slack
+	 * @param string $channel_id
+	 * @param string|null $cursor
+	 *
+	 * @return array
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
 	private function fetchConversationMembers(SlackApi $slack, string $channel_id, string $cursor = null) : array
 	{
 		$slack->setQueryString([
