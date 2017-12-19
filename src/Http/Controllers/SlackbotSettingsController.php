@@ -11,6 +11,7 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Artisan;
+use Parsedown;
 use Seat\Web\Http\Controllers\Controller;
 
 class SlackbotSettingsController extends Controller
@@ -50,7 +51,7 @@ class SlackbotSettingsController extends Controller
                 return 'Error while fetching changelog';
             }
 
-            $parser = new \Parsedown();
+            $parser = new Parsedown();
             return $parser->parse($response->getBody());
         } catch (RequestException $e) {
             return 'Error while fetching changelog';

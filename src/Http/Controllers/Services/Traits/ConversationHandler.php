@@ -9,14 +9,15 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Redis;
-use Warlof\Seat\Slackbot\Helpers\Helper;
+use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
+use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 trait ConversationHandler
 {
-    private $conversationTable = 'seat:warlof:slackbot:conversations';
-
     private $conversationEvents = [
         'channel_created', 'group_created', 'channel_deleted', 'group_deleted',
         'channel_archive', 'group_archive', 'channel_unarchive', 'group_unarchive',
@@ -25,9 +26,6 @@ trait ConversationHandler
 
     private function createConversation($channel)
     {
-        // store channel information into redis
-        Redis::set(Helper::getSlackRedisKey($this->conversationTable, $channel['id']), json_encode($channel));
-
         // update database information
         SlackChannel::create([
             'id' => $channel['id'],
@@ -36,36 +34,64 @@ trait ConversationHandler
             'is_general' => false
         ]);
 
-        // invite token owner in case he's not the channel creator
-        app(SlackApi::class)->joinConversation($channel['id']);
+	    $configuration = Configuration::getInstance();
+	    $configuration->setConfiguration(new SlackConfiguration([
+		    'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
+		    'logger_level'        => Logger::DEBUG,
+		    'logfile_location'    => storage_path('logs/slack.log'),
+		    'file_cache_location' => storage_path('cache/slack/'),
+	    ]));
+
+	    if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
+		    throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
+		                                    "Ensure you've link SeAT to a valid Slack Team.");
+
+	    $slack = new SlackApi(new SlackAuthentication([
+		    'access_token' => setting('warlof.slackbot.credentials.access_token', true),
+		    'scopes' => [
+			    'users:read',
+			    'users:read.email',
+			    'channels:read',
+			    'channels:write',
+			    'groups:read',
+			    'groups:write',
+			    'im:read',
+			    'im:write',
+			    'mpim:read',
+			    'mpim:write',
+			    'read',
+			    'post',
+		    ],
+	    ]));
+
+	    $tokenInfo = $slack->invoke('get', '/auth.test');
+
+	    // invite token owner in case he's not the channel creator
+	    if ($tokenInfo->user_id != $channel['creator']) {
+	    	$slack->setBody([
+	    		'channel' => $channel['id'],
+			    'users' => $tokenInfo->user_id,
+		    ])->invoke('post', '/conversations.invite');
+	    }
     }
 
     private function deleteConversation($channelId)
     {
-        // remove information from redis
-        Redis::del(Helper::getSlackRedisKey($this->conversationTable, $channelId));
-
         // update database information
-        SlackChannel::find($channelId)->delete();
+        if ($channel = SlackChannel::find($channelId))
+        	$channel->delete();
     }
 
     private function renameConversation($channel)
     {
-        $redisData = json_decode(Redis::get(Helper::getSlackRedisKey($this->conversationTable, $channel['id'])), true);
-
-        $redisData['name'] = $channel['name'];
-
-        Redis::set(Helper::getSlackRedisKey($this->conversationTable, $channel['id']), json_encode($redisData));
-
-        SlackChannel::find($channel['id'])->update([
-            'name' => $channel['name']
-        ]);
+        if ($channel = SlackChannel::find($channel['id']))
+        	$channel->update([
+	            'name' => $channel['name']
+	        ]);
     }
 
     private function archiveConversation($channelId)
     {
-        Redis::del(Helper::getSlackRedisKey($this->conversationTable, $channelId));
-
         if ($channel = SlackChannel::find($channelId)) {
             $channel->delete();
         }
@@ -73,15 +99,45 @@ trait ConversationHandler
 
     private function unarchiveConversation($channelId)
     {
-        $channel = app(SlackApi::class)->getConversationInfo($channelId);
+	    $configuration = Configuration::getInstance();
+	    $configuration->setConfiguration(new SlackConfiguration([
+		    'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
+		    'logger_level'        => Logger::DEBUG,
+		    'logfile_location'    => storage_path('logs/slack.log'),
+		    'file_cache_location' => storage_path('cache/slack/'),
+	    ]));
 
-        Redis::set(Helper::getSlackRedisKey($this->conversationTable, $channelId), json_encode($channel));
+	    if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
+		    throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .
+		                                    "Ensure you've link SeAT to a valid Slack Team.");
+
+	    $slack = new SlackApi(new SlackAuthentication([
+		    'access_token' => setting('warlof.slackbot.credentials.access_token', true),
+		    'scopes' => [
+			    'users:read',
+			    'users:read.email',
+			    'channels:read',
+			    'channels:write',
+			    'groups:read',
+			    'groups:write',
+			    'im:read',
+			    'im:write',
+			    'mpim:read',
+			    'mpim:write',
+			    'read',
+			    'post',
+		    ],
+	    ]));
+
+	    $channel = $slack->setQueryString([
+	    	'channel' => $channelId,
+	    ])->invoke('get', '/conversations.info');
 
         // update database information
         SlackChannel::create([
-            'id' => $channel['id'],
-            'name' => $channel['name'],
-            'is_group' => (strpos($channel['id'], 'C') === 0) ? false : true,
+            'id' => $channel->id,
+            'name' => $channel->name,
+            'is_group' => $channel->is_group,
             'is_general' => false
         ]);
     }

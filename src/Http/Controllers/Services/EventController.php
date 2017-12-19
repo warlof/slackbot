@@ -25,7 +25,7 @@ class EventController extends Controller
         ]);
 
         // take back our Slack oauth token
-        if (setting('warlof.slackbot.credentials.verification_token', true) == null) {
+        if (is_null(setting('warlof.slackbot.credentials.verification_token', true))) {
             logger()->warning('Slack::callback receive a request to event endpoint but there is no OAuth configured ' .
                 'or verification_token is missing.');
 
@@ -44,7 +44,7 @@ class EventController extends Controller
         switch ($request->input('type')) {
             case 'url_verification':
                 // since we're using url_verification, challenge field is mandatory
-                if ($request->input('challenge') == null) {
+                if (is_null($request->input('challenge'))) {
                     return response()->json(null, 400);
                 }
 
@@ -85,7 +85,7 @@ class EventController extends Controller
 
         // message event
         if ($event['type'] == 'message') {
-            return $this->eventMessageHandler($event);
+            return $this->eventMessageHandler();
         }
 
         return response()->json(['ok' => true, 'msg' => 'Unhandled event'], 202);

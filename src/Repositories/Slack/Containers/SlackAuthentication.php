@@ -19,10 +19,7 @@ class SlackAuthentication extends AbstractArrayAccess {
      * @var array
      */
     protected $data = [
-        //'client_id'     => null,
-        //'secret'        => null,
         'access_token'  => '_',
-        //'refresh_token' => null,
         'token_expires' => '1970-01-01 00:00:00',
         'scopes'        => [],
     ];
