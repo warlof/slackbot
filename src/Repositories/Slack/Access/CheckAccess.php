@@ -25,7 +25,7 @@ class CheckAccess implements AccessInterface {
             '/conversations.invite'  => ['channels:write', 'groups:write', 'im:write', 'mpim:write', 'post'],
             '/conversations.kick'    => ['channels:write', 'groups:write', 'im:write', 'mpim:write', 'post'],
             '/conversations.join'    => ['channels:write', 'post'],
-	        '/users.lookupByEmail'   => ['users:read.email'],
+            '/users.lookupByEmail'   => ['users:read.email'],
         ],
     ];
 

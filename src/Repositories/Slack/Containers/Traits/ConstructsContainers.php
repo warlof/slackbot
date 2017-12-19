@@ -12,13 +12,13 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataExcep
 
 trait ConstructsContainers {
 
-	/**
-	 * ConstructsContainers constructor.
-	 *
-	 * @param array|null $data
-	 *
-	 * @throws InvalidContainerDataException
-	 */
+    /**
+     * ConstructsContainers constructor.
+     *
+     * @param array|null $data
+     *
+     * @throws InvalidContainerDataException
+     */
     public function __construct(array $data = null) {
 
         if (!is_null($data)) {

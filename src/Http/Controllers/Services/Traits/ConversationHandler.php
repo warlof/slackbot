@@ -14,7 +14,7 @@ use Warlof\Seat\Slackbot\Models\SlackChannel;
 
 trait ConversationHandler
 {
-	use SlackApiConnector;
+    use SlackApiConnector;
 
     private $conversationEvents = [
         'channel_created', 'group_created', 'channel_deleted', 'group_deleted',
@@ -22,16 +22,16 @@ trait ConversationHandler
         'channel_rename', 'group_rename',
     ];
 
-	/**
-	 * @param $channel
-	 *
-	 * @throws SlackSettingException
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @param $channel
+     *
+     * @throws SlackSettingException
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     private function createConversation($channel)
     {
         // update database information
@@ -42,30 +42,30 @@ trait ConversationHandler
             'is_general' => false
         ]);
 
-	    $tokenInfo = $this->getConnector()->invoke('get', '/auth.test');
+        $tokenInfo = $this->getConnector()->invoke('get', '/auth.test');
 
-	    // invite token owner in case he's not the channel creator
-	    if ($tokenInfo->user_id != $channel['creator']) {
-	    	$this->getConnector()->setBody([
-	    		'channel' => $channel['id'],
-			    'users' => $tokenInfo->user_id,
-		    ])->invoke('post', '/conversations.invite');
-	    }
+        // invite token owner in case he's not the channel creator
+        if ($tokenInfo->user_id != $channel['creator']) {
+            $this->getConnector()->setBody([
+                'channel' => $channel['id'],
+                'users' => $tokenInfo->user_id,
+            ])->invoke('post', '/conversations.invite');
+        }
     }
 
     private function deleteConversation($channelId)
     {
         // update database information
         if ($channel = SlackChannel::find($channelId))
-        	$channel->delete();
+            $channel->delete();
     }
 
     private function renameConversation($channel)
     {
         if ($channel = SlackChannel::find($channel['id']))
-        	$channel->update([
-	            'name' => $channel['name']
-	        ]);
+            $channel->update([
+                'name' => $channel['name']
+            ]);
     }
 
     private function archiveConversation($channelId)
@@ -75,21 +75,21 @@ trait ConversationHandler
         }
     }
 
-	/**
-	 * @param $channelId
-	 *
-	 * @throws SlackSettingException
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @param $channelId
+     *
+     * @throws SlackSettingException
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     private function unarchiveConversation($channelId)
     {
-	    $channel = $this->getConnector()->setQueryString([
-	    	'channel' => $channelId,
-	    ])->invoke('get', '/conversations.info');
+        $channel = $this->getConnector()->setQueryString([
+            'channel' => $channelId,
+        ])->invoke('get', '/conversations.info');
 
         // update database information
         SlackChannel::create([
@@ -100,19 +100,19 @@ trait ConversationHandler
         ]);
     }
 
-	/**
-	 * Business router which is handling Slack conversation event
-	 *
-	 * @param array $event A Slack Json event object* @param array $event A Slack Json event object
-	 *
-	 * @return JsonResponse
-	 * @throws SlackSettingException
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * Business router which is handling Slack conversation event
+     *
+     * @param array $event A Slack Json event object* @param array $event A Slack Json event object
+     *
+     * @return JsonResponse
+     * @throws SlackSettingException
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     private function eventConversationHandler(array $event) : JsonResponse
     {
         if (in_array($event['type'], ['channel_created', 'group_created'])) {

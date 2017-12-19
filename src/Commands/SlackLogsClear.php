@@ -13,17 +13,17 @@ use Warlof\Seat\Slackbot\Models\SlackLog;
 
 class SlackLogsClear extends Command
 {
-	protected $signature = 'slack:logs:clear';
+    protected $signature = 'slack:logs:clear';
 
-	protected $description = 'Clearing slack logs';
+    protected $description = 'Clearing slack logs';
 
-	public function __construct()
-	{
-		parent::__construct();
-	}
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
-	public function handle()
-	{
-		SlackLog::truncate();
-	}
+    public function handle()
+    {
+        SlackLog::truncate();
+    }
 }

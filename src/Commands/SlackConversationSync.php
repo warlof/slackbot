@@ -17,29 +17,29 @@ use Warlof\Seat\Slackbot\Jobs\SyncConversation;
 
 class SlackConversationSync extends Command {
 
-	use JobManager;
+    use JobManager;
 
-	protected $signature = 'slack:conversation:sync';
+    protected $signature = 'slack:conversation:sync';
 
-	protected $description = 'Fire a job which will attempt to pull conversations static information from Slack Team.';
+    protected $description = 'Fire a job which will attempt to pull conversations static information from Slack Team.';
 
-	public function handle(JobPayloadContainer $container)
-	{
-		$container->api      = 'Slack';
-		$container->scope    = 'Conversations';
-		$container->owner_id = 0;
+    public function handle(JobPayloadContainer $container)
+    {
+        $container->api      = 'Slack';
+        $container->scope    = 'Conversations';
+        $container->owner_id = 0;
 
-		$job_id = $this->addUniqueJob(SyncConversation::class, $container);
+        $job_id = $this->addUniqueJob(SyncConversation::class, $container);
 
-		$this->info('Job ' . $job_id . ' dispatched!');
+        $this->info('Job ' . $job_id . ' dispatched!');
 
-		dispatch((new Analytics((new AnalyticsContainer())
-			->set('type', 'event')
-			->set('ec', 'queues')
-			->set('ea', 'queue_tokens')
-			->set('el', 'console')
-			->set('ev', 1)))
-		->onQueue('medium'));
-	}
+        dispatch((new Analytics((new AnalyticsContainer())
+            ->set('type', 'event')
+            ->set('ec', 'queues')
+            ->set('ea', 'queue_tokens')
+            ->set('el', 'console')
+            ->set('ev', 1)))
+        ->onQueue('medium'));
+    }
 
 }

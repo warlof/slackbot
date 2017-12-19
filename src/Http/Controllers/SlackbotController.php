@@ -15,7 +15,7 @@ use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller
 {
-	use SlackApiConnector;
+    use SlackApiConnector;
 
     public function getUsers()
     {
@@ -42,18 +42,18 @@ class SlackbotController extends Controller
         return redirect()->back('error', 'An error occurred while processing the request.');
     }
 
-	/**
-	 * @return mixed
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @return mixed
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     public function getUsersData()
     {
-    	if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-    		return Datatables::of(collect([]))->make(true);
+        if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
+            return Datatables::of(collect([]))->make(true);
 
         $users = SlackUser::whereNull('name')->get();
 
@@ -61,20 +61,20 @@ class SlackbotController extends Controller
 
             foreach ($users as $slackUser) {
 
-            	try {
-		            $response = $this->getConnector()->setQueryString([
-		            	'email' => $slackUser->user->email,
-		            ])->invoke( 'get', '/users.lookupByEmail' );
-		            $slackUser->update( [
-			            'name' => property_exists( $response->user, 'name' ) ? $response->user->name : '',
-		            ] );
+                try {
+                    $response = $this->getConnector()->setQueryString([
+                        'email' => $slackUser->user->email,
+                    ])->invoke( 'get', '/users.lookupByEmail' );
+                    $slackUser->update( [
+                        'name' => property_exists( $response->user, 'name' ) ? $response->user->name : '',
+                    ] );
 
-		            if ( $users->count() > 1 ) {
-			            sleep( 1 );
-		            }
-	            } catch (RequestFailedException $e) {
+                    if ( $users->count() > 1 ) {
+                        sleep( 1 );
+                    }
+                } catch (RequestFailedException $e) {
 
-	            }
+                }
 
             }
         }

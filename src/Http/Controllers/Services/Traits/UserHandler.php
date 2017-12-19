@@ -47,8 +47,8 @@ trait UserHandler
     private function eventMessageHandler() : JsonResponse
     {
         return response()->json([
-        	'ok' => true,
-	        'msg' => 'Deprecated endpoint. Will be remove in 2.4.0',
+            'ok' => true,
+            'msg' => 'Deprecated endpoint. Will be remove in 2.4.0',
         ], 202);
     }
 }

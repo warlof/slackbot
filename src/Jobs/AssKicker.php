@@ -18,17 +18,17 @@ use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class AssKicker extends Base {
 
-	use SlackApiConnector;
+    use SlackApiConnector;
 
-	/**
-	 * @return mixed|void
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @return mixed|void
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     public function handle() {
 
         if (!$this->trackOrDismiss())
@@ -43,9 +43,9 @@ class AssKicker extends Base {
         $job_start = microtime(true);
 
         $token_info = $this->getConnector()->invoke('get', '/auth.test');
-	    logger()->debug('Slack Receptionist - Checking token', [
-		    'owner' => $token_info->user_id,
-	    ]);
+        logger()->debug('Slack Receptionist - Checking token', [
+            'owner' => $token_info->user_id,
+        ]);
 
         $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
 
@@ -68,41 +68,41 @@ class AssKicker extends Base {
             $members = $this->fetchSlackConversationMembers($channel->id);
 
             logger()->debug('Slack Kicker - Channel members', [
-            	'channel' => $channel->id,
-	            'members' => $members
+                'channel' => $channel->id,
+                'members' => $members
             ]);
 
             foreach ($users as $user) {
 
-            	logger()->debug('Slack Kicker - Checking user', [
-            		'user'    => $user,
-            		'channel' => $channel->id,
-            		'members' => $members,
-	            ]);
+                logger()->debug('Slack Kicker - Checking user', [
+                    'user'    => $user,
+                    'channel' => $channel->id,
+                    'members' => $members,
+                ]);
 
                 if (!in_array($user->slack_id, $members))
                     continue;
 
                 $granted_channels = array_merge(
-                	Helper::allowedChannels($user, true),
-	                Helper::allowedChannels($user, false));
+                    Helper::allowedChannels($user, true),
+                    Helper::allowedChannels($user, false));
 
                 logger()->debug('Slack Kicker - Granted channels', [
-                	'user' => [
-                		'seat'  => $user->seat_id,
-                		'slack' => $user->slack_id,
-	                ],
-	                'channels' => $granted_channels,
+                    'user' => [
+                        'seat'  => $user->seat_id,
+                        'slack' => $user->slack_id,
+                    ],
+                    'channels' => $granted_channels,
                 ]);
 
                 if (!in_array($channel->id, $granted_channels)) {
-                	logger()->debug('Slack Kicker - Kicking user', [
-                		'user' => [
-                			'seat' => $user->user_id,
-			                'slack' => $user->slack_id
-		                ],
-		                'channel' => $channel->id
-	                ]);
+                    logger()->debug('Slack Kicker - Kicking user', [
+                        'user' => [
+                            'seat' => $user->user_id,
+                            'slack' => $user->slack_id
+                        ],
+                        'channel' => $channel->id
+                    ]);
 
                     $this->getConnector()->setBody([
                         'channel' => $channel->id,
@@ -110,13 +110,14 @@ class AssKicker extends Base {
                     ])->invoke('post', '/conversations.kick');
 
                     $this->logKickEvent($channel->id, $user->slack_id);
+                    sleep(1);
                 }
             }
 
         }
 
-	    logger()->debug('Slack kicker - clearing cached data');
-	    Cache::tags(['conversations', 'members'])->flush();
+        logger()->debug('Slack kicker - clearing cached data');
+        Cache::tags(['conversations', 'members'])->flush();
 
         $this->writeInfoJobLog('The full kicking process took ' .
             number_format(microtime(true) - $job_start, 2) . 's to complete.');

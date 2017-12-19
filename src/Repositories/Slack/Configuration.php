@@ -15,24 +15,24 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Log\LogInterface;
 
 class Configuration {
 
-	/**
-	 * @var Configuration
-	 */
+    /**
+     * @var Configuration
+     */
     private static $instance;
 
-	/**
-	 * @var LogInterface
-	 */
+    /**
+     * @var LogInterface
+     */
     protected $logger;
 
-	/**
-	 * @var
-	 */
+    /**
+     * @var
+     */
     protected $cache;
 
-	/**
-	 * @var SlackConfiguration
-	 */
+    /**
+     * @var SlackConfiguration
+     */
     protected $configuration;
 
     private function __construct() {
@@ -52,11 +52,11 @@ class Configuration {
         return $this->configuration;
     }
 
-	/**
-	 * @param SlackConfiguration $configuration
-	 *
-	 * @throws InvalidConfigurationException
-	 */
+    /**
+     * @param SlackConfiguration $configuration
+     *
+     * @throws InvalidConfigurationException
+     */
     public function setConfiguration(SlackConfiguration $configuration)
     {
         if (!$configuration->valid())

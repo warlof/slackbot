@@ -37,16 +37,16 @@ class GuzzleFetcher implements FetcherInterface
         $this->logger = Configuration::getInstance()->getLogger();
     }
 
-	/**
-	 * @param string $method
-	 * @param string $uri
-	 * @param array $body
-	 * @param array $headers
-	 *
-	 * @return SlackResponse
-	 * @throws InvalidAuthenticationException
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param array $body
+     * @param array $headers
+     *
+     * @return SlackResponse
+     * @throws InvalidAuthenticationException
+     * @throws RequestFailedException
+     */
     public function call(string $method, string $uri, array $body, array $headers = []) : SlackResponse
     {
         if ($this->getAuthentication())
@@ -62,11 +62,11 @@ class GuzzleFetcher implements FetcherInterface
         return $this->authentication;
     }
 
-	/**
-	 * @param SlackAuthentication $authentication
-	 *
-	 * @throws InvalidAuthenticationException
-	 */
+    /**
+     * @param SlackAuthentication $authentication
+     *
+     * @throws InvalidAuthenticationException
+     */
     public function setAuthentication(SlackAuthentication $authentication)
     {
         if (!$authentication->valid())
@@ -75,11 +75,11 @@ class GuzzleFetcher implements FetcherInterface
         $this->authentication = $authentication;
     }
 
-	/**
-	 * @return array
-	 * @throws InvalidAuthenticationException
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @return array
+     * @throws InvalidAuthenticationException
+     * @throws RequestFailedException
+     */
     public function getAuthenticationScopes() : array
     {
         if (is_null($this->getAuthentication()))
@@ -91,10 +91,10 @@ class GuzzleFetcher implements FetcherInterface
         return $this->getAuthentication()->scopes;
     }
 
-	/**
-	 * @throws InvalidAuthenticationException
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @throws InvalidAuthenticationException
+     * @throws RequestFailedException
+     */
     public function setAuthenticationScopes()
     {
         $scopes = $this->verifyToken()['Scopes'];
@@ -102,10 +102,10 @@ class GuzzleFetcher implements FetcherInterface
         $this->authentication->scopes = explode(' ', $scopes);
     }
 
-	/**
-	 * @return string
-	 * @throws InvalidAuthenticationException
-	 */
+    /**
+     * @return string
+     * @throws InvalidAuthenticationException
+     */
     public function getToken() : string
     {
         if (!$this->getAuthentication())
@@ -127,15 +127,15 @@ class GuzzleFetcher implements FetcherInterface
         $this->client = $client;
     }
 
-	/**
-	 * @param string $method
-	 * @param string $uri
-	 * @param array $headers
-	 * @param array $body
-	 *
-	 * @return SlackResponse
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param array $headers
+     * @param array $body
+     *
+     * @return SlackResponse
+     * @throws RequestFailedException
+     */
     private function httpRequest(string $method, string $uri, array $headers = [], array $body = []) : SlackResponse
     {
         $headers = array_merge($headers, [
@@ -207,11 +207,11 @@ class GuzzleFetcher implements FetcherInterface
         return new SlackResponse($body, $expires, $status_code);
     }
 
-	/**
-	 * @return SlackResponse
-	 * @throws InvalidAuthenticationException
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @return SlackResponse
+     * @throws InvalidAuthenticationException
+     * @throws RequestFailedException
+     */
     private function verifyToken()
     {
         return $this->httpRequest('get', $this->api_base . '/auth.test', [

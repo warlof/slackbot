@@ -17,16 +17,16 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
 class SyncUser extends Base {
 
-	use SlackApiConnector;
+    use SlackApiConnector;
 
-	/**
-	 * @return mixed|void
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @return mixed|void
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     public function handle() {
 
         if (!$this->trackOrDismiss())
@@ -65,61 +65,61 @@ class SyncUser extends Base {
         return;
     }
 
-	/**
-	 * @param $users
-	 *
-	 * @throws \Seat\Services\Exceptions\SettingException
-	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-	 */
+    /**
+     * @param $users
+     *
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
     private function bindingSlackUser($users)
     {
-    	logger()->debug('bindingSlackUser', ['users' => $users]);
+        logger()->debug('bindingSlackUser', ['users' => $users]);
 
         foreach ($users as $user) {
 
-        	try {
+            try {
 
-		        $response = $this->getConnector()->setQueryString([
-		        	'email' => $user->email,
-		        ]) ->invoke('get', '/users.lookupByEmail');
+                $response = $this->getConnector()->setQueryString([
+                    'email' => $user->email,
+                ]) ->invoke('get', '/users.lookupByEmail');
 
-		        SlackUser::create([
-			        'user_id'  => $user->id,
-			        'slack_id' => $response->user->id,
-			        'name' => property_exists($response->user, 'name') ? $response->user->name : '',
-		        ]);
+                SlackUser::create([
+                    'user_id'  => $user->id,
+                    'slack_id' => $response->user->id,
+                    'name' => property_exists($response->user, 'name') ? $response->user->name : '',
+                ]);
 
-		        SlackLog::create([
-		        	'event' => 'binding',
-			        'message' => sprintf('User %s (%s) has been successfully bind to %s',
-				        $user->name,
-				        $user->email,
-				        property_exists($response->user, 'name') ? $response->user->name : ''),
-		        ]);
+                SlackLog::create([
+                    'event' => 'binding',
+                    'message' => sprintf('User %s (%s) has been successfully bind to %s',
+                        $user->name,
+                        $user->email,
+                        property_exists($response->user, 'name') ? $response->user->name : ''),
+                ]);
 
-		        sleep(1);
+                sleep(1);
 
-	        } catch (RequestFailedException $e) {
+            } catch (RequestFailedException $e) {
 
-        		if ($e->getResponse()->error() == 'users_not_found') {
-			        SlackLog::create( [
-				        'event'   => 'sync',
-				        'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
-			        ] );
-		        } else {
-        			SlackLog::create([
-        				'event' => 'error',
-				        'message' => sprintf('Slack respond with an unknown message while syncing %s (%s) : %s',
-					        $user->name,
-					        $user->email,
-					        $e->getResponse()->error()),
-			        ]);
-		        }
+                if ($e->getResponse()->error() == 'users_not_found') {
+                    SlackLog::create( [
+                        'event'   => 'sync',
+                        'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
+                    ] );
+                } else {
+                    SlackLog::create([
+                        'event' => 'error',
+                        'message' => sprintf('Slack respond with an unknown message while syncing %s (%s) : %s',
+                            $user->name,
+                            $user->email,
+                            $e->getResponse()->error()),
+                    ]);
+                }
 
-	        }
+            }
 
         }
     }
