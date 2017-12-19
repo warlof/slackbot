@@ -121,7 +121,7 @@ Route::group([
 
             Route::get('/logs', [
                 'as' => 'slackbot.json.logs',
-                'uses' => 'SlackbotLogsController@getLogData',
+                'uses' => 'SlackbotLogsController@getJsonLogData',
                 'middleware' => 'bouncer:slackbot.security'
             ]);
 

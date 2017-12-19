@@ -8,11 +8,11 @@
 namespace Warlof\Seat\Slackbot\Jobs;
 
 
+use Illuminate\Support\Facades\Cache;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 
 class AssKicker extends AbstractSlackJob {
 
@@ -30,6 +30,9 @@ class AssKicker extends AbstractSlackJob {
         $job_start = microtime(true);
 
         $token_info = $this->slack->invoke('get', '/auth.test');
+	    logger()->debug('Slack Receptionist - Checking token', [
+		    'owner' => $token_info->user_id,
+	    ]);
 
         $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
 
@@ -42,6 +45,8 @@ class AssKicker extends AbstractSlackJob {
 
         $channels = $this->fetchingSlackConversations();
 
+        logger()->debug('Slack Kicker - channels list', $channels);
+
         foreach ($channels as $channel) {
 
             if ($channel->is_general)
@@ -49,7 +54,18 @@ class AssKicker extends AbstractSlackJob {
 
             $members = $this->fetchingSlackConversationMembers($channel->id);
 
+            logger()->debug('Slack Kicker - Channel members', [
+            	'channel' => $channel->id,
+	            'members' => $members
+            ]);
+
             foreach ($users as $user) {
+
+            	logger()->debug('Slack Kicker - Checking user', [
+            		'user'    => $user,
+            		'channel' => $channel->id,
+            		'members' => $members,
+	            ]);
 
                 if (!in_array($user->slack_id, $members))
                     continue;
@@ -58,7 +74,23 @@ class AssKicker extends AbstractSlackJob {
                 	Helper::allowedChannels($user, true),
 	                Helper::allowedChannels($user, false));
 
+                logger()->debug('Slack Kicker - Granted channels', [
+                	'user' => [
+                		'seat'  => $user->seat_id,
+                		'slack' => $user->slack_id,
+	                ],
+	                'channels' => $granted_channels,
+                ]);
+
                 if (!in_array($channel->id, $granted_channels)) {
+                	logger()->debug('Slack Kicker - Kicking user', [
+                		'user' => [
+                			'seat' => $user->user_id,
+			                'slack' => $user->slack_id
+		                ],
+		                'channel' => $channel->id
+	                ]);
+
                     $this->slack->setBody([
                         'channel' => $channel->id,
                         'user' => $user->slack_id,
@@ -70,7 +102,8 @@ class AssKicker extends AbstractSlackJob {
 
         }
 
-        $this->cleanTemporaryStorage();
+	    logger()->debug('Slack kicker - clearing cached data');
+	    Cache::tags(['conversations', 'members'])->flush();
 
         $this->writeInfoJobLog('The full kicking process took ' .
             number_format(microtime(true) - $job_start, 2) . 's to complete.');
@@ -95,14 +128,21 @@ class AssKicker extends AbstractSlackJob {
                 'exclude_archived' => true,
             ]);
 
-        $response = $this->slack->invoke('get', '/conversations.list');
+        $response = Cache::tags(['conversations'])->get(is_null($cursor) ? 'root' : $cursor);
+
+        if (is_null($response)) {
+	        $response = $this->slack->invoke('get', '/conversations.list');
+	        Cache::tags(['conversations'])->put(is_null($cursor) ? 'root' : $cursor, $response);
+        }
+
         $channels = $response->channels;
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
             sleep(1);
             $channels = array_merge(
             	$channels,
-	            $this->fetchingSlackConversations( $response->response_metadata->next_cursor != ''));
+	            $this->fetchingSlackConversations( $response->response_metadata->next_cursor)
+            );
         }
 
         return $channels;
@@ -120,8 +160,18 @@ class AssKicker extends AbstractSlackJob {
                 'cursor' => $cursor,
             ]);
 
-        $response = $this->slack->invoke('get', '/conversations.members');
+        $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
+
+        if (is_null($response)) {
+	        $response = $this->slack->invoke( 'get', '/conversations.members' );
+	        Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
+        }
+
         $members = $response->members;
+	    logger()->debug('Slack kicker - channel members', [
+		    'channel_id' => $channel_id,
+		    'members' => $response->members,
+	    ]);
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
             sleep(1);
@@ -131,32 +181,6 @@ class AssKicker extends AbstractSlackJob {
         }
 
         return $members;
-    }
-
-    private function cleanTemporaryStorage()
-    {
-        $directory = Configuration::getInstance()->file_cache_location . 'conversationsmembers';
-        $this->rmdir($directory);
-    }
-
-    private function rmdir($directory)
-    {
-        if (!file_exists($directory))
-            return;
-
-        foreach (scandir($directory) as $file) {
-            if (in_array($file, ['.', '..']))
-                continue;
-
-            if (is_dir($directory . DIRECTORY_SEPARATOR . $file)) {
-                $this->rmdir( $directory . DIRECTORY_SEPARATOR . $file );
-                continue;
-            }
-
-            unlink($directory . DIRECTORY_SEPARATOR . $file);
-        }
-
-        rmdir($directory);
     }
 
     private function logKickEvent(string $channel_id, string $user_id)

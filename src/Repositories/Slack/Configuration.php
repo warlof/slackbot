@@ -15,12 +15,24 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Log\LogInterface;
 
 class Configuration {
 
+	/**
+	 * @var Configuration
+	 */
     private static $instance;
 
+	/**
+	 * @var LogInterface
+	 */
     protected $logger;
 
+	/**
+	 * @var
+	 */
     protected $cache;
 
+	/**
+	 * @var SlackConfiguration
+	 */
     protected $configuration;
 
     private function __construct() {

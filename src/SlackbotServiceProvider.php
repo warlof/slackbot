@@ -3,6 +3,7 @@
 namespace Warlof\Seat\Slackbot;
 
 use Illuminate\Support\ServiceProvider;
+use Warlof\Seat\Slackbot\Commands\SlackConversationSync;
 use Warlof\Seat\Slackbot\Commands\SlackUserInvite;
 use Warlof\Seat\Slackbot\Commands\SlackUserKick;
 use Warlof\Seat\Slackbot\Commands\SlackUserSync;
@@ -46,6 +47,7 @@ class SlackbotServiceProvider extends ServiceProvider
             SlackUserSync::class,
 	        SlackUserInvite::class,
 	        SlackUserKick::class,
+	        SlackConversationSync::class,
         ]);
     }
     
@@ -69,7 +71,8 @@ class SlackbotServiceProvider extends ServiceProvider
     private function addPublications()
     {
         $this->publishes([
-            __DIR__ . '/database/migrations/' => database_path('migrations')
+            __DIR__ . '/database/migrations/' => database_path('migrations'),
+	        __DIR__ . '/resources/assets/css/' => public_path('web/css'),
         ]);
     }
 }

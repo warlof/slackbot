@@ -160,13 +160,7 @@ class SlackApi {
         $uri = $this->buildDataUri($uri, $uri_data);
         $this->setQueryString([]);
 
-        if (strtolower($method) == 'get' && ($cached = $this->getCache()->get($uri->getPath(), $uri->getQuery())))
-            return $cached;
-
         $result = $this->rawFetch($method, $uri, $this->getBody());
-
-        if (strtolower($method) == 'get' && !$result->expired())
-            $this->getCache()->set($uri->getPath(), $uri->getQuery(), $result);
 
         $this->setBody([]);
 

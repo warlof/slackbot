@@ -14,6 +14,7 @@ use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
 use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 abstract class AbstractSlackJob extends Base {
@@ -32,10 +33,12 @@ abstract class AbstractSlackJob extends Base {
         parent::__construct($job_payload);
 
         $configuration = Configuration::getInstance();
-        $configuration->http_user_agent = '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)';
-        $configuration->logger_level = Logger::DEBUG;
-        $configuration->logfile_location = storage_path('logs/slack.log');
-        $configuration->file_cache_location = storage_path('cache/slack/');
+        $configuration->setConfiguration(new SlackConfiguration([
+        	'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
+        	'logger_level'        => Logger::DEBUG,
+	        'logfile_location'    => storage_path('logs/slack.log'),
+	        'file_cache_location' => storage_path('cache/slack/'),
+        ]));
 
         if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
             throw new SlackSettingException("warlof.slackbot.credentials.access_token is missing in settings. " .

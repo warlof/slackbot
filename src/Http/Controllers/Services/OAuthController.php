@@ -70,18 +70,18 @@ class OAuthController extends Controller
             ]);
 
             if ($response->getStatusCode() != 200) {
-                throw new \Exception('Returned status code : ' . $response->getStatusCode() .
+                throw new Exception('Returned status code : ' . $response->getStatusCode() .
                     ' is not matching with 200.');
             }
 
             $result = json_decode($response->getBody(), true);
 
             if ($result == null) {
-                throw new \Exception("response from Slack was empty.");
+                throw new Exception("response from Slack was empty.");
             }
 
             if ($result['ok'] == false) {
-                throw new \Exception($result['error']);
+                throw new Exception($result['error']);
             }
 
             setting(['warlof.slackbot.credentials.client_id', $oauthCredentials['client_id']], true);

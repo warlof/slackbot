@@ -55,13 +55,15 @@ class SyncUser extends AbstractSlackJob {
 
     private function bindingSlackUser($users)
     {
+    	logger()->debug('bindingSlackUser', ['users' => $users]);
+
         foreach ($users as $user) {
 
         	try {
 
-		        $response = $this->slack->setBody([
-			        'email' => $user->email
-		        ])->invoke('post', '/users.lookupByEmail');
+		        $response = $this->slack->setQueryString([
+		        	'email' => $user->email,
+		        ]) ->invoke('get', '/users.lookupByEmail');
 
 		        SlackUser::create([
 			        'user_id'  => $user->id,
@@ -69,14 +71,32 @@ class SyncUser extends AbstractSlackJob {
 			        'name' => property_exists($response->user, 'name') ? $response->user->name : '',
 		        ]);
 
+		        SlackLog::create([
+		        	'event' => 'binding',
+			        'message' => sprintf('User %s (%s) has been successfully bind to %s',
+				        $user->name,
+				        $user->email,
+				        property_exists($response->user, 'name') ? $response->user->name : ''),
+		        ]);
+
 		        sleep(1);
 
 	        } catch (RequestFailedException $e) {
 
-        		SlackLog::create([
-        			'event' => 'sync',
-			        'message' => sprintf('Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email),
-		        ]);
+        		if ($e->getResponse()->error() == 'users_not_found') {
+			        SlackLog::create( [
+				        'event'   => 'sync',
+				        'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
+			        ] );
+		        } else {
+        			SlackLog::create([
+        				'event' => 'error',
+				        'message' => sprintf('Slack respond with an unknown message while syncing %s (%s) : %s',
+					        $user->name,
+					        $user->email,
+					        $e->getResponse()->error()),
+			        ]);
+		        }
 
 	        }
 

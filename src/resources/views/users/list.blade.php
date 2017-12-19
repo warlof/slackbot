@@ -40,11 +40,6 @@
                     <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    <!--
-                    <button type="button" class="btn btn-xs pull-right" style="background: none">
-                        <i class="fa fa-refresh"></i>
-                    </button>
-                    -->
                     <h4 class="modal-title">
                         <span id="slack_username"></span>
                         (<span id="seat_username"></span>) is member of following
@@ -77,6 +72,9 @@
                             </table>
                         </div>
                     </div>
+                    <div class="overlay">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close</button>
@@ -87,9 +85,14 @@
 
 @endsection
 
+@push('head')
+<link rel="stylesheet" type="text/css" href="{{ asset('web/css/wt-slack-hook.css') }}" />
+@endpush
+
 @push('javascript')
 <script type="text/javascript">
     $(function(){
+        var modal = $('#user-channels');
         var table = $('table#users-table').DataTable({
             processing: true,
             serverSide: true,
@@ -118,38 +121,50 @@
         $('#users-table').find('tbody')
             .on('click', 'button.btn-info', function(){
                 var row = table.row($(this).parents('tr')).data();
+                $('#slack_username').text(row.slack_name);
+                $('#seat_username').text(row.user_name);
+                $('#channels, #groups').find('tbody tr').remove();
+                modal.find('.overlay').show();
 
                 $.ajax({
                     url: '{{ route('slackbot.json.user.channels', ['id' => null]) }}',
                     data: {'slack_id' : row.slack_id},
                     success: function(data){
-                        var i = 0;
-                        var channels = $('#channels');
-                        var groups = $('#groups');
+                        if (data) {
+                            for (var i = 0; i < data.length; i++) {
+                                var conversation = data[i];
 
-                        channels.find('tbody tr').remove();
-                        groups.find('tbody tr').remove();
+                                // conversations is a group
+                                if (conversation.is_group) {
+                                    $('#groups').find('tbody').append(
+                                        '<tr><td>' +
+                                        conversation.id +
+                                        '</td><td>' +
+                                        conversation.name +
+                                        '</td><td>' +
+                                        conversation.num_members +
+                                        '</td></tr>');
+                                }
 
-                        $('#slack_username').text(row.slack_name);
-                        $('#seat_username').text(row.user_name);
-
-                        if (data['channels']) {
-                            for (i = 0; i < data['channels'].length; i++) {
-                                channels.find('tbody').append('<tr><td>' + data['channels'][i][0] + '</td><td>' +
-                                        data['channels'][i][1] + '</td><td>' + data['channels'][i][2] + '</td></tr>');
+                                // conversations is a channel
+                                if (conversation.is_channel) {
+                                    $('#channels').find('tbody').append(
+                                        '<tr><td>' +
+                                        conversation.id +
+                                        '</td><td>' +
+                                        conversation.name +
+                                        '</td><td>' +
+                                        conversation.num_members +
+                                        '</td></tr>');
+                                }
                             }
                         }
 
-                        if (data['groups']) {
-                            for (i = 0; i < data['groups'].length; i++) {
-                                groups.find('tbody').append('<tr><td>' + data['groups'][i][0] + '</td><td>' +
-                                        data['groups'][i][1] + '</td><td>' + data['groups'][i][2] + '</td></tr>');
-                            }
-                        }
+                        modal.find('.overlay').hide();
                     }
                 });
 
-                $('#user-channels').modal('show');
+                modal.modal('show');
             })
             .on('click', 'button.btn-danger', function(){
                 var data = table.row($(this).parents('tr')).data();

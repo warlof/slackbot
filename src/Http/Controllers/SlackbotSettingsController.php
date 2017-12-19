@@ -25,8 +25,8 @@ class SlackbotSettingsController extends Controller
     public function getSubmitJob($commandName)
     {
         $acceptedCommands = [
-            'slack:channels:update',
-            'slack:users:update',
+            'slack:conversation:sync',
+            'slack:user:sync',
             'slack:logs:clear'
         ];
 

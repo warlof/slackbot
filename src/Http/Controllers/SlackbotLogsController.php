@@ -20,7 +20,7 @@ class SlackbotLogsController extends Controller
         return view('slackbot::logs.list', compact('logCount'));
     }
 
-    public function getLogData()
+    public function getJsonLogData()
     {
         $logs = SlackLog::orderBy('created_at', 'desc')->get();
 

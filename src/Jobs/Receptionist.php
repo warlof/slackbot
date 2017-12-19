@@ -8,11 +8,11 @@
 namespace Warlof\Seat\Slackbot\Jobs;
 
 
+use Illuminate\Support\Facades\Cache;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 
 class Receptionist extends AbstractSlackJob {
 
@@ -31,18 +31,23 @@ class Receptionist extends AbstractSlackJob {
         ]);
 
         $this->writeInfoJobLog('Starting Slack Reception...');
+        logger()->debug('Slack Receptionist - Starting job...');
 
         $job_start = microtime(true);
 
         // retrieve information related to the current token
         // so we can remove the user owner from process since we're not able to do things on ourselves
         $token_info = $this->slack->invoke('get', '/auth.test');
+        logger()->debug('Slack Receptionist - Checking token', [
+        	'owner' => $token_info->user_id,
+        ]);
 
         $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
 
         if ($this->job_payload->owner_id > 0) {
             $query->where('user_id', (int) $this->job_payload->owner_id);
             $this->writeInfoJobLog('Restricting job to a single user : ' . $this->job_payload->owner_id);
+            logger()->debug('Slack Receptionist - Restricting job to a single user : ' . $this->job_payload->owner_id);
         }
 
         $users = $query->get();
@@ -52,17 +57,30 @@ class Receptionist extends AbstractSlackJob {
                 Helper::allowedChannels($user, true),
                 Helper::allowedChannels($user, false));
 
+            logger()->debug('Slack Receptionist - Retrieving granted channels list', [
+            	'user' => [
+            		'seat'  => $user->seat_id,
+		            'slack' => $user->slack_id,
+	            ],
+	            'channels' => $granted_channels,
+            ]);
+
             foreach ($granted_channels as $channel_id) {
                 $this->fetchingSlackConversationMembers($user->slack_id, $channel_id);
             }
         }
 
-        $this->cleanTemporaryStorage();
+	    logger()->debug('Receptionist - clearing cached data');
+	    Cache::tags(['conversations', 'members'])->flush();
 
         $this->writeInfoJobLog('Pending invitation list has been seeded. Sending invitation...');
 
         foreach ($this->pending_invitations as $channel_id => $user_list) {
             $this->writeInfoJobLog('Starting invitation to channel ' . $channel_id);
+            logger()->debug('Slack Receptionist - Starting invitation', [
+            	'channel' => $channel_id,
+	            'users'   => $user_list,
+            ]);
 
             // split user list into sub list of maximum 30 user ID
             // in order to send less invitation queries as possible
@@ -99,46 +117,35 @@ class Receptionist extends AbstractSlackJob {
                 'cursor' => $cursor,
             ]);
 
-        $response = $this->slack->invoke('get', '/conversations.members');
+        $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
+
+        if (is_null($response)) {
+	        $response = $this->slack->invoke( 'get', '/conversations.members' );
+	        Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
+        }
+
+        logger()->debug('Slack reception - channel members', [
+        	'channel_id' => $channel_id,
+        	'members' => $response->members,
+        ]);
 
         // if user is not already member of the channel, put Slack ID in queue
         if (!in_array($slack_id, $response->members)) {
+        	logger()->debug('Slack reception - buffering invitation', [
+        		'slack_user_id' => $slack_id,
+		        'channel_id' => $channel_id,
+	        ]);
+
             if (!array_key_exists($channel_id, $this->pending_invitations))
                 $this->pending_invitations[$channel_id] = [];
 
-            $this->pending_invitations[ $channel_id ][] = $slack_id;
+            $this->pending_invitations[$channel_id][] = $slack_id;
         }
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
             sleep(1);
             $this->fetchingSlackConversationMembers($slack_id, $channel_id, $response->response_metadata->next_cursor);
         }
-    }
-
-    private function cleanTemporaryStorage()
-    {
-        $directory = Configuration::getInstance()->file_cache_location . 'conversationsmembers';
-        $this->removeDirectory($directory);
-    }
-
-    private function removeDirectory($directory)
-    {
-        if (!file_exists($directory))
-            return;
-
-        foreach (scandir($directory) as $file) {
-            if (in_array($file, ['.', '..']))
-                continue;
-
-            if (is_dir($directory . DIRECTORY_SEPARATOR . $file)) {
-                $this->removeDirectory( $directory . DIRECTORY_SEPARATOR . $file );
-                continue;
-            }
-
-            unlink($directory . DIRECTORY_SEPARATOR . $file);
-        }
-
-        rmdir($directory);
     }
 
     private function logInvitationEvents(string $channel_id, array $user_ids)

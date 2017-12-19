@@ -181,7 +181,7 @@ class GuzzleFetcher implements FetcherInterface
 
         return $this->makeSlackResponse(
             $content,
-            $response->hasHeader('Expires') ? $response->getHeader('Expires')[0] : carbon('now')->addHour(),
+            $response->hasHeader('Expires') ? $response->getHeader('Expires')[0] : 'now',
             $response->getStatusCode()
         );
     }

@@ -29,7 +29,7 @@ class FileLogger implements LogInterface {
         );
         $stream->setFormatter($formatter);
 
-        $this->logger = new Logger('slackapi');
+        $this->logger = new Logger('slack');
         $this->logger->pushHandler($stream);
     }
 

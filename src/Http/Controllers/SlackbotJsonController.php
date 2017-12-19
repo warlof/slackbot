@@ -8,7 +8,7 @@
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
 
-use Illuminate\Support\Facades\Redis;
+use Monolog\Logger;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Corporation\Title;
 use Seat\Eveapi\Models\Eve\AllianceList;
@@ -24,48 +24,72 @@ use Warlof\Seat\Slackbot\Models\SlackChannelPublic;
 use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Warlof\Seat\Slackbot\Models\SlackChannelTitle;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
+use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
+use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 class SlackbotJsonController extends Controller
 {
+	/**
+	 * @var SlackApi
+	 */
+	private $slack;
+
     public function getJsonUserChannelsData(UserChannel $request)
     {
         $slackId = $request->input('slack_id');
 
-        if (($member = json_decode(Redis::get('seat:warlof:slackbot:users.' . $slackId), true)) == null) {
-            $member = app(SlackApi::class)->getUserInfo($slackId);
-            $member['conversations'] = app(SlackApi::class)->getUserConversations($slackId);
+	    if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
+	    	return response()->json([]);
 
-            Redis::set('seat:warlof:slackbot:users.' . $slackId, json_encode($member));
-        }
+	    $configuration = Configuration::getInstance();
+	    $configuration->setConfiguration(new SlackConfiguration([
+		    'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
+		    'logger_level'        => Logger::DEBUG,
+		    'logfile_location'    => storage_path('logs/slack.log'),
+		    'file_cache_location' => storage_path('cache/slack/'),
+	    ]));
 
-        $groups = [];
-        $channels = [];
+	    $auth = new SlackAuthentication([
+		    'access_token' => setting('warlof.slackbot.credentials.access_token', true),
+		    'scopes' => [
+			    'users:read',
+			    'users:read.email',
+			    'channels:read',
+			    'channels:write',
+			    'groups:read',
+			    'groups:write',
+			    'im:read',
+			    'im:write',
+			    'mpim:read',
+			    'mpim:write',
+			    'read',
+			    'post',
+		    ],
+	    ]);
 
-        foreach ($member['conversations'] as $channelId) {
-            $stats = json_decode(Redis::get('seat:warlof:slackbot:stats:conversations.' . $channelId), true);
+	    $this->slack = new SlackApi($auth);
 
-            if (is_null($stats)) {
-                $channel = app(SlackApi::class)->getConversationInfo($channelId);
-                $stats = [
-                    $channelId,
-                    $channel['name'],
-                    array_key_exists('num_members', $channel) ? $channel['num_members'] : 0,
-                ];
+	    $conversations_buffer = [];
+	    $conversations = $this->fetchConversations();
 
-                Redis::set('seat:warlof:slackbot:stats:conversations.' . $channelId, json_encode($stats));
-            }
+	    foreach ($conversations as $conversation) {
 
-            // conversation is a public channel
-            if (strpos($channelId, 'C') === 0) {
-                $channels[] = $stats;
-                continue;
-            }
+	    	$members = $this->fetchConversationMembers($conversation->id);
 
-            // conversation is a private group
-            $groups[] = $stats;
-        }
+	    	if (in_array($slackId, $members))
+	    		$conversations_buffer[] = [
+	    			'id'          => $conversation->id,
+				    'name'        => $conversation->name,
+	    			'is_channel'  => $conversation->is_channel,
+				    'is_group'    => $conversation->is_group,
+				    'num_members' => property_exists($conversation, 'num_members') ? $conversation->num_members : 0,
+			    ];
 
-        return response()->json(['channels' => $channels, 'groups' => $groups]);
+	    }
+
+        return response()->json($conversations_buffer);
     }
 
     public function getJsonTitle()
@@ -363,4 +387,63 @@ class SlackbotJsonController extends Controller
         return redirect()->back()
             ->with('error', 'This relation already exists');
     }
+
+    //
+	// Slack Api
+	//
+
+	private function fetchConversations(string $cursor = null)
+	{
+		$this->slack->setQueryString([
+			'types' => implode(',', ['public_channel', 'private_channel']),
+			'exclude_archived' => true,
+		]);
+
+		if (!is_null($cursor))
+			$this->slack->setQueryString([
+				'cursor' => $cursor,
+				'types' => implode(',', ['public_channel', 'private_channel']),
+				'exclude_archived' => true,
+			]);
+
+		$response = $this->slack->invoke('get', '/conversations.list');
+
+		$channels = $response->channels;
+
+		if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
+			sleep(1);
+			$channels = array_merge(
+				$channels,
+				$this->fetchConversations( $response->response_metadata->next_cursor)
+			);
+		}
+
+		return $channels;
+	}
+
+	private function fetchConversationMembers(string $channel_id, string $cursor = null) : array
+	{
+		$this->slack->setQueryString([
+			'channel' => $channel_id,
+		]);
+
+		if (!is_null($cursor))
+			$this->slack->setQueryString([
+				'channel' => $channel_id,
+				'cursor' => $cursor,
+			]);
+
+		$response = $this->slack->invoke( 'get', '/conversations.members' );
+
+		$members = $response->members;
+
+		if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
+			sleep(1);
+			$members = array_merge(
+				$members,
+				$this->fetchConversationMembers($channel_id, $response->response_metadata->next_cursor));
+		}
+
+		return $members;
+	}
 }
