@@ -15,6 +15,7 @@ use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
 class AssKicker extends Base {
 
@@ -104,10 +105,25 @@ class AssKicker extends Base {
                         'channel' => $channel->id
                     ]);
 
-                    $this->getConnector()->setBody([
-                        'channel' => $channel->id,
-                        'user' => $user->slack_id,
-                    ])->invoke('post', '/conversations.kick');
+                    try {
+
+                        $this->getConnector()->setBody( [
+                            'channel' => $channel->id,
+                            'user'    => $user->slack_id,
+                        ] )->invoke( 'post', '/conversations.kick' );
+
+                    } catch (RequestFailedException $e) {
+
+                        // catch error related to unknown member
+                        if ($e->getError() == 'invalid_memberships') {
+                            $user->delete();
+                            sleep(1);
+                            continue;
+                        }
+
+                        // if error is not related to unknown member, just forward the initial exception
+                        throw $e;
+                    }
 
                     $this->logKickEvent($channel->id, $user->slack_id);
                     sleep(1);

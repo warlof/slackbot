@@ -42,7 +42,8 @@ class SyncUser extends Base {
 
         // retrieve all unlinked SeAT users
         $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
-                   ->whereNull('user_id');
+                   ->whereNull('user_id')
+                   ->select('id', 'users.name', 'email', 'user_id', 'slack_id');
 
         // if command has been run for a specific user, restrict result on it
         if ($this->job_payload->owner_id > 0) {
