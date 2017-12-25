@@ -1,3 +1,6 @@
+# Version 2.3.3
+* Handle an issue which was not returning empty channels list when either user account or keys were disabled
+
 # Version 2.3.2
 * Handle an issue which was related to syncing process on old coupling. Now, coupling are removed if target user is non longer valid.
 * Handle an issue on logging related to query statement when the process kick an user from a channel.
