@@ -38,7 +38,7 @@ class SyncUser extends Base {
 
         $this->writeInfoJobLog('Starting Slack Sync User...');
 
-        $job_start = microtime(true);
+        $jobStart = microtime(true);
 
         // retrieve all unlinked SeAT users
         $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
@@ -56,7 +56,7 @@ class SyncUser extends Base {
         $this->bindingSlackUser($users);
 
         $this->writeInfoJobLog('The full syncing process took ' .
-            number_format(microtime(true) - $job_start, 2) . 's to complete.');
+            number_format(microtime(true) - $jobStart, 2) . 's to complete.');
 
         $this->updateJobStatus([
             'status' => 'Done',
@@ -93,36 +93,51 @@ class SyncUser extends Base {
                     'name' => property_exists($response->user, 'name') ? $response->user->name : '',
                 ]);
 
-                SlackLog::create([
-                    'event' => 'binding',
-                    'message' => sprintf('User %s (%s) has been successfully bind to %s',
-                        $user->name,
-                        $user->email,
-                        property_exists($response->user, 'name') ? $response->user->name : ''),
-                ]);
+                $this->loggingSuccessBinding($user, $response);
 
                 sleep(1);
 
             } catch (RequestFailedException $e) {
 
                 if ($e->getResponse()->error() == 'users_not_found') {
-                    SlackLog::create( [
-                        'event'   => 'sync',
-                        'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
-                    ] );
-                } else {
-                    SlackLog::create([
-                        'event' => 'error',
-                        'message' => sprintf('Slack respond with an unknown message while syncing %s (%s) : %s',
-                            $user->name,
-                            $user->email,
-                            $e->getResponse()->error()),
-                    ]);
+                    $this->loggingNoMatchResponse($user);
+                    continue;
                 }
 
+                $this->loggingUnknownResponse($user, $e->getResponse()->error());
             }
 
         }
+    }
+
+    private function loggingSuccessBinding($user, $response)
+    {
+        SlackLog::create([
+            'event' => 'binding',
+            'message' => sprintf('User %s (%s) has been successfully bind to %s',
+                $user->name,
+                $user->email,
+                property_exists($response->user, 'name') ? $response->user->name : ''),
+        ]);
+    }
+
+    private function loggingNoMatchResponse($user)
+    {
+        SlackLog::create([
+            'event'   => 'sync',
+            'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
+        ]);
+    }
+
+    private function loggingUnknownResponse($user, string $message)
+    {
+        SlackLog::create([
+            'event' => 'error',
+            'message' => sprintf('Slack respond with an unknown message while syncing %s (%s) : %s',
+                $user->name,
+                $user->email,
+                $message),
+        ]);
     }
 
 }

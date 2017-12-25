@@ -42,17 +42,7 @@ class SyncConversation extends Base {
         $conversations_buffer = [];
 
         foreach ($conversations as $conversation) {
-
-            $conversations_buffer[] = $conversation->id;
-            SlackChannel::updateOrCreate([
-                    'id' => $conversation->id,
-                ],
-                [
-                    'name' => $conversation->name,
-                    'is_group' => $conversation->is_group,
-                    'is_general' => $conversation->is_general,
-                ]);
-
+            $this->updateConversationInformation($conversation);
         }
 
         SlackChannel::whereNotIn('id', $conversations_buffer)->delete();
@@ -66,6 +56,19 @@ class SyncConversation extends Base {
         ]);
 
         return;
+    }
+
+    private function updateConversationInformation($conversation)
+    {
+	    $conversations_buffer[] = $conversation->id;
+	    SlackChannel::updateOrCreate([
+		    'id' => $conversation->id,
+	    ],
+	    [
+		    'name' => $conversation->name,
+		    'is_group' => $conversation->is_group,
+		    'is_general' => $conversation->is_general,
+	    ]);
     }
 
 }

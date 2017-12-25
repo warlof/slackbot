@@ -122,198 +122,22 @@
 
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane fade in active" id="slackbot-public">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th></th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelPublic as $channel)
-                            <tr>
-                                <td></td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.public.remove', ['channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.public')
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-username">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th>{{ trans('slackbot::seat.username') }}</th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelUsers as $channel)
-                            <tr>
-                                <td>{{ $channel->user->name }}</td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.user.remove', ['user_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.user')
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-role">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th>{{ trans('slackbot::seat.role') }}</th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelRoles as $channel)
-                            <tr>
-                                <td>{{ $channel->role->title }}</td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.role.remove', ['role_id' => $channel->role_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.role')
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-corporation">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th>{{ trans('slackbot::seat.corporation') }}</th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelCorporations as $channel)
-                            <tr>
-                                <td>{{ $channel->corporation->corporationName }}</td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.corporation.remove', ['corporation_id' => $channel->corporation_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.corporation')
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-title">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th>{{ trans('slackbot::seat.corporation') }}</th>
-                            <th>{{ trans('slackbot::seat.title') }}</th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelTitles as $channel)
-                            <tr>
-                                <td>{{ $channel->corporation->corporationName }}</td>
-                                <td>{{ strip_tags($channel->title->titleName) }}</td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.title.remove', ['corporation_id' => $channel->corporation_id, 'title_id' => $channel->title_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.title')
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="slackbot-alliance">
-                    <table class="table table-condensed table-hover table-responsive">
-                        <thead>
-                        <tr>
-                            <th>{{ trans('slackbot::seat.alliance') }}</th>
-                            <th>{{ trans('slackbot::seat.channel') }}</th>
-                            <th>{{ trans('slackbot::seat.created') }}</th>
-                            <th>{{ trans('slackbot::seat.updated') }}</th>
-                            <th>{{ trans('slackbot::seat.status') }}</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($channelAlliances as $channel)
-                            <tr>
-                                <td>{{ $channel->alliance->name }}</td>
-                                <td>{{ $channel->channel->name }}</td>
-                                <td>{{ $channel->created_at }}</td>
-                                <td>{{ $channel->updated_at }}</td>
-                                <td>{{ $channel->enable }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('slackbot.alliance.remove', ['alliance_id' => $channel->alliance_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                                            {{ trans('web::seat.remove') }}
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    @include('slackbot::access.includes.filters.alliance')
                 </div>
             </div>
         </div>
@@ -321,52 +145,14 @@
 @stop
 
 @push('javascript')
-    <script type="application/javascript">
-        function getCorporationTitle() {
-            console.debug('in');
-            $('#slack-title-id').empty();
-
-            $.ajax('{{ route('slackbot.json.titles') }}', {
-                data: {
-                    corporation_id: $('#slack-corporation-id').val()
-                },
-                dataType: 'json',
-                method: 'GET',
-                success: function(data){
-                    for (var i = 0; i < data.length; i++) {
-                        $('#slack-title-id').append($('<option></option>').attr('value', data[i].titleID).text(data[i].titleName));
-                    }
-                }
-            });
-        }
-
-        $('#slack-type').change(function(){
-            $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-title-id', 'slack-alliance-id'], function(key, value){
-                if (value === ('slack-' + $('#slack-type').val() + '-id')) {
-                    $(('#' + value)).prop('disabled', false);
-                } else {
-                    $(('#' + value)).prop('disabled', true);
-                }
-            });
-
-            if ($('#slack-type').val() === 'title') {
-                $('#slack-corporation-id, #slack-title-id').prop('disabled', false);
-            }
-        }).select2();
-
+    <script type="text/javascript" src="{{ asset('web/js/filters.js') }}"></script>
+    <script type="text/javascript">
         $('#slack-corporation-id').change(function(){
-            getCorporationTitle();
-        });
-
-        $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-title-id, #slack-alliance-id, #slack-channel-id').select2();
-
-        $('#slack-tabs').find('a').click(function(e){
-            e.preventDefault();
-            $(this).tab('show');
+            getCorporationTitle('{{ route('slackbot.json.titles') }}');
         });
 
         $(document).ready(function(){
-            getCorporationTitle();
+            getCorporationTitle('{{ route('slackbot.json.titles') }}');
         });
     </script>
 @endpush

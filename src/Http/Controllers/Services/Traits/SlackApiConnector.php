@@ -24,6 +24,24 @@ trait SlackApiConnector {
     private $slack;
 
     /**
+     * @var array Scopes
+     */
+    private $scopes = [
+        'users:read',
+        'users:read.email',
+        'channels:read',
+        'channels:write',
+        'groups:read',
+        'groups:write',
+        'im:read',
+        'im:write',
+        'mpim:read',
+        'mpim:write',
+        'read',
+        'post',
+    ];
+
+    /**
      * @return SlackApi
      * @throws SlackSettingException
      * @throws \Seat\Services\Exceptions\SettingException
@@ -48,20 +66,7 @@ trait SlackApiConnector {
 
         $this->slack = new SlackApi(new SlackAuthentication([
             'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-            'scopes' => [
-                'users:read',
-                'users:read.email',
-                'channels:read',
-                'channels:write',
-                'groups:read',
-                'groups:write',
-                'im:read',
-                'im:write',
-                'mpim:read',
-                'mpim:write',
-                'read',
-                'post',
-            ],
+            'scopes' => $this->scopes,
         ]));
 
         return $this->slack;
@@ -154,9 +159,7 @@ trait SlackApiConnector {
             sleep(1);
             $members = array_merge(
                 $members,
-                $this->fetchSlackConversationMembers(
-                    $channel_id,
-                    $response->response_metadata->next_cursor));
+                $this->fetchSlackConversationMembers($channel_id, $response->response_metadata->next_cursor));
         }
 
         return $members;

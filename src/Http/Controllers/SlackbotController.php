@@ -58,24 +58,8 @@ class SlackbotController extends Controller
         $users = SlackUser::whereNull('name')->get();
 
         if ($users->count() > 0) {
-
             foreach ($users as $slackUser) {
-
-                try {
-                    $response = $this->getConnector()->setQueryString([
-                        'email' => $slackUser->user->email,
-                    ])->invoke( 'get', '/users.lookupByEmail' );
-                    $slackUser->update( [
-                        'name' => property_exists( $response->user, 'name' ) ? $response->user->name : '',
-                    ] );
-
-                    if ( $users->count() > 1 ) {
-                        sleep( 1 );
-                    }
-                } catch (RequestFailedException $e) {
-
-                }
-
+            	$this->updateSlackUserInformation($slackUser);
             }
         }
 
@@ -95,6 +79,29 @@ class SlackbotController extends Controller
                 return $row->name;
             })
             ->make(true);
+    }
+
+	/**
+	 * @param SlackUser $slackUser
+	 *
+	 * @throws \Seat\Services\Exceptions\SettingException
+	 * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+	 * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+	 */
+    private function updateSlackUserInformation(SlackUser $slackUser)
+    {
+	    try {
+		    $response = $this->getConnector()->setQueryString([
+			    'email' => $slackUser->user->email,
+		    ])->invoke( 'get', '/users.lookupByEmail');
+		    $slackUser->update([
+			    'name' => property_exists( $response->user, 'name' ) ? $response->user->name : '',
+		    ]);
+
+		    sleep( 1 );
+	    } catch (RequestFailedException $e) {}
     }
 
 }

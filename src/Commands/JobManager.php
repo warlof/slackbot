@@ -40,16 +40,12 @@ trait JobManager {
         }
 
         // Look for an existing job
-        $job_id = JobTracking::where('owner_id', $args->owner_id)
-                             ->where('api', $args->api)
-                             ->where('scope', $args->scope)
-                             ->whereIn('status', ['Queued', 'Working'])
-                             ->value('job_id');
+        $job_id = $this->getJobID($args);
 
         // Just return if the job already exists
         if ($job_id) {
 
-            logger()->warning('A job for Api ' . $args->api . ' - Scope ' . $args-scope . ' and owner ' .
+            logger()->warning('A job for Api ' . $args->api . ' - Scope ' . $args->scope . ' and owner ' .
                               $args->owner_id . ' already exists.');
 
             return $job_id;
@@ -83,13 +79,7 @@ trait JobManager {
         }
 
         // ...and add tracking information
-        JobTracking::create([
-            'job_id'   => $job_id,
-            'owner_id' => $args->owner_id,
-            'api'      => $args->api,
-            'scope'    => $args->scope,
-            'status'   => 'Queued',
-        ]);
+        $this->addJobTrackingData($job_id, $args);
 
         return $job_id;
 
@@ -103,11 +93,30 @@ trait JobManager {
      */
     public function hasDefaultAdminContact()
     {
-
-        if (Seat::get('admin_contact') === 'seatadmin@localhost.local')
+        if (setting('admin_contact', true) === 'seatadmin@localhost.local')
             return true;
 
         return false;
+    }
+
+    private function getJobID($args)
+    {
+        return JobTracking::where('owner_id', $args->owner_id)
+                          ->where('api', $args->api)
+                          ->where('scope', $args->scope)
+                          ->whereIn('status', ['Queued', 'Working'])
+                          ->value('job_id');
+    }
+
+    private function addJobTrackingData($job_id, $args)
+    {
+        JobTracking::create([
+            'job_id'   => $job_id,
+            'owner_id' => $args->owner_id,
+            'api'      => $args->api,
+            'scope'    => $args->scope,
+            'status'   => 'Queued',
+        ]);
     }
 
 }

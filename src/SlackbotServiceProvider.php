@@ -45,11 +45,11 @@ class SlackbotServiceProvider extends ServiceProvider
     private function addCommands()
     {
         $this->commands([
-        	SlackLogsClear::class,
+            SlackLogsClear::class,
             SlackUserSync::class,
-	        SlackUserInvite::class,
-	        SlackUserKick::class,
-	        SlackConversationSync::class,
+            SlackUserInvite::class,
+            SlackUserKick::class,
+            SlackConversationSync::class,
         ]);
     }
     
@@ -74,7 +74,8 @@ class SlackbotServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/database/migrations/' => database_path('migrations'),
-	        __DIR__ . '/resources/assets/css/' => public_path('web/css'),
+            __DIR__ . '/resources/assets/css/' => public_path('web/css'),
+            __DIR__ . '/resources/assets/js/' => public_path('web/js'),
         ]);
     }
 }
