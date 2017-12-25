@@ -11,17 +11,17 @@
     </tr>
     </thead>
     <tbody>
-    @foreach($channelTitles as $channel)
+    @foreach($channelTitles as $filter)
         <tr>
-            <td>{{ $channel->corporation->corporationName }}</td>
-            <td>{{ strip_tags($channel->title->titleName) }}</td>
-            <td>{{ $channel->channel->name }}</td>
-            <td>{{ $channel->created_at }}</td>
-            <td>{{ $channel->updated_at }}</td>
-            <td>{{ $channel->enable }}</td>
+            <td>{{ $filter->related->corporation->corporationName }}</td>
+            <td>{{ strip_tags($filter->related->titleName) }}</td>
+            <td>{{ $filter->channel->name }}</td>
+            <td>{{ $filter->created_at }}</td>
+            <td>{{ $filter->updated_at }}</td>
+            <td>{{ $filter->enable }}</td>
             <td>
                 <div class="btn-group">
-                    <a href="{{ route('slackbot.title.remove', ['corporation_id' => $channel->corporation_id, 'title_id' => $channel->title_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
+                    <a href="{{ route('slackbot.filters.remove', ['title', $filter->channel->id, $filter->related->id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                         {{ trans('web::seat.remove') }}
                     </a>
                 </div>

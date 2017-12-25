@@ -10,16 +10,16 @@
     </tr>
     </thead>
     <tbody>
-    @foreach($channelRoles as $channel)
+    @foreach($channelRoles as $filter)
         <tr>
-            <td>{{ $channel->role->title }}</td>
-            <td>{{ $channel->channel->name }}</td>
-            <td>{{ $channel->created_at }}</td>
-            <td>{{ $channel->updated_at }}</td>
-            <td>{{ $channel->enable }}</td>
+            <td>{{ $filter->related->title }}</td>
+            <td>{{ $filter->channel->name }}</td>
+            <td>{{ $filter->created_at }}</td>
+            <td>{{ $filter->updated_at }}</td>
+            <td>{{ $filter->enable }}</td>
             <td>
                 <div class="btn-group">
-                    <a href="{{ route('slackbot.role.remove', ['role_id' => $channel->role_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
+                    <a href="{{ route('slackbot.filters.remove', ['role', $filter->channel->id, $filter->related->id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                         {{ trans('web::seat.remove') }}
                     </a>
                 </div>

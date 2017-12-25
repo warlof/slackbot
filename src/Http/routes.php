@@ -59,33 +59,9 @@ Route::group([
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
-            Route::get('/users/{user_id}/{channel_id}/remove', [
-                'as' => 'slackbot.user.remove',
-                'uses' => 'SlackbotJsonController@getRemoveUser',
-                'middleware' => 'bouncer:slackbot.create'
-            ]);
-
-            Route::get('/roles/{role_id}/{channel_id}/remove', [
-                'as' => 'slackbot.role.remove',
-                'uses' => 'SlackbotJsonController@getRemoveRole',
-                'middleware' => 'bouncer:slackbot.create'
-            ]);
-
-            Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
-                'as' => 'slackbot.corporation.remove',
-                'uses' => 'SlackbotJsonController@getRemoveCorporation',
-                'middleware' => 'bouncer:slackbot.create'
-            ]);
-
-            Route::get('/corporation/{corporation_id}/{title_id}/{channel_id}/remove', [
-                'as' => 'slackbot.title.remove',
-                'uses' => 'SlackbotJsonController@getRemoveTitle',
-                'middleware' => 'bouncer:slackbot:create'
-            ]);
-
-            Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
-                'as' => 'slackbot.alliance.remove',
-                'uses' => 'SlackbotJsonController@getRemoveAlliance',
+            Route::get('/{related_type}/{alliance_id}/{channel_id}/remove', [
+                'as' => 'slackbot.filters.remove',
+                'uses' => 'SlackbotJsonController@getRemoveRelation',
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
