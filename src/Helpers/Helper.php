@@ -69,64 +69,70 @@ class Helper
     {
         $channels = [];
 
+        if (!Helper::isEnabledAccount($slackUser->user))
+            return $channels;
+
+        if (!Helper::isEnabledKey($slackUser->user->keys))
+            return $channels;
+
         $rows = User::join('slack_channel_users', 'slack_channel_users.user_id', '=', 'users.id')
-            ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.id')
-            ->select('channel_id')
-            ->where('users.id', $slackUser->user_id)
-            ->where('slack_channels.is_group', (int) $private)
-            ->where('slack_channels.is_general', (int) false)
-            ->union(
-            // fix model declaration calling the table directly
-                DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=',
-                    'role_user.role_id')
-                    ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
-                    ->where('role_user.user_id', $slackUser->user_id)
+                    ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.id')
+                    ->select('channel_id')
+                    ->where('users.id', $slackUser->user_id)
                     ->where('slack_channels.is_group', (int) $private)
                     ->where('slack_channels.is_general', (int) false)
-                    ->select('channel_id')
+                    ->union(
+                    // fix model declaration calling the table directly
+                        DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=',
+                            'role_user.role_id')
+                          ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
+                          ->where('role_user.user_id', $slackUser->user_id)
+                          ->where('slack_channels.is_group', (int) $private)
+                          ->where('slack_channels.is_general', (int) false)
+                          ->select('channel_id')
+                    )->union(
+                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=',
+                    'eve_api_keys.key_id')
+                      ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=',
+                          'account_api_key_info_characters.corporationID')
+                      ->join('slack_channels', 'slack_channel_corporations.channel_id', '=', 'slack_channels.id')
+                      ->where('eve_api_keys.user_id', $slackUser->user_id)
+                      ->where('slack_channels.is_group', (int) $private)
+                      ->where('slack_channels.is_general', (int) false)
+                      ->select('channel_id')
             )->union(
                 ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=',
                     'eve_api_keys.key_id')
-                    ->join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=',
-                        'account_api_key_info_characters.corporationID')
-                    ->join('slack_channels', 'slack_channel_corporations.channel_id', '=', 'slack_channels.id')
-                    ->where('eve_api_keys.user_id', $slackUser->user_id)
-                    ->where('slack_channels.is_group', (int) $private)
-                    ->where('slack_channels.is_general', (int) false)
-                    ->select('channel_id')
-            )->union(
-                ApiKey::join('account_api_key_info_characters', 'account_api_key_info_characters.keyID', '=',
-                    'eve_api_keys.key_id')
-                    ->join('character_character_sheet_corporation_titles',
-                        'character_character_sheet_corporation_titles.characterID', '=',
-                        'account_api_key_info_characters.characterID')
-                    ->join('slack_channel_titles', function($join){
-                        $join->on('slack_channel_titles.corporation_id', '=',
-                            'account_api_key_info_characters.corporationID');
-                        $join->on('slack_channel_titles.title_id', '=',
-                            'character_character_sheet_corporation_titles.titleID');
-                    })
-                    ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
-                    ->where('eve_api_keys.user_id', $slackUser->user_id)
-                    ->where('slack_channels.is_group', (int) $private)
-                    ->where('slack_channels.is_general', (int) false)
-                    ->select('channel_id')
+                      ->join('character_character_sheet_corporation_titles',
+                          'character_character_sheet_corporation_titles.characterID', '=',
+                          'account_api_key_info_characters.characterID')
+                      ->join('slack_channel_titles', function($join){
+                          $join->on('slack_channel_titles.corporation_id', '=',
+                              'account_api_key_info_characters.corporationID');
+                          $join->on('slack_channel_titles.title_id', '=',
+                              'character_character_sheet_corporation_titles.titleID');
+                      })
+                      ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
+                      ->where('eve_api_keys.user_id', $slackUser->user_id)
+                      ->where('slack_channels.is_group', (int) $private)
+                      ->where('slack_channels.is_general', (int) false)
+                      ->select('channel_id')
             )->union(
                 CharacterSheet::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=',
                     'character_character_sheets.allianceID')
-                    ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
-                    ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', '=',
-                        'character_character_sheets.characterID')
-                    ->join('eve_api_keys', 'eve_api_keys.key_id', '=', 'account_api_key_info_characters.keyID')
-                    ->where('eve_api_keys.user_id', $slackUser->user_id)
-                    ->where('slack_channels.is_group', (int) $private)
-                    ->where('slack_channels.is_general', (int) false)
-                    ->select('channel_id')
+                              ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
+                              ->join('account_api_key_info_characters', 'account_api_key_info_characters.characterID', '=',
+                                  'character_character_sheets.characterID')
+                              ->join('eve_api_keys', 'eve_api_keys.key_id', '=', 'account_api_key_info_characters.keyID')
+                              ->where('eve_api_keys.user_id', $slackUser->user_id)
+                              ->where('slack_channels.is_group', (int) $private)
+                              ->where('slack_channels.is_general', (int) false)
+                              ->select('channel_id')
             )->union(
                 SlackChannelPublic::join('slack_channels', 'slack_channel_public.channel_id', '=', 'slack_channels.id')
-                    ->where('slack_channels.is_group', (int) $private)
-                    ->where('slack_channels.is_general', (int) false)
-                    ->select('channel_id')
+                                  ->where('slack_channels.is_group', (int) $private)
+                                  ->where('slack_channels.is_general', (int) false)
+                                  ->select('channel_id')
             )->get();
 
         foreach ($rows as $row) {
