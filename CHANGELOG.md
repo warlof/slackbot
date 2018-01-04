@@ -1,3 +1,6 @@
+# Version 2.3.5
+* Critical hotfix which is handling an issue related to JobManager who can lead to an fatal error
+
 # Version 2.3.3
 * Handle an issue which was not returning empty channels list when either user account or keys were disabled
 
