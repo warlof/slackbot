@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 use Seat\Eveapi\Helpers\JobPayloadContainer;
 use Seat\Eveapi\Models\JobTracking;
-use Seat\Services\Settings\Seat;
 
 trait JobManager {
 
@@ -49,7 +48,7 @@ trait JobManager {
         // Just return if the job already exists
         if ($job_id) {
 
-            logger()->warning('A job for Api ' . $args->api . ' - Scope ' . $args-scope . ' and owner ' .
+            logger()->warning('A job for Api ' . $args->api . ' - Scope ' . $args->scope . ' and owner ' .
                               $args->owner_id . ' already exists.');
 
             return $job_id;
@@ -104,7 +103,7 @@ trait JobManager {
     public function hasDefaultAdminContact()
     {
 
-        if (Seat::get('admin_contact') === 'seatadmin@localhost.local')
+        if (setting('admin_contact', true) === 'seatadmin@localhost.local')
             return true;
 
         return false;
