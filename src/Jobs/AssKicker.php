@@ -115,7 +115,7 @@ class AssKicker extends Base {
                     } catch (RequestFailedException $e) {
 
                         // catch error related to unknown member
-                        if ($e->getError() == 'invalid_memberships') {
+                        if ($e->getError() == 'invalid_membership') {
                             $user->delete();
                             sleep(1);
                             continue;
