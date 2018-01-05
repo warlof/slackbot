@@ -1,3 +1,10 @@
+# Version 2.3.6
+* Handle an issue related to request amount and 429 HTTP response from Slack service
+* Handle an issue which may skip request cool down in specific case
+* Improve logability by including request ID, as well as headers and body in debug mode
+* Update the user agent which should be more use full for Slack Team
+* Automagically rotate log file
+
 # Version 2.3.5
 * Critical hotfix which is handling an issue related to JobManager who can lead to an fatal error
 
