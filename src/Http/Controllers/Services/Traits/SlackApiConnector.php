@@ -40,9 +40,9 @@ trait SlackApiConnector {
 
         $configuration = Configuration::getInstance();
         $configuration->setConfiguration(new SlackConfiguration([
-            'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
+            'http_user_agent'     => '(Warlof Tutsimo;Loic Leuilliot;e.elfaus@gmail.com)',
             'logger_level'        => Logger::DEBUG,
-            'logfile_location'    => storage_path('logs/slack.log'),
+            'logfile_location'    => storage_path(sprintf('logs/slack-%s.log', carbon()->toDateString())),
             'file_cache_location' => storage_path('cache/slack/'),
         ]));
 
@@ -80,6 +80,8 @@ trait SlackApiConnector {
      */
     private function fetchSlackConversations(string $cursor = null) : array
     {
+        sleep(1);
+
         $this->getConnector()->setQueryString([
             'types' => implode(',', ['public_channel', 'private_channel']),
             'exclude_archived' => true,
@@ -102,7 +104,6 @@ trait SlackApiConnector {
         $channels = $response->channels;
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
             $channels = array_merge(
                 $channels,
                 $this->fetchSlackConversations( $response->response_metadata->next_cursor)
@@ -126,6 +127,8 @@ trait SlackApiConnector {
      */
     private function fetchSlackConversationMembers(string $channel_id, string $cursor = null) : array
     {
+        sleep(1);
+
         $this->getConnector()->setQueryString([
             'channel' => $channel_id,
         ]);
@@ -139,7 +142,7 @@ trait SlackApiConnector {
         $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
 
         if (is_null($response)) {
-            $response = $this->getConnector()->invoke( 'get', '/conversations.members' );
+            $response = $this->getConnector()->invoke('get', '/conversations.members');
             Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
         }
 
@@ -151,7 +154,6 @@ trait SlackApiConnector {
         $members = $response->members;
 
         if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
             $members = array_merge(
                 $members,
                 $this->fetchSlackConversationMembers(

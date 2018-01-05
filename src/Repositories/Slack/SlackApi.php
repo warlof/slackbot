@@ -25,8 +25,6 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Log\LogInterface;
 
 class SlackApi {
 
-    const VERSION = '2.3.0';
-
     protected $authentication;
 
     protected $fetcher;
@@ -56,10 +54,10 @@ class SlackApi {
         return Configuration::getInstance();
     }
 
-	/**
-	 * @return SlackAuthentication
-	 * @throws InvalidAuthenticationException
-	 */
+    /**
+     * @return SlackAuthentication
+     * @throws InvalidAuthenticationException
+     */
     public function getAuthentication() : SlackAuthentication
     {
         if (is_null($this->authentication))
@@ -68,12 +66,12 @@ class SlackApi {
         return $this->authentication;
     }
 
-	/**
-	 * @param SlackAuthentication $authentication
-	 *
-	 * @return SlackApi
-	 * @throws InvalidContainerDataException
-	 */
+    /**
+     * @param SlackAuthentication $authentication
+     *
+     * @return SlackApi
+     * @throws InvalidContainerDataException
+     */
     public function setAuthentication(SlackAuthentication $authentication) : self
     {
         if (!$authentication->valid())
@@ -148,16 +146,16 @@ class SlackApi {
         return $this;
     }
 
-	/**
-	 * @param string $method
-	 * @param string $uri
-	 * @param array $uri_data
-	 *
-	 * @return SlackResponse
-	 * @throws SlackScopeAccessDeniedException
-	 * @throws RequestFailedException
-	 * @throws UriDataMissingException
-	 */
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param array $uri_data
+     *
+     * @return SlackResponse
+     * @throws SlackScopeAccessDeniedException
+     * @throws RequestFailedException
+     * @throws UriDataMissingException
+     */
     public function invoke(string $method, string $uri, array $uri_data = []) : SlackResponse
     {
         if (!$this->getAccessChecker()->can($method, $uri, $this->getFetcher()->getAuthenticationScopes())) {
@@ -178,26 +176,26 @@ class SlackApi {
         return $result;
     }
 
-	/**
-	 * @param string $method
-	 * @param string $uri
-	 * @param array $body
-	 *
-	 * @return SlackResponse
-	 * @throws RequestFailedException
-	 */
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param array $body
+     *
+     * @return SlackResponse
+     * @throws RequestFailedException
+     */
     private function rawFetch(string $method, string $uri, array $body) : SlackResponse
     {
         return $this->getFetcher()->call($method, $uri, $body);
     }
 
-	/**
-	 * @param string $uri
-	 * @param array $data
-	 *
-	 * @return UriInterface
-	 * @throws UriDataMissingException
-	 */
+    /**
+     * @param string $uri
+     * @param array $data
+     *
+     * @return UriInterface
+     * @throws UriDataMissingException
+     */
     private function buildDataUri(string $uri, array $data) : UriInterface
     {
         $query_params = $this->getQueryString();
@@ -210,13 +208,13 @@ class SlackApi {
         ]);
     }
 
-	/**
-	 * @param string $uri
-	 * @param array $data
-	 *
-	 * @return string
-	 * @throws UriDataMissingException
-	 */
+    /**
+     * @param string $uri
+     * @param array $data
+     *
+     * @return string
+     * @throws UriDataMissingException
+     */
     private function mapDataToUri(string $uri, array $data) : string
     {
         if (preg_match('/{+(.*?)}/', $uri, $matches)) {

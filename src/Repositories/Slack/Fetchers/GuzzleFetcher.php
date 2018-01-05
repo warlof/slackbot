@@ -10,6 +10,7 @@ namespace Warlof\Seat\Slackbot\Repositories\Slack\Fetchers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use stdClass;
@@ -141,10 +142,9 @@ class GuzzleFetcher implements FetcherInterface
         $headers = array_merge($headers, [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
-            'User-Agent' => 'Seat-Slackbot/' . SlackApi::VERSION . '/' . Configuration::getInstance()->http_user_agent,
+            'User-Agent' => 'Seat-Slackbot/' . config('slackbot.config.version') . '/' . Configuration::getInstance()->http_user_agent,
         ]);
 
-        $this->logger->debug('Making ' . $method . ' request to ' . $uri);
         $start = microtime(true);
 
         if (count($body) > 0)
@@ -156,9 +156,36 @@ class GuzzleFetcher implements FetcherInterface
             $response = $this->getClient()->send(new Request($method, $uri, $headers, $body));
         } catch (ClientException $e) {
             $this->logger->error('[http ' . $e->getResponse()->getStatusCode() . '] ' .
-                '[' . $e->getResponse()->getReasonPhrase() . '] ' .
+                '[' . $e->getResponse()->getReasonPhrase() . '] [' . $e->getResponse()->getHeaderLine('X-Slack-Req-Id') . '] ' .
                 $method . ' -> ' . $this->stripRefreshTokenValue($uri) . ' [' .
                 number_format(microtime(true) - $start, 2) . 's]');
+
+            $this->logger->debug('[headers] ' . json_encode($e->getResponse()->getHeaders()));
+            $this->logger->debug('[body] ' . $e->getResponse()->getBody());
+
+            if ($e->getResponse()->getStatusCode() == 429) {
+                // Apply cool-down
+                $requestedCalmDown = $e->getResponse()->getHeaderLine('Retry-After');
+                if ($requestedCalmDown == null | $requestedCalmDown == '')
+                    $requestedCalmDown = 1;
+
+                sleep((int) $requestedCalmDown);
+                // Make a new attempt
+                return $this->httpRequest($method, $uri, is_null($headers) ? [] : $headers, is_null($body) ? [] : $body);
+            }
+
+            throw new RequestFailedException($e,
+                $this->makeSlackResponse(
+                    (object) json_decode($e->getResponse()->getBody()), 'now',
+                    $e->getResponse()->getStatusCode()
+                ));
+        } catch(ServerException $e) {
+            $this->logger->error('[http ' . $e->getResponse()->getStatusCode() . '] ' .
+                '[' . $e->getResponse()->getReasonPhrase() . '] [' . $e->getResponse()->getHeaderLine('X-Slack-Req-Id') . '] ' .
+                $method . ' -> ' . $this->stripRefreshTokenValue($uri) . ' [' .
+                number_format(microtime(true) - $start, 2) . 's]');
+            $this->logger->debug('[headers] ' . json_encode($e->getResponse()->getHeaders()));
+            $this->logger->debug('[body] ' . $e->getResponse()->getBody());
 
             throw new RequestFailedException($e,
                 $this->makeSlackResponse(
@@ -170,7 +197,8 @@ class GuzzleFetcher implements FetcherInterface
         $content = (object) json_decode($response->getBody());
         if (property_exists($content, 'ok') && !$content->ok) {
             $this->logger->error('[http ' . $response->getStatusCode() . '] ' .
-                                 (property_exists($content, 'error') ? '[' . $content->error . '] ' : '[errors] ').
+                                 (property_exists($content, 'error') ? '[' . $content->error . '] [' : '[errors] [') .
+                                 $response->getHeaderLine('X-Slack-Req-Id') . '] ' .
                 $method . ' -> ' . $this->stripRefreshTokenValue($uri) . ' [' .
                 number_format(microtime(true) - $start, 2) . 's]');
 
@@ -182,8 +210,8 @@ class GuzzleFetcher implements FetcherInterface
                 ));
         }
 
-        $this->logger->log('[http ' . $response->getStatusCode() . '] ' .
-            '[' . $response->getReasonPhrase() . '] ' .
+        $this->logger->log('[http ' . $response->getStatusCode() . '] [' .
+            $response->getReasonPhrase() . '] [' . $response->getHeaderLine('X-Slack-Req-Id') . '] ' .
             $method . ' -> ' . $this->stripRefreshTokenValue($uri) . ' [' .
             number_format(microtime(true) - $start, 2) . 's]');
 

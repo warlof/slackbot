@@ -20,6 +20,7 @@ class CheckAccess implements AccessInterface {
             '/conversations.info'    => ['channels:read', 'groups:read', 'im:read', 'mpim:read', 'read'],
             '/conversations.list'    => ['channels:read', 'groups:read', 'im:read', 'mpim:read', 'read'],
             '/conversations.members' => ['channels:read', 'groups:read', 'im:read', 'mpim:read', 'read'],
+            '/users.lookupByEmail'   => ['users:read.email'],
         ],
         'post' => [
             '/conversations.invite'  => ['channels:write', 'groups:write', 'im:write', 'mpim:write', 'post'],

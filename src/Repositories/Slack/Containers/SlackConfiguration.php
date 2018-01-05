@@ -28,7 +28,7 @@ class SlackConfiguration extends AbstractArrayAccess {
         // Logger
         'logger'              => FileLogger::class,
         'logger_level'        => Logger::INFO,
-        'logfile_location'    => 'logs/slackapi.log',
+        'logfile_location'    => 'logs/slack.log',
 
         // Cache
         'cache'               => FileCache::class,
