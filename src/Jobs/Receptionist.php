@@ -66,6 +66,11 @@ class Receptionist extends Base {
         $users = $query->get();
 
         foreach ($users as $user) {
+
+            $this->updateJobStatus([
+                'output' => sprintf('Processing user %s (%s)', $user->user_id, $user->slack_id)
+            ]);
+
             $granted_channels = array_merge(
                 Helper::allowedChannels($user, true),
                 Helper::allowedChannels($user, false));

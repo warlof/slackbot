@@ -105,6 +105,10 @@ class AssKicker extends Base {
                         'channel' => $channel->id
                     ]);
 
+                    $this->updateJobStatus([
+                        'output' => sprintf('Processing user %s (%s)', $user->user_id, $user->slack_id),
+                    ]);
+
                     try {
 
                         $this->getConnector()->setBody( [

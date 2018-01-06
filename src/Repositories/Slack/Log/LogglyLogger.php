@@ -1,27 +1,28 @@
 <?php
 /**
  * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 08/12/2017
- * Time: 22:26
+ * Date: 06/01/2018
+ * Time: 22:36
  */
 
 namespace Warlof\Seat\Slackbot\Repositories\Slack\Log;
 
 
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\LogglyHandler;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 
-class FileLogger implements LogInterface {
+class LogglyLogger implements LogInterface {
 
     protected $logger;
 
-    public function __construct() {
-
+    public function __construct()
+    {
         $configuration = Configuration::getInstance();
 
-        $formatter = new LineFormatter('[%datetime%] %channel%.%level_name%: %message%' . PHP_EOL);
+        $formatter = new LineFormatter('[%datetime%] %channel%.%level_name%: %message%' . PHP_EOL . '%context%' . PHP_EOL);
 
         $stream = new RotatingFileHandler(
             $configuration->logfile_location,
@@ -30,7 +31,11 @@ class FileLogger implements LogInterface {
         );
         $stream->setFormatter($formatter);
 
+        $loggly = new LogglyHandler(config('slackbot.config.loggly.key'), $configuration->logger_level);
+        $loggly->setTag(config('slackbot.config.loggly.tag'));
+
         $this->logger = new Logger('slack');
+        $this->logger->pushHandler($loggly);
         $this->logger->pushHandler($stream);
     }
 
@@ -44,12 +49,13 @@ class FileLogger implements LogInterface {
         $this->logger->addDebug($message, $context);
     }
 
-    public function warning(string $message, array $context = []) {
+    public function warning(string $message, array $context = [])
+    {
         $this->logger->addWarning($message, $context);
     }
 
-    public function error(string $message, array $context = []) {
+    public function error(string $message, array $context = [])
+    {
         $this->logger->addError($message, $context);
     }
-
 }

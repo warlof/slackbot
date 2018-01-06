@@ -9,11 +9,11 @@ namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
 
 
 use Illuminate\Support\Facades\Cache;
-use Monolog\Logger;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
+use Warlof\Seat\Slackbot\Repositories\Slack\Log\LogglyLogger;
 use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 trait SlackApiConnector {
@@ -41,8 +41,9 @@ trait SlackApiConnector {
         $configuration = Configuration::getInstance();
         $configuration->setConfiguration(new SlackConfiguration([
             'http_user_agent'     => '(Warlof Tutsimo;Loic Leuilliot;e.elfaus@gmail.com)',
-            'logger_level'        => Logger::DEBUG,
-            'logfile_location'    => storage_path(sprintf('logs/slack-%s.log', carbon()->toDateString())),
+            'logger'              => LogglyLogger::class,
+            'logger_level'        => config('app.log_level'),
+            'logfile_location'    => storage_path('logs/slack.log'),
             'file_cache_location' => storage_path('cache/slack/'),
         ]));
 
