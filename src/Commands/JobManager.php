@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 use Seat\Eveapi\Helpers\JobPayloadContainer;
 use Seat\Eveapi\Models\JobTracking;
-use Seat\Services\Settings\Seat;
 
 trait JobManager {
 

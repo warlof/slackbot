@@ -1,3 +1,28 @@
+# Version 2.4.0
+* Address an issue related to log rotation
+* The sync user job will now only attempt to sync active SeAT account.
+* Jobs are now more verbose about what they are doing
+* In order to improve issue fix reactivity, a new logger has been implemented which will forward debug information to Loggly
+  - Slack API response header are forwarded for all HTTP error (4xx or 5xx)
+  - Slack API request ID is always sent. It's only usable by Slack support team
+  - Your SeAT server IP is always sent. It will be usefull for people who goes on SeAT slack #support
+  - Slack API requested endpoint is always sent. (https://api.slack.com/methods)
+  - Slack API response body is only sent for HTTP error (4xx or 5xx) and API error
+  - Installed slackbot version is always sent. It will help to detect issues related to outdated package
+  - Those information are only visible by SeAT core team and sent to https://warlof.loggly.com
+
+> The staff is wishing you an happy new year 2018 !
+
+# Version 2.3.6
+* Handle an issue related to request amount and 429 HTTP response from Slack service
+* Handle an issue which may skip request cool down in specific case
+* Improve logability by including request ID, as well as headers and body in debug mode
+* Update the user agent which should be more use full for Slack Team
+* Automagically rotate log file
+
+# Version 2.3.5
+* Critical hotfix which is handling an issue related to JobManager who can lead to an fatal error
+
 # Version 2.3.3
 * Handle an issue which was not returning empty channels list when either user account or keys were disabled
 

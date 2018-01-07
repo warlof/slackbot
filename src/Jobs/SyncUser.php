@@ -43,6 +43,7 @@ class SyncUser extends Base {
         // retrieve all unlinked SeAT users
         $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
                    ->whereNull('user_id')
+                   ->where('account_status', true)
                    ->select('id', 'users.name', 'email', 'user_id', 'slack_id');
 
         // if command has been run for a specific user, restrict result on it
@@ -80,6 +81,10 @@ class SyncUser extends Base {
         logger()->debug('bindingSlackUser', ['users' => $users]);
 
         foreach ($users as $user) {
+
+            $this->updateJobStatus([
+                'output' => sprintf('Processing user %s (%s)', $user->id, $user->email),
+            ]);
 
             try {
 

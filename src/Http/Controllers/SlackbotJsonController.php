@@ -8,13 +8,14 @@
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
 
-use Monolog\Logger;
+use Exception;
 use Seat\Eveapi\Models\Corporation\CorporationSheet;
 use Seat\Eveapi\Models\Corporation\Title;
 use Seat\Eveapi\Models\Eve\AllianceList;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\Acl\Role;
 use Seat\Web\Models\User;
+use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Http\Validation\AddRelation;
 use Warlof\Seat\Slackbot\Http\Validation\UserChannel;
 use Warlof\Seat\Slackbot\Models\CorporationTitle;
@@ -26,13 +27,11 @@ use Warlof\Seat\Slackbot\Models\SlackChannelRole;
 use Warlof\Seat\Slackbot\Models\SlackChannelTitle;
 use Warlof\Seat\Slackbot\Models\SlackChannelUser;
 use Warlof\Seat\Slackbot\Models\SlackFilter;
-use Warlof\Seat\Slackbot\Repositories\Slack\Configuration;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
-use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 class SlackbotJsonController extends Controller
 {
+
+	use SlackApiConnector;
 
     /**
      * @param UserChannel $request
@@ -51,51 +50,30 @@ class SlackbotJsonController extends Controller
         if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
             return response()->json([]);
 
-        $configuration = Configuration::getInstance();
-        $configuration->setConfiguration(new SlackConfiguration([
-            'http_user_agent'     => '(Clan Daerie;Warlof Tutsimo;Daerie Inc.;Get Off My Lawn)',
-            'logger_level'        => Logger::DEBUG,
-            'logfile_location'    => storage_path('logs/slack.log'),
-            'file_cache_location' => storage_path('cache/slack/'),
-        ]));
+        try {
+	        $conversations_buffer = [];
+	        $conversations        = $this->fetchSlackConversations();
 
-        $slack = new SlackApi(new SlackAuthentication([
-            'access_token' => setting('warlof.slackbot.credentials.access_token', true),
-            'scopes' => [
-                'users:read',
-                'users:read.email',
-                'channels:read',
-                'channels:write',
-                'groups:read',
-                'groups:write',
-                'im:read',
-                'im:write',
-                'mpim:read',
-                'mpim:write',
-                'read',
-                'post',
-            ],
-        ]));
+	        foreach ( $conversations as $conversation ) {
 
-        $conversations_buffer = [];
-        $conversations = $this->fetchConversations($slack);
+		        $members = $this->fetchSlackConversationMembers($conversation->id);
 
-        foreach ($conversations as $conversation) {
+		        if ( in_array( $slackId, $members ) ) {
+			        $conversations_buffer[] = [
+				        'id'          => $conversation->id,
+				        'name'        => $conversation->name,
+				        'is_channel'  => $conversation->is_channel,
+				        'is_group'    => $conversation->is_group,
+				        'num_members' => property_exists( $conversation, 'num_members' ) ? $conversation->num_members : 0,
+			        ];
+		        }
 
-            $members = $this->fetchConversationMembers($slack, $conversation->id);
+	        }
 
-            if (in_array($slackId, $members))
-                $conversations_buffer[] = [
-                    'id'          => $conversation->id,
-                    'name'        => $conversation->name,
-                    'is_channel'  => $conversation->is_channel,
-                    'is_group'    => $conversation->is_group,
-                    'num_members' => property_exists($conversation, 'num_members') ? $conversation->num_members : 0,
-                ];
-
+	        return response()->json($conversations_buffer);
+        } catch (Exception $e) {
+        	return response()->json($e->getMessage(), 500);
         }
-
-        return response()->json($conversations_buffer);
     }
 
     public function getJsonTitle()
@@ -377,83 +355,5 @@ class SlackbotJsonController extends Controller
 	    }
 
 	    return [];
-    }
-
-    //
-    // Slack Api
-    //
-
-    /**
-     * @param SlackApi $slack
-     * @param string|null $cursor
-     *
-     * @return array
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-     */
-    private function fetchConversations(SlackApi $slack, string $cursor = null)
-    {
-        $slack->setQueryString([
-            'types' => implode(',', ['public_channel', 'private_channel']),
-            'exclude_archived' => true,
-        ]);
-
-        if (!is_null($cursor))
-            $slack->setQueryString([
-                'cursor' => $cursor,
-                'types' => implode(',', ['public_channel', 'private_channel']),
-                'exclude_archived' => true,
-            ]);
-
-        $response = $slack->invoke('get', '/conversations.list');
-
-        $channels = $response->channels;
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $channels = array_merge(
-                $channels,
-                $this->fetchConversations($slack, $response->response_metadata->next_cursor)
-            );
-        }
-
-        return $channels;
-    }
-
-    /**
-     * @param SlackApi $slack
-     * @param string $channel_id
-     * @param string|null $cursor
-     *
-     * @return array
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
-     */
-    private function fetchConversationMembers(SlackApi $slack, string $channel_id, string $cursor = null) : array
-    {
-        $slack->setQueryString([
-            'channel' => $channel_id,
-        ]);
-
-        if (!is_null($cursor))
-            $slack->setQueryString([
-                'channel' => $channel_id,
-                'cursor' => $cursor,
-            ]);
-
-        $response = $slack->invoke( 'get', '/conversations.members' );
-
-        $members = $response->members;
-
-        if (property_exists($response, 'response_metadata') && $response->response_metadata->next_cursor != '') {
-            sleep(1);
-            $members = array_merge(
-                $members,
-                $this->fetchConversationMembers($slack, $channel_id, $response->response_metadata->next_cursor));
-        }
-
-        return $members;
     }
 }

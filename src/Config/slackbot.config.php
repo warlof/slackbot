@@ -9,5 +9,9 @@
  * TODO: lazy coder, remember to edit this file before TAG ! DAMMIT !
  */
 return [
-    'version'   => '2.3.4'
+    'version'   => '2.4.0',
+    'loggly'    => [
+        'key' => 'b4aa3599-add7-4afc-aeb0-a9906b39f316',
+        'tag' => 'seat-slackbot',
+    ]
 ];
