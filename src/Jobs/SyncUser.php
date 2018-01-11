@@ -32,39 +32,47 @@ class SyncUser extends Base {
         if (!$this->trackOrDismiss())
             return;
 
-        $this->updateJobStatus([
-            'status' => 'Working',
-        ]);
+        try {
 
-        $this->writeInfoJobLog('Starting Slack Sync User...');
+            $this->updateJobStatus([
+                'status' => 'Working',
+                'output' => 'Starting sync...',
+            ]);
 
-        $job_start = microtime(true);
+            $this->writeInfoJobLog('Starting Slack Sync User...');
 
-        // retrieve all unlinked SeAT users
-        $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
-                   ->whereNull('user_id')
-                   ->where('account_status', true)
-                   ->select('id', 'users.name', 'email', 'user_id', 'slack_id');
+            $job_start = microtime(true);
 
-        // if command has been run for a specific user, restrict result on it
-        if ($this->job_payload->owner_id > 0) {
-            $query->where( 'id', (int) $this->job_payload->owner_id );
-            $this->writeInfoJobLog('Restricting job to single user : ' . $this->job_payload->owner_id);
+            // retrieve all unlinked SeAT users
+            $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
+                       ->whereNull('user_id')
+                       ->where('account_status', true)
+                       ->select('id', 'users.name', 'email', 'user_id', 'slack_id');
+
+            // if command has been run for a specific user, restrict result on it
+            if ($this->job_payload->owner_id > 0) {
+                $query->where('id', (int) $this->job_payload->owner_id);
+                $this->writeInfoJobLog('Restricting job to single user : ' . $this->job_payload->owner_id);
+            }
+
+            $users = $query->get();
+
+            $this->bindingSlackUser($users);
+
+            $this->writeInfoJobLog('The full syncing process took ' .
+                                   number_format(microtime(true) - $job_start, 2) . 's to complete.');
+
+            $this->markAsDone();
+
+        } catch (RequestFailedException $e) {
+
+            $this->writeErrorJobLog(
+                sprintf('A %s occured. The error was: %s',
+                    'RequestFailedException',
+                    $e->getException()->getMessage()));
+            $this->reportJobError($e->getException());
+
         }
-
-        $users = $query->get();
-
-        $this->bindingSlackUser($users);
-
-        $this->writeInfoJobLog('The full syncing process took ' .
-            number_format(microtime(true) - $job_start, 2) . 's to complete.');
-
-        $this->updateJobStatus([
-            'status' => 'Done',
-            'output' => null,
-        ]);
-
-        return;
     }
 
     /**

@@ -10,7 +10,6 @@ namespace Warlof\Seat\Slackbot\Commands;
 
 use Illuminate\Console\Command;
 use Seat\Eveapi\Helpers\JobPayloadContainer;
-use Seat\Eveapi\Traits\JobManager;
 use Seat\Services\Helpers\AnalyticsContainer;
 use Seat\Services\Jobs\Analytics;
 use Warlof\Seat\Slackbot\Jobs\SyncConversation;

@@ -11,6 +11,7 @@ namespace Warlof\Seat\Slackbot\Jobs;
 use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
+use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
 class SyncConversation extends Base {
 
@@ -30,42 +31,51 @@ class SyncConversation extends Base {
         if (!$this->trackOrDismiss())
             return;
 
-        $this->updateJobStatus([
-            'status' => 'Working',
-        ]);
+        try {
 
-        $this->writeInfoJobLog('Starting Slack Sync Conversation...');
+            $this->updateJobStatus([
+                'status' => 'Working',
+                'output' => 'Starting sync...',
+            ]);
 
-        $job_start = microtime(true);
+            $this->writeInfoJobLog('Starting Slack Sync Conversation...');
 
-        $conversations = $this->fetchSlackConversations();
-        $conversations_buffer = [];
+            $job_start = microtime(true);
 
-        foreach ($conversations as $conversation) {
+            $conversations        = $this->fetchSlackConversations();
+            $conversations_buffer = [];
 
-            $conversations_buffer[] = $conversation->id;
-            SlackChannel::updateOrCreate([
-                    'id' => $conversation->id,
-                ],
-                [
-                    'name' => $conversation->name,
-                    'is_group' => $conversation->is_group,
-                    'is_general' => $conversation->is_general,
-                ]);
+            foreach ($conversations as $conversation) {
+
+                $conversations_buffer[] = $conversation->id;
+                SlackChannel::updateOrCreate(
+                    [
+                        'id' => $conversation->id,
+                    ],
+                    [
+                        'name'       => $conversation->name,
+                        'is_group'   => $conversation->is_group,
+                        'is_general' => $conversation->is_general,
+                    ]);
+
+            }
+
+            SlackChannel::whereNotIn('id', $conversations_buffer)->delete();
+
+            $this->writeInfoJobLog('The full syncing process took ' .
+                                    number_format(microtime(true) - $job_start, 2) . 's to complete.');
+
+            $this->markAsDone();
+
+        } catch (RequestFailedException $e) {
+
+            $this->writeErrorJobLog(
+                sprintf('A %s occurred. The error was: %s',
+                    'RequestFailedException',
+                    $e->getException()->getMessage()));
+            $this->reportJobError($e->getException());
 
         }
-
-        SlackChannel::whereNotIn('id', $conversations_buffer)->delete();
-
-        $this->writeInfoJobLog('The full syncing process took ' .
-            number_format(microtime(true) - $job_start, 2) . 's to complete.');
-
-        $this->updateJobStatus([
-            'status' => 'Done',
-            'output' => null,
-        ]);
-
-        return;
     }
 
 }
