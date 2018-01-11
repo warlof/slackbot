@@ -1,3 +1,7 @@
+# Version 2.4.1
+* Address an issue which avoid job status to be updated when an exception occurred from api fetch flow
+* Address an issue which avoid sync:user job to be run when other Slack job were running (thanks @herpaderp)
+
 # Version 2.4.0
 * Address an issue related to log rotation
 * The sync user job will now only attempt to sync active SeAT account.
