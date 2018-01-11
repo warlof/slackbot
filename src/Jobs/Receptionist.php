@@ -131,7 +131,8 @@ class Receptionist extends Base {
 
         $this->updateJobStatus([
             'status' => 'Done',
-            'output' => null,
+            'output' => 'The full invitation process took ' .
+                number_format(microtime(true) - $job_start, 2) . 's to complete.',
         ]);
 
         return;
