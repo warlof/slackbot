@@ -25,7 +25,7 @@ class SlackUserSync extends Command {
     public function handle(JobPayloadContainer $container)
     {
         $container->api      = 'Slack';
-        $container->scope    = 'Sync';
+        $container->scope    = 'Member';
         $container->owner_id = 0;
 
         if ($this->hasArgument('user_id'))
@@ -41,7 +41,7 @@ class SlackUserSync extends Command {
             ->set('ea', 'queue_tokens')
             ->set('el', 'console')
             ->set('ev', 1)))
-        ->onQueue('high'));
+        ->onQueue('medium'));
     }
 
 }

@@ -61,7 +61,8 @@ class SyncUser extends Base {
 
         $this->updateJobStatus([
             'status' => 'Done',
-            'output' => null,
+            'output' => 'The full syncing process took ' .
+                number_format(microtime(true) - $jobStart, 2) . 's to complete.',
         ]);
 
         return;

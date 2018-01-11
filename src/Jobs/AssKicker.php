@@ -140,7 +140,8 @@ class AssKicker extends Base {
 
         $this->updateJobStatus([
             'status' => 'Done',
-            'output' => null,
+            'output' => 'The full kicking process took ' .
+                number_format(microtime(true) - $job_start, 2) . 's to complete.',
         ]);
     }
 
