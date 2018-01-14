@@ -75,6 +75,10 @@ class AssKicker extends Base {
 
             foreach ($users as $user) {
 
+              $this->updateJobStatus([
+                  'output' => sprintf('Processing user %s (%s)', $user->user_id, $user->slack_id),
+              ]);
+
                 logger()->debug('Slack Kicker - Checking user', [
                     'user'    => $user,
                     'channel' => $channel->id,
@@ -102,9 +106,6 @@ class AssKicker extends Base {
                         'channel' => $channel->id
                     ]);
 
-                    $this->updateJobStatus([
-                        'output' => sprintf('Processing user %s (%s)', $user->user_id, $user->slack_id),
-                    ]);
 
                     try {
 
