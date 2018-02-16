@@ -164,6 +164,9 @@ class GuzzleFetcher implements FetcherInterface
                     strtoupper($method),
                     $this->sanitizeUri($uri),
                     $requestTime), [
+                'code' => $e->getResponse()->getStatusCode(),
+                'uri' => $uri,
+                'Request-Body' => (is_null($body)) ? null : json_encode($body),
                 'Versions' => [
                     'slackbot' => config('slackbot.config.version'),
                 ],
@@ -199,6 +202,9 @@ class GuzzleFetcher implements FetcherInterface
                     strtoupper($method),
                     $this->sanitizeUri($uri),
                     $requestTime), [
+                'code' => $e->getResponse()->getStatusCode(),
+                'uri' => $uri,
+                'Request-Body' => (is_null($body)) ? null : json_encode($body),
                 'Versions' => [
                     'slackbot' => config('slackbot.config.version'),
                 ],
@@ -226,6 +232,9 @@ class GuzzleFetcher implements FetcherInterface
                     strtoupper($method),
                     $this->sanitizeUri($uri),
                     $requestTime), [
+                'code' => $response->getStatusCode(),
+                'uri' => $uri,
+                'Request-Body' => (is_null($body)) ? null : json_encode($body),
                 'Versions' => [
                     'slackbot' => config('slackbot.config.version'),
                 ],
@@ -235,7 +244,7 @@ class GuzzleFetcher implements FetcherInterface
             ]);
 
             throw new RequestFailedException(
-                new SlackApiException('An error occured on API request. Please find detail in body.'),
+                new SlackApiException('An error occurred on API request. Please find detail in body.'),
                 $this->makeSlackResponse(
                     $content, 'now',
                     $response->getStatusCode()
@@ -249,6 +258,9 @@ class GuzzleFetcher implements FetcherInterface
                 strtoupper($method),
                 $this->sanitizeUri($uri),
                 $requestTime), [
+            'code' => $response->getStatusCode(),
+            'uri' => $uri,
+            'Request-Body' => (is_null($body)) ? null : json_encode($body),
             'Versions' => [
                 'slackbot' => config('slackbot.config.version'),
             ],
