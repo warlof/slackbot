@@ -1,9 +1,21 @@
 <?php
-
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 19/12/2017
- * Time: 16:08
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 use Illuminate\Database\Migrations\Migration;
@@ -44,8 +56,7 @@ class ScheduleSeederV230 extends Migration
         Schedule::where('command', 'slack:update')->delete();
 
         foreach ($this->schedule as $job) {
-            $existing = DB::table('schedules')
-                          ->where('command', $job['command'])
+            $existing = Schedule::where('command', $job['command'])
                           ->first();
 
             if ($existing) {

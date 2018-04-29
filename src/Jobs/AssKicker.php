@@ -1,15 +1,26 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 09/12/2017
- * Time: 18:49
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Jobs;
 
-
 use Illuminate\Support\Facades\Cache;
-use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
@@ -17,157 +28,131 @@ use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
-class AssKicker extends Base {
+class AssKicker extends SlackJobBase {
 
     use SlackApiConnector;
 
     /**
-     * @return mixed|void
+     * @var array
+     */
+    protected $tags = ['ass-kicker'];
+
+    /**
+     * @var array
+     */
+    private $seat_group_ids = [];
+
+    /**
+     * @throws RequestFailedException
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
-    public function handle() {
+    public function handle()
+    {
 
-        if (!$this->trackOrDismiss())
-            return;
+        $token_info = $this->getConnector()->invoke('get', '/auth.test');
+        logger()->debug('Slack Receptionist - Checking token', [
+            'owner' => $token_info->user_id,
+        ]);
 
-        try {
+        $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
 
-            $this->updateJobStatus([
-                'status' => 'Working',
-                'output' => 'Stating kick...',
+        if (count($this->seat_group_ids) > 0) {
+            $query->whereIn('group_id', $this->seat_group_ids);
+            logger()->debug('Slack Ass Kicker - Restricting job to user groups : ' . $this->seat_group_ids);
+        }
+
+        $users = $query->get();
+
+        $channels = $this->fetchSlackConversations();
+
+        logger()->debug('Slack Kicker - channels list', $channels);
+
+        foreach ($channels as $channel) {
+
+            if ($channel->is_general)
+                continue;
+
+            $members = $this->fetchSlackConversationMembers($channel->id);
+
+            logger()->debug('Slack Kicker - Channel members', [
+                'channel' => $channel->id,
+                'members' => $members
             ]);
 
-            $this->writeInfoJobLog('Starting Slack Ass Kicker...');
+            foreach ($users as $slack_user) {
 
-            $job_start = microtime(true);
-
-            $token_info = $this->getConnector()->invoke('get', '/auth.test');
-            logger()->debug('Slack Receptionist - Checking token', [
-                'owner' => $token_info->user_id,
-            ]);
-
-            $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
-
-            if ($this->job_payload->owner_id > 0) {
-                $query->where('user_id', (int) $this->job_payload->owner_id);
-                $this->writeInfoJobLog('Restricting job to a single user : ' . $this->job_payload->owner_id);
-            }
-
-            $users = $query->get();
-
-            $channels = $this->fetchSlackConversations();
-
-            logger()->debug('Slack Kicker - channels list', $channels);
-
-            foreach ($channels as $channel) {
-
-                if ($channel->is_general)
-                    continue;
-
-                $members = $this->fetchSlackConversationMembers($channel->id);
-
-                logger()->debug('Slack Kicker - Channel members', [
+                logger()->debug('Slack Kicker - Checking user', [
+                    'user'    => $slack_user,
                     'channel' => $channel->id,
-                    'members' => $members
+                    'members' => $members,
                 ]);
 
-                foreach ($users as $user) {
+                if (!in_array($slack_user->slack_id, $members))
+                    continue;
 
-                    logger()->debug('Slack Kicker - Checking user', [
-                        'user'    => $user,
-                        'channel' => $channel->id,
-                        'members' => $members,
-                    ]);
+                $granted_channels = Helper::allowedChannels($slack_user);
 
-                    if (!in_array($user->slack_id, $members) ) {
-                        continue;
-                    }
+                logger()->debug('Slack Kicker - Granted channels', [
+                    'user'     => [
+                        'seat'  => $slack_user->group_id,
+                        'slack' => $slack_user->slack_id,
+                    ],
+                    'channels' => $granted_channels,
+                ]);
 
-                    $granted_channels = array_merge(
-                        Helper::allowedChannels($user, true),
-                        Helper::allowedChannels($user, false));
-
-                    logger()->debug('Slack Kicker - Granted channels', [
-                        'user'     => [
-                            'seat'  => $user->seat_id,
-                            'slack' => $user->slack_id,
+                if (! in_array($channel->id, $granted_channels)) {
+                    logger()->debug('Slack Kicker - Kicking user', [
+                        'user'    => [
+                            'seat'  => $slack_user->group_id,
+                            'slack' => $slack_user->slack_id
                         ],
-                        'channels' => $granted_channels,
+                        'channel' => $channel->id
                     ]);
 
-                    if (!in_array($channel->id, $granted_channels)) {
-                        logger()->debug('Slack Kicker - Kicking user', [
-                            'user'    => [
-                                'seat'  => $user->user_id,
-                                'slack' => $user->slack_id
-                            ],
-                            'channel' => $channel->id
-                        ]);
+                    try {
 
-                        $this->updateJobStatus([
-                            'output' => sprintf('Processing user %s (%s)', $user->user_id, $user->slack_id),
-                        ]);
+                        $this->getConnector()->setBody([
+                            'channel' => $channel->id,
+                            'user'    => $slack_user->slack_id,
+                        ])->invoke('post', '/conversations.kick');
 
-                        try {
+                    } catch (RequestFailedException $e) {
 
-                            $this->getConnector()->setBody([
-                                'channel' => $channel->id,
-                                'user'    => $user->slack_id,
-                            ])->invoke('post', '/conversations.kick');
-
-                        } catch (RequestFailedException $e) {
-
-                            // catch error related to unknown member
-                            if ($e->getError() == 'invalid_membership') {
-                                $user->delete();
-                                continue;
-                            }
-
-                            // if error is not related to unknown member, just forward the initial exception
-                            throw $e;
+                        // catch error related to unknown member
+                        if ($e->getError() == 'invalid_membership') {
+                            $slack_user->delete();
+                            continue;
                         }
 
-                        $this->logKickEvent($channel->id, $user->slack_id);
-                        sleep(1);
+                        // if error is not related to unknown member, just forward the initial exception
+                        throw $e;
                     }
-                }
 
+                    $this->logKickEvent($channel->id, $slack_user->slack_id);
+                    sleep(1);
+                }
             }
 
-            logger()->debug('Slack kicker - clearing cached data');
-            Cache::tags(['conversations', 'members'])->flush();
-
-            $this->writeInfoJobLog('The full kicking process took ' .
-                                   number_format(microtime(true) - $job_start, 2) . 's to complete.');
-
-            $this->markAsDone();
-
-        } catch (RequestFailedException $e) {
-
-            $this->writeErrorJobLog(
-                sprintf(
-                    'A %s occured. The error was: %s',
-                    'RequestFailedException',
-                    $e->getException()->getMessage()));
-            $this->reportJobError($e->getException());
-
         }
+
+        logger()->debug('Slack kicker - clearing cached data');
+        Cache::tags(['conversations', 'members'])->flush();
     }
 
-    private function logKickEvent(string $channel_id, string $user_id)
+    private function logKickEvent(string $channel_id, string $group_id)
     {
-        $slackUser = SlackUser::where('slack_id', $user_id)->first();
+        $slackUser = SlackUser::where('slack_id', $group_id)->first();
         $slackChannel = SlackChannel::find($channel_id);
 
         SlackLog::create([
             'event' => 'kick',
             'message' => sprintf('The user %s (%s) has been kicked from the following channel : %s',
-                $slackUser->name, $slackUser->user->name, $slackChannel->name),
+                $slackUser->name, $slackUser->group->users->first()->name, $slackChannel->name),
         ]);
     }
 

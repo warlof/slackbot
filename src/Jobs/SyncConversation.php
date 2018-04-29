@@ -1,81 +1,67 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 18/12/2017
- * Time: 11:07
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Jobs;
 
-
-use Seat\Eveapi\Jobs\Base;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
-use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
-class SyncConversation extends Base {
+class SyncConversation extends SlackJobBase {
 
     use SlackApiConnector;
 
     /**
-     * @return mixed|void
+     * @var array
+     */
+    protected $tags = ['sync', 'conversations'];
+
+    /**
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
     public function handle()
     {
-        if (!$this->trackOrDismiss())
-            return;
+        $conversations        = $this->fetchSlackConversations();
+        $conversations_buffer = [];
 
-        try {
+        foreach ($conversations as $conversation) {
 
-            $this->updateJobStatus([
-                'status' => 'Working',
-                'output' => 'Starting sync...',
-            ]);
-
-            $this->writeInfoJobLog('Starting Slack Sync Conversation...');
-
-            $job_start = microtime(true);
-
-            $conversations        = $this->fetchSlackConversations();
-            $conversations_buffer = [];
-
-            foreach ($conversations as $conversation) {
-
-                $conversations_buffer[] = $conversation->id;
-                SlackChannel::updateOrCreate(
-                    [
-                        'id' => $conversation->id,
-                    ],
-                    [
-                        'name'       => $conversation->name,
-                        'is_group'   => $conversation->is_group,
-                        'is_general' => $conversation->is_general,
-                    ]);
-
-            }
-
-            SlackChannel::whereNotIn('id', $conversations_buffer)->delete();
-
-            $this->writeInfoJobLog('The full syncing process took ' .
-                                    number_format(microtime(true) - $job_start, 2) . 's to complete.');
-
-            $this->markAsDone();
-
-        } catch (RequestFailedException $e) {
-
-            $this->writeErrorJobLog(
-                sprintf('A %s occurred. The error was: %s',
-                    'RequestFailedException',
-                    $e->getException()->getMessage()));
-            $this->reportJobError($e->getException());
+            $conversations_buffer[] = $conversation->id;
+            SlackChannel::updateOrCreate(
+                [
+                    'id' => $conversation->id,
+                ],
+                [
+                    'name'       => $conversation->name,
+                    'is_group'   => $conversation->is_group,
+                    'is_general' => $conversation->is_general,
+                ]);
 
         }
+
+        SlackChannel::whereNotIn('id', $conversations_buffer)->delete();
     }
 
 }

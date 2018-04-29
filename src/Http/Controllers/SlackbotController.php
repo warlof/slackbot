@@ -1,8 +1,21 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 15/06/2016
- * Time: 18:58
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Http\Controllers;
@@ -47,6 +60,7 @@ class SlackbotController extends Controller
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
@@ -82,11 +96,14 @@ class SlackbotController extends Controller
         $users = SlackUser::all();
 
         return Datatables::of($users)
+            ->addColumn('group_id', function($row){
+                return $row->group_id;
+            })
             ->addColumn('user_id', function($row){
-                return $row->user_id;
+                return $row->group->users->first()->id;
             })
             ->addColumn('user_name', function($row){
-                return $row->user->name;
+                return $row->group->users->first()->name;
             })
             ->addColumn('slack_id', function($row){
                 return $row->slack_id;

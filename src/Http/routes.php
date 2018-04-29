@@ -1,8 +1,21 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 15/06/2016
- * Time: 18:45
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 Route::group([
@@ -59,7 +72,7 @@ Route::group([
                 'middleware' => 'bouncer:slackbot.create'
             ]);
 
-            Route::get('/users/{user_id}/{channel_id}/remove', [
+            Route::get('/users/{group_id}/{channel_id}/remove', [
                 'as' => 'slackbot.user.remove',
                 'uses' => 'SlackbotJsonController@getRemoveUser',
                 'middleware' => 'bouncer:slackbot.create'

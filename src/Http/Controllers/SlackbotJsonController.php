@@ -1,17 +1,29 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 28/10/2017
- * Time: 18:11
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
-
 use Exception;
-use Seat\Eveapi\Models\Corporation\CorporationSheet;
-use Seat\Eveapi\Models\Corporation\Title;
-use Seat\Eveapi\Models\Eve\AllianceList;
+use Seat\Eveapi\Models\Alliances\Alliance;
+use Seat\Eveapi\Models\Corporation\CorporationInfo;
+use Seat\Eveapi\Models\Corporation\CorporationTitle;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\Acl\Role;
 use Seat\Web\Models\User;
@@ -33,13 +45,8 @@ class SlackbotJsonController extends Controller
 
     /**
      * @param UserChannel $request
-     *
      * @return \Illuminate\Http\JsonResponse
      * @throws \Seat\Services\Exceptions\SettingException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
     public function getJsonUserChannelsData(UserChannel $request)
     {
@@ -49,25 +56,7 @@ class SlackbotJsonController extends Controller
             return response()->json([]);
 
         try {
-	        $conversations_buffer = [];
-	        $conversations        = $this->fetchSlackConversations();
-
-	        foreach ( $conversations as $conversation ) {
-
-		        $members = $this->fetchSlackConversationMembers($conversation->id);
-
-		        if ( in_array( $slackId, $members ) ) {
-			        $conversations_buffer[] = [
-				        'id'          => $conversation->id,
-				        'name'        => $conversation->name,
-				        'is_channel'  => $conversation->is_channel,
-				        'is_group'    => $conversation->is_group,
-				        'num_members' => property_exists( $conversation, 'num_members' ) ? $conversation->num_members : 0,
-			        ];
-		        }
-
-	        }
-
+	        $conversations_buffer = $this->fetchUserConversations($slackId);
 	        return response()->json($conversations_buffer);
         } catch (Exception $e) {
         	return response()->json($e->getMessage(), 500);
@@ -79,14 +68,14 @@ class SlackbotJsonController extends Controller
         $corporationId = request()->input('corporation_id');
 
         if (!empty($corporationId)) {
-            $titles = Title::where('corporationID', $corporationId)->select('titleID', 'titleName')
+            $titles = CorporationTitle::where('corporation_id', $corporationId)->select('title_id', 'name')
                 ->get();
 
             return response()->json($titles->map(
                 function($item){
                     return [
-                        'titleID' => $item->titleID,
-                        'titleName' => strip_tags($item->titleName)
+                        'title_id' => $item->title_id,
+                        'name' => strip_tags($item->name)
                     ];
                 })
             );
@@ -98,20 +87,20 @@ class SlackbotJsonController extends Controller
     public function getRelations()
     {
         $channelPublic = SlackChannelPublic::all();
-        $channelUsers = SlackChannelUser::all();
+        $channelGroups = SlackChannelUser::all();
         $channelRoles = SlackChannelRole::all();
         $channelCorporations = SlackChannelCorporation::all();
         $channelTitles = SlackChannelTitle::all();
         $channelAlliances = SlackChannelAlliance::all();
 
-        $users = User::all();
-        $roles = Role::all();
-        $corporations = CorporationSheet::all();
-        $alliances = AllianceList::all();
-        $channels = SlackChannel::all();
+        $users = User::with('groups')->orderBy('name')->get();
+        $roles = Role::orderBy('title')->get();
+        $corporations = CorporationInfo::orderBy('name')->get();
+        $alliances = Alliance::orderBy('name')->get();
+        $channels = SlackChannel::orderBy('name')->get();
 
         return view('slackbot::access.list',
-            compact('channelPublic', 'channelUsers', 'channelRoles', 'channelCorporations', 'channelTitles',
+            compact('channelPublic', 'channelGroups', 'channelRoles', 'channelCorporations', 'channelTitles',
                 'channelAlliances', 'users', 'roles', 'corporations', 'alliances', 'channels'));
     }
 
@@ -133,10 +122,10 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurs while trying to remove the public Slack relation.');
     }
 
-    public function getRemoveUser($userId, $channelId)
+    public function getRemoveUser($group_id, $channel_id)
     {
-        $channelUser = SlackChannelUser::where('user_id', $userId)
-            ->where('channel_id', $channelId);
+        $channelUser = SlackChannelUser::where('group_id', $group_id)
+            ->where('channel_id', $channel_id);
 
         if ($channelUser != null) {
             $channelUser->delete();
@@ -266,12 +255,12 @@ class SlackbotJsonController extends Controller
     private function postUserRelation($channelId, $userId)
     {
         $relation = SlackChannelUser::where('channel_id', '=', $channelId)
-            ->where('user_id', '=', $userId)
+            ->where('group_id', '=', $userId)
             ->get();
 
         if ($relation->count() == 0) {
             SlackChannelUser::create([
-                'user_id' => $userId,
+                'group_id' => $userId,
                 'channel_id' => $channelId,
                 'enable' => true
             ]);

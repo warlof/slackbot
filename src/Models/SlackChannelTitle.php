@@ -1,25 +1,49 @@
 <?php
+/**
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace Warlof\Seat\Slackbot\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Seat\Eveapi\Models\Corporation\CorporationSheet;
-use Seat\Eveapi\Models\Corporation\Title;
+use Seat\Eveapi\Models\Corporation\CorporationInfo;
+use Seat\Eveapi\Models\Corporation\CorporationTitle;
+use Seat\Eveapi\Traits\HasCompositePrimaryKey;
 
 class SlackChannelTitle extends Model
 {
-    protected $fillable = ['corporation_id', 'title_id', 'title_surrogate_key', 'channel_id', 'enable'];
+    
+    use HasCompositePrimaryKey;
+    
+    protected $primaryKey = ['corporation_id', 'title_id', 'channel_id'];
+    
+    protected $fillable = ['corporation_id', 'title_id', 'channel_id', 'enable'];
 
-    public static function create(array $attributes = [])
+    public function getTitleNameAttribute()
     {
-        // search for primary key assigned to the surrogate key
-        $title = Title::where('corporationID', $attributes['corporation_id'])
-            ->where('titleID', $attributes['title_id'])
-            ->first();
+        $title = CorporationTitle::where('corporation_id', $this->corporation_id)
+                                 ->where('title_id', $this->title_id)
+                                 ->first();
 
-        $attributes['title_surrogate_key'] = $title->id;
+        if (! is_null($title))
+            return $title->name;
 
-        parent::create($attributes);
+        return 'Unknown Title';
     }
 
     public function channel()
@@ -29,11 +53,11 @@ class SlackChannelTitle extends Model
 
     public function corporation()
     {
-        return $this->belongsTo(CorporationSheet::class, 'corporation_id', 'corporationID');
+        return $this->belongsTo(CorporationInfo::class, 'corporation_id', 'corporation_id');
     }
-
+/*
     public function title()
     {
-        return $this->belongsTo(Title::class, 'title_surrogate_key', 'id');
-    }
+        return $this->belongsTo(CorporationTitle::class, 'title_surrogate_key', ['corporation_id', 'title_id']);
+    }*/
 }

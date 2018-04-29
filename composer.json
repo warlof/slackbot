@@ -8,10 +8,10 @@
         }
     },
     "require": {
-        "eveseat/services": "^2.0",
-        "eveseat/eveapi": "^2.0",
-        "eveseat/web": "^2.0",
-        "erusev/parsedown": "^1.6",
+        "eveseat/services": "^3.0",
+        "eveseat/eveapi": "^3.0",
+        "eveseat/web": "^3.0",
+        "erusev/parsedown": "^1.7",
         "predis/predis": "^1.1"
     },
     "require-dev": {

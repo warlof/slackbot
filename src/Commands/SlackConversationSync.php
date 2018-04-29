@@ -1,44 +1,50 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 18/12/2017
- * Time: 11:03
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Commands;
 
-
 use Illuminate\Console\Command;
-use Seat\Eveapi\Helpers\JobPayloadContainer;
-use Seat\Services\Helpers\AnalyticsContainer;
-use Seat\Services\Jobs\Analytics;
 use Warlof\Seat\Slackbot\Jobs\SyncConversation;
 
 class SlackConversationSync extends Command {
 
-    use JobManager;
-
+    /**
+     * @var string
+     */
     protected $signature = 'slack:conversation:sync';
 
+    /**
+     * @var string
+     */
     protected $description = 'Fire a job which will attempt to pull conversations static information from Slack Team.';
 
-    public function handle(JobPayloadContainer $container)
+    /**
+     * Execute the console command.
+     */
+    public function handle()
     {
-        $container->api      = 'Slack';
-        $container->scope    = 'Conversations';
-        $container->owner_id = 0;
 
-        $job_id = $this->addUniqueJob(SyncConversation::class, $container);
+        SyncConversation::dispatch();
 
-        $this->info('Job ' . $job_id . ' dispatched!');
+        $this->info('A synchronization job has been queued in order to update slack conversations.');
 
-        dispatch((new Analytics((new AnalyticsContainer())
-            ->set('type', 'event')
-            ->set('ec', 'queues')
-            ->set('ea', 'queue_tokens')
-            ->set('el', 'console')
-            ->set('ev', 1)))
-        ->onQueue('medium'));
     }
 
 }

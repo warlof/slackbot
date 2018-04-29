@@ -1,12 +1,24 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 07/12/2017
- * Time: 22:08
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Repositories\Slack;
-
 
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
@@ -49,6 +61,10 @@ class SlackApi {
         return $this;
     }
 
+    /**
+     * @return Configuration
+     * @throws InvalidContainerDataException
+     */
     public function getConfiguration() : Configuration
     {
         return Configuration::getInstance();
@@ -82,6 +98,10 @@ class SlackApi {
         return $this;
     }
 
+    /**
+     * @return FetcherInterface
+     * @throws InvalidContainerDataException
+     */
     public function getFetcher() : FetcherInterface
     {
         if (!$this->fetcher) {
@@ -97,11 +117,19 @@ class SlackApi {
         $this->fetcher = $fetcher;
     }
 
+    /**
+     * @return LogInterface
+     * @throws InvalidContainerDataException
+     */
     public function getLogger() : LogInterface
     {
         return $this->getConfiguration()->getLogger();
     }
 
+    /**
+     * @return CacheInterface
+     * @throws InvalidContainerDataException
+     */
     public function getCache() : CacheInterface
     {
         return $this->getConfiguration()->getCache();
@@ -150,10 +178,10 @@ class SlackApi {
      * @param string $method
      * @param string $uri
      * @param array $uri_data
-     *
      * @return SlackResponse
-     * @throws SlackScopeAccessDeniedException
+     * @throws InvalidContainerDataException
      * @throws RequestFailedException
+     * @throws SlackScopeAccessDeniedException
      * @throws UriDataMissingException
      */
     public function invoke(string $method, string $uri, array $uri_data = []) : SlackResponse
@@ -180,8 +208,8 @@ class SlackApi {
      * @param string $method
      * @param string $uri
      * @param array $body
-     *
      * @return SlackResponse
+     * @throws InvalidContainerDataException
      * @throws RequestFailedException
      */
     private function rawFetch(string $method, string $uri, array $body) : SlackResponse

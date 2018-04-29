@@ -1,4 +1,22 @@
 <?php
+/**
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -23,16 +41,16 @@ class CreateSlackbotTables extends Migration
         });
 
         Schema::create('slack_users', function (Blueprint $table) {
-            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('group_id');
             $table->string('slack_id');
             $table->boolean('invited');
             $table->timestamps();
 
-            $table->primary('user_id');
+            $table->primary('group_id');
 
-            $table->foreign('user_id')
+            $table->foreign('group_id')
                 ->references('id')
-                ->on('users')
+                ->on('groups')
                 ->onDelete('cascade');
         });
 
@@ -84,16 +102,16 @@ class CreateSlackbotTables extends Migration
         });
 
         Schema::create('slack_channel_users', function (Blueprint $table) {
-            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('group_id');
             $table->string('channel_id');
             $table->boolean('enable');
             $table->timestamps();
 
-            $table->primary(['user_id', 'channel_id']);
+            $table->primary(['group_id', 'channel_id']);
 
-            $table->foreign('user_id')
+            $table->foreign('group_id')
                 ->references('id')
-                ->on('users')
+                ->on('groups')
                 ->onDelete('cascade');
 
             $table->foreign('channel_id')
@@ -115,7 +133,6 @@ class CreateSlackbotTables extends Migration
         Schema::drop('slack_channel_roles');
         Schema::drop('slack_channel_users');
         Schema::drop('slack_users');
-        Schema::drop('slack_groups');
         Schema::drop('slack_channels');
     }
 }

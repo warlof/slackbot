@@ -1,98 +1,108 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 09/12/2017
- * Time: 11:33
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Jobs;
 
-
-use Illuminate\Support\Facades\DB;
-use Seat\Eveapi\Jobs\Base;
+use Illuminate\Support\Collection;
+use Seat\Web\Models\Group;
+use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackLog;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
 
-class SyncUser extends Base {
+class SyncUser extends SlackJobBase {
 
     use SlackApiConnector;
 
     /**
-     * @return mixed|void
-     * @throws \Seat\Services\Exceptions\SettingException
-     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
-     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     * @var array
      */
-    public function handle() {
+    protected $tags = ['sync', 'users'];
 
-        if (!$this->trackOrDismiss())
-            return;
+    /**
+     * @var array
+     */
+    private $seat_group_ids = [];
 
-        try {
-
-            $this->updateJobStatus([
-                'status' => 'Working',
-                'output' => 'Starting sync...',
-            ]);
-
-            $this->writeInfoJobLog('Starting Slack Sync User...');
-
-            $job_start = microtime(true);
-
-            // retrieve all unlinked SeAT users
-            $query = DB::table('users')->leftJoin('slack_users', 'id', '=', 'user_id')
-                       ->whereNull('user_id')
-                       ->where('account_status', true)
-                       ->select('id', 'users.name', 'email', 'user_id', 'slack_id');
-
-            // if command has been run for a specific user, restrict result on it
-            if ($this->job_payload->owner_id > 0) {
-                $query->where('id', (int) $this->job_payload->owner_id);
-                $this->writeInfoJobLog('Restricting job to single user : ' . $this->job_payload->owner_id);
-            }
-
-            $users = $query->get();
-
-            $this->bindingSlackUser($users);
-
-            $this->writeInfoJobLog('The full syncing process took ' .
-                                   number_format(microtime(true) - $job_start, 2) . 's to complete.');
-
-            $this->markAsDone();
-
-        } catch (RequestFailedException $e) {
-
-            $this->writeErrorJobLog(
-                sprintf('A %s occured. The error was: %s',
-                    'RequestFailedException',
-                    $e->getException()->getMessage()));
-            $this->reportJobError($e->getException());
-
-        }
+    /**
+     * SyncUser constructor.
+     * @param int|null $group_id
+     */
+    public function __construct(int $group_id = null)
+    {
+        if (! is_null($group_id))
+            $this->seat_group_id = $group_id;
     }
 
     /**
-     * @param $users
-     *
+     * @param array $group_ids
+     */
+    public function setSeatGroupId(array $group_ids)
+    {
+        $this->seat_group_ids = $group_ids;
+    }
+
+    /**
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
-    private function bindingSlackUser($users)
+    public function handle()
+    {
+        // retrieve all unlinked SeAT users
+        $query = Group::leftJoin('slack_users', 'id', '=', 'group_id')
+                   ->whereNull('group_id');
+
+        // if command has been run for a specific user, restrict result on it
+        if (! is_null($this->seat_group_ids))
+            $query->whereIn('groups.id', $this->seat_group_ids);
+
+        $groups = $query->get();
+
+        $user_ids = $groups->map(function ($group) {
+            return $group->users->first()->pluck('id');
+        })->toArray();
+
+        $users = User::whereIn('id', $user_ids)->whereNotNull('email')->with('groups')->get();
+
+        $this->bindingSlackUser($users);
+    }
+
+    /**
+     * @param Collection $users
+     * @throws \Seat\Services\Exceptions\SettingException
+     * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
+     */
+    private function bindingSlackUser(Collection $users)
     {
         logger()->debug('bindingSlackUser', ['users' => $users]);
 
         foreach ($users as $user) {
-
-            $this->updateJobStatus([
-                'output' => sprintf('Processing user %s (%s)', $user->id, $user->email),
-            ]);
 
             try {
 
@@ -101,7 +111,7 @@ class SyncUser extends Base {
                 ]) ->invoke('get', '/users.lookupByEmail');
 
                 SlackUser::create([
-                    'user_id'  => $user->id,
+                    'group_id' => $user->groups->first()->id,
                     'slack_id' => $response->user->id,
                     'name' => property_exists($response->user, 'name') ? $response->user->name : '',
                 ]);
@@ -119,10 +129,10 @@ class SyncUser extends Base {
             } catch (RequestFailedException $e) {
 
                 if ($e->getResponse()->error() == 'users_not_found') {
-                    SlackLog::create( [
+                    SlackLog::create([
                         'event'   => 'sync',
                         'message' => sprintf( 'Unable to retrieve Slack user for user %s (%s)', $user->name, $user->email ),
-                    ] );
+                    ]);
                 } else {
                     SlackLog::create([
                         'event' => 'error',

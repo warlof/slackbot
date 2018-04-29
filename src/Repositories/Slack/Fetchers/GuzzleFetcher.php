@@ -1,12 +1,24 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 08/12/2017
- * Time: 21:51
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Repositories\Slack\Fetchers;
-
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
@@ -20,7 +32,6 @@ use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackAuthentication;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidAuthenticationException;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
-use Warlof\Seat\Slackbot\Repositories\Slack\SlackApi;
 
 class GuzzleFetcher implements FetcherInterface
 {
@@ -32,6 +43,11 @@ class GuzzleFetcher implements FetcherInterface
 
     protected $api_base = 'https://slack.com/api';
 
+    /**
+     * GuzzleFetcher constructor.
+     * @param SlackAuthentication|null $authentication
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
+     */
     public function __construct(SlackAuthentication $authentication = null)
     {
         $this->authentication = $authentication;
@@ -43,10 +59,10 @@ class GuzzleFetcher implements FetcherInterface
      * @param string $uri
      * @param array $body
      * @param array $headers
-     *
      * @return SlackResponse
      * @throws InvalidAuthenticationException
      * @throws RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      */
     public function call(string $method, string $uri, array $body, array $headers = []) : SlackResponse
     {
@@ -80,6 +96,7 @@ class GuzzleFetcher implements FetcherInterface
      * @return array
      * @throws InvalidAuthenticationException
      * @throws RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      */
     public function getAuthenticationScopes() : array
     {
@@ -95,6 +112,7 @@ class GuzzleFetcher implements FetcherInterface
     /**
      * @throws InvalidAuthenticationException
      * @throws RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      */
     public function setAuthenticationScopes()
     {
@@ -133,15 +151,15 @@ class GuzzleFetcher implements FetcherInterface
      * @param string $uri
      * @param array $headers
      * @param array $body
-     *
      * @return SlackResponse
      * @throws RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      */
     private function httpRequest(string $method, string $uri, array $headers = [], array $body = []) : SlackResponse
     {
         $headers = array_merge($headers, [
             'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
+            'Content-Type' => 'application/json;charset=utf-8',
             'User-Agent' => 'Seat-Slackbot/' . config('slackbot.config.version') . '/' . Configuration::getInstance()->http_user_agent,
         ]);
 
@@ -276,14 +294,6 @@ class GuzzleFetcher implements FetcherInterface
         );
     }
 
-    private function stripRefreshTokenValue(string $uri) : string
-    {
-        if (strpos($uri, 'refresh_token'))
-            return Uri::withoutQueryValue((new Uri($uri)), 'refresh_token')->__toString();
-
-        return $uri;
-    }
-
     private function sanitizeUri(string $uri) : string
     {
         $uri = new Uri($uri);
@@ -299,6 +309,7 @@ class GuzzleFetcher implements FetcherInterface
      * @return SlackResponse
      * @throws InvalidAuthenticationException
      * @throws RequestFailedException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      */
     private function verifyToken()
     {

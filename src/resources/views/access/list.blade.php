@@ -30,7 +30,9 @@
                         <label for="slack-user-id">{{ trans('slackbot::seat.username') }}</label>
                         <select name="slack-user-id" id="slack-user-id" class="form-control">
                             @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @if($user->groups->count() > 0)
+                            <option value="{{ $user->groups->first()->id }}">{{ $user->name }}</option>
+                            @endif
                             @endforeach
                         </select>
                     </div>
@@ -48,7 +50,7 @@
                         <label for="slack-corporation-id">{{ trans('slackbot::seat.corporation') }}</label>
                         <select name="slack-corporation-id" id="slack-corporation-id" class="form-control" disabled="disabled">
                             @foreach($corporations as $corporation)
-                            <option value="{{ $corporation->corporationID }}">{{ $corporation->corporationName }}</option>
+                            <option value="{{ $corporation->corporation_id }}">{{ $corporation->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -62,7 +64,7 @@
                         <label for="slack-alliance-id">{{ trans('slackbot::seat.alliance') }}</label>
                         <select name="slack-alliance-id" id="slack-alliance-id" class="form-control" disabled="disabled">
                             @foreach($alliances as $alliance)
-                            <option value="{{ $alliance->allianceID }}">{{ $alliance->name }}</option>
+                            <option value="{{ $alliance->alliance_id }}">{{ $alliance->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -166,16 +168,16 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($channelUsers as $channel)
+                        @foreach($channelGroups as $channel)
                             <tr>
-                                <td>{{ $channel->user->name }}</td>
+                                <td>{{ $channel->group->users->first()->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
                                 <td>{{ $channel->enable }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('slackbot.user.remove', ['user_id' => $channel->user_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
+                                        <a href="{{ route('slackbot.user.remove', ['group_id' => $channel->group_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
                                             {{ trans('web::seat.remove') }}
                                         </a>
                                     </div>
@@ -232,7 +234,7 @@
                         <tbody>
                         @foreach($channelCorporations as $channel)
                             <tr>
-                                <td>{{ $channel->corporation->corporationName }}</td>
+                                <td>{{ $channel->corporation->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
@@ -265,8 +267,8 @@
                         <tbody>
                         @foreach($channelTitles as $channel)
                             <tr>
-                                <td>{{ $channel->corporation->corporationName }}</td>
-                                <td>{{ strip_tags($channel->title->titleName) }}</td>
+                                <td>{{ $channel->corporation->name }}</td>
+                                <td>{{ strip_tags($channel->titleName) }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
@@ -323,7 +325,6 @@
 @push('javascript')
     <script type="application/javascript">
         function getCorporationTitle() {
-            console.debug('in');
             $('#slack-title-id').empty();
 
             $.ajax('{{ route('slackbot.json.titles') }}', {
@@ -334,7 +335,7 @@
                 method: 'GET',
                 success: function(data){
                     for (var i = 0; i < data.length; i++) {
-                        $('#slack-title-id').append($('<option></option>').attr('value', data[i].titleID).text(data[i].titleName));
+                        $('#slack-title-id').append($('<option></option>').attr('value', data[i].title_id).text(data[i].name));
                     }
                 }
             });

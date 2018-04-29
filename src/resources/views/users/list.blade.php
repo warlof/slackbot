@@ -18,7 +18,8 @@
             <table class="table table-condensed table-hover table-responsive no-margin" id="users-table" data-page-length="25">
                 <thead>
                     <tr>
-                        <th>SeAT ID</th>
+                        <th>SeAT Group ID</th>
+                        <th>SeAT User ID</th>
                         <th>SeAT Username</th>
                         <th>Slack ID</th>
                         <th>Slack Display Name</th>
@@ -53,7 +54,6 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Name</th>
-                                        <th># Users</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -65,7 +65,6 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Name</th>
-                                        <th># Users</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -98,6 +97,7 @@
             serverSide: true,
             ajax: '{{ route('slackbot.json.users') }}',
             columns: [
+                {data: 'group_id'},
                 {data: 'user_id'},
                 {data: 'user_name'},
                 {data: 'slack_id'},
@@ -141,8 +141,6 @@
                                         conversation.id +
                                         '</td><td>' +
                                         conversation.name +
-                                        '</td><td>' +
-                                        conversation.num_members +
                                         '</td></tr>');
                                 }
 
@@ -153,8 +151,6 @@
                                         conversation.id +
                                         '</td><td>' +
                                         conversation.name +
-                                        '</td><td>' +
-                                        conversation.num_members +
                                         '</td></tr>');
                                 }
                             }

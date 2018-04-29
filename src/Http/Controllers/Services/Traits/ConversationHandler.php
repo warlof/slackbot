@@ -1,12 +1,24 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 17/12/2016
- * Time: 22:54
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Http\Controllers\Services\Traits;
-
 
 use Illuminate\Http\JsonResponse;
 use Warlof\Seat\Slackbot\Exceptions\SlackSettingException;
@@ -24,10 +36,10 @@ trait ConversationHandler
 
     /**
      * @param $channel
-     *
      * @throws SlackSettingException
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
@@ -77,10 +89,10 @@ trait ConversationHandler
 
     /**
      * @param $channelId
-     *
      * @throws SlackSettingException
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
@@ -101,14 +113,12 @@ trait ConversationHandler
     }
 
     /**
-     * Business router which is handling Slack conversation event
-     *
-     * @param array $event A Slack Json event object* @param array $event A Slack Json event object
-     *
+     * @param array $event
      * @return JsonResponse
      * @throws SlackSettingException
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
+     * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidContainerDataException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException

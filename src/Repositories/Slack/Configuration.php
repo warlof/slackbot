@@ -1,12 +1,24 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 07/12/2017
- * Time: 22:35
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Repositories\Slack;
-
 
 use Warlof\Seat\Slackbot\Repositories\Slack\Cache\CacheInterface;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackConfiguration;
@@ -35,10 +47,18 @@ class Configuration {
      */
     protected $configuration;
 
+    /**
+     * Configuration constructor.
+     * @throws Exceptions\InvalidContainerDataException
+     */
     private function __construct() {
         $this->configuration = new SlackConfiguration();
     }
 
+    /**
+     * @return Configuration
+     * @throws Exceptions\InvalidContainerDataException
+     */
     public static function getInstance() : Configuration
     {
         if (is_null(self::$instance))
@@ -47,6 +67,9 @@ class Configuration {
         return self::$instance;
     }
 
+    /**
+     * @return SlackConfiguration
+     */
     public function getConfiguration()
     {
         return $this->configuration;
@@ -65,6 +88,9 @@ class Configuration {
         $this->configuration = $configuration;
     }
 
+    /**
+     * @return LogInterface
+     */
     public function getLogger() : LogInterface
     {
         if (!$this->logger)
@@ -73,6 +99,9 @@ class Configuration {
         return $this->logger;
     }
 
+    /**
+     * @return CacheInterface
+     */
     public function getCache() : CacheInterface
     {
         if (!$this->cache)
@@ -81,11 +110,20 @@ class Configuration {
         return $this->cache;
     }
 
+    /**
+     * @param string $name
+     * @return mixed
+     */
     public function __get(string $name)
     {
         return $this->configuration->$name;
     }
 
+    /**
+     * @param string $name
+     * @param string $value
+     * @return string
+     */
     public function __set(string $name, string $value)
     {
         return $this->configuration->$name = $value;

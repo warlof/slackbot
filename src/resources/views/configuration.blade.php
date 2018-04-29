@@ -154,19 +154,19 @@
 
 @push('javascript')
     <script type="application/javascript">
-        $('#client-eraser').click(function(){
+        $('#client-eraser').on('click', function(){
             var slack_client = $('#slack-configuration-client');
             slack_client.val('');
             slack_client.removeAttr("readonly");
         });
 
-        $('#secret-eraser').click(function(){
+        $('#secret-eraser').on('click', function(){
             var slack_secret = $('#slack-configuration-secret');
             slack_secret.val('');
             slack_secret.removeAttr("readonly");
         });
 
-        $('#verification-eraser').click(function(){
+        $('#verification-eraser').on('click', function(){
             var slack_verification = $('#slack-configuration-verification');
             slack_verification.val('');
             slack_verification.removeAttr("readonly");

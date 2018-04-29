@@ -1,47 +1,93 @@
 <?php
 /**
- * User: Warlof Tutsimo <loic.leuilliot@gmail.com>
- * Date: 09/12/2017
- * Time: 13:05
+ * This file is part of seat-slackbot and provide user synchronization between both SeAT and a Slack Team
+ *
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace Warlof\Seat\Slackbot\Commands;
 
-
 use Illuminate\Console\Command;
-use Seat\Eveapi\Helpers\JobPayloadContainer;
-use Seat\Services\Helpers\AnalyticsContainer;
-use Seat\Services\Jobs\Analytics;
+use Seat\Web\Models\Group;
+use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Jobs\Receptionist;
 
 class SlackUserInvite extends Command {
 
-    use JobManager;
+    /**
+     * @var string
+     */
+    protected $signature = 'slack:user:invite {--group_ids= : The id list of SeAT user group (using , as separator)}' .
+                                             '{--user_ids= : The id list of SeAT user (using , as separator)}';
 
-    protected $signature = 'slack:user:invite {user_id? : The id of a SeAT user}';
-
+    /**
+     * @var string
+     */
     protected $description = 'Fire a job which will invite SeAT user into Slack channels according to your policy.';
 
-    public function handle(JobPayloadContainer $container)
+    /**
+     * Execute the console command
+     */
+    public function handle()
     {
-        $container->api      = 'Slack';
-        $container->scope    = 'Invite';
-        $container->owner_id = 0;
+        $group_ids = [];
+        $filtered = false;
 
-        if ($this->hasArgument('user_id'))
-            $container->owner_id = intval($this->argument('user_id'));
+        $job = new Receptionist();
 
-        $job_id = $this->addUniqueJob(Receptionist::class, $container);
+        if ($this->option('user_ids')) {
+            // update filter flag so we know that user has used some optional arguments
+            $filtered = true;
+            // transform the argument list in an array
+            $ids = explode(',', $this->option('user_ids'));
 
-        $this->info('Job ' . $job_id . ' dispatched!');
+            // retrieve all user which are in the filter
+            $users = User::whereIn('id', $ids)->get();
 
-        dispatch((new Analytics((new AnalyticsContainer())
-            ->set('type', 'event')
-            ->set('ec', 'queues')
-            ->set('ea', 'queue_tokens')
-            ->set('el', 'console')
-            ->set('ev', 1)))
-            ->onQueue('high'));
+            // retrieve related user group
+            $group_ids = $users->each(function ($user) {
+                if ($user->groups->count() > 0)
+                    return $user->groups->first()->id;
+                return 0;
+            })->flatten()->toArray();
+        }
+
+        if ($this->option('group_ids')) {
+            // update filter flag so we know that user has used some optional arguments
+            $filtered = true;
+            // transform the argument list in an array
+            $ids = explode(',', $this->option('group_ids'));
+
+            // retrieve all group which are in the filter and merge with the group ID list
+            $group_ids = array_merge(Group::whereIn('id', $ids)->select('id')->get()->toArray());
+        }
+
+        // in case the user has specified some parameter, send the group ID list to the job
+        if ($filtered)
+            $job->setSeatGroupId($group_ids);
+
+        // if the group ID list is empty and filter has been applied, abort the command
+        if ($filtered && count($group_ids) < 1) {
+            $this->error('Filled parameter returned no match !');
+            return;
+        }
+
+        $job::dispatch();
+
+        $this->info('A job has been queued in order to invite user on granted channels.');
     }
 
 }
