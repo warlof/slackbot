@@ -51,14 +51,14 @@ class Helper
      * @param Collection $characterIDs
      * @return bool
      */
-    public static function isEnabledKey(Collection $characterIDs) : bool
+    public static function isEnabledKey(Collection $users) : bool
     {
         // retrieve all token which are matching with the user IDs list
-        $tokens = RefreshToken::whereIn('character_id', $characterIDs->toArray());
+        $tokens = RefreshToken::whereIn('character_id', $users->pluck('id')->toArray());
 
         // compare both list
         // if tokens amount is matching with characters list - return true
-        return ($characterIDs->count() == $tokens->count());
+        return ($users->count() == $tokens->count());
     }
 
     /**
@@ -74,7 +74,7 @@ class Helper
         if (!Helper::isEnabledAccount($slackUser->group))
             return $channels;
 
-        if (!Helper::isEnabledKey($slackUser->group->users->first()->associatedCharacterIds()))
+        if (!Helper::isEnabledKey($slackUser->group->users))
             return $channels;
 
         $rows = Group::join('slack_channel_users', 'slack_channel_users.group_id', '=', 'groups.id')
@@ -84,17 +84,17 @@ class Helper
                     ->where('slack_channels.is_general', (int) false)
                     ->union(
                         // fix model declaration calling the table directly
-                        DB::table('role_user')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=',
-                            'role_user.role_id')
+                        DB::table('group_role')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=',
+                            'group_role.role_id')
                           ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
-                          ->whereIn('role_user.user_id', $slackUser->group->users->first()->associatedCharacterIds())
+                          ->whereIn('group_role.group_id', $slackUser->group->id)
                           ->where('slack_channels.is_general', (int) false)
                           ->select('channel_id')
                     )->union(
                 CharacterInfo::join('slack_channel_corporations', 'slack_channel_corporations.corporation_id', '=',
                           'character_infos.corporation_id')
                       ->join('slack_channels', 'slack_channel_corporations.channel_id', '=', 'slack_channels.id')
-                      ->whereIn('character_infos.character_id', $slackUser->group->users->first()->associatedCharacterIds())
+                      ->whereIn('character_infos.character_id', $slackUser->group->users->pluck('id')->toArray())
                       ->where('slack_channels.is_general', (int) false)
                       ->select('channel_id')
             )->union(
@@ -106,14 +106,14 @@ class Helper
                                      'character_titles.title_id');
                              })
                              ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
-                             ->whereIn('character_infos.character_id', $slackUser->group->users->first()->associatedCharacterIds())
+                             ->whereIn('character_infos.character_id', $slackUser->group->users->pluck('id')->toArray())
                              ->where('slack_channels.is_general', (int) false)
                              ->select('channel_id')
             )->union(
                 CharacterInfo::join('slack_channel_alliances', 'slack_channel_alliances.alliance_id', '=',
                     'character_infos.alliance_id')
                               ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
-                              ->whereIn('character_infos.character_id', $slackUser->group->users->first()->associatedCharacterIds())
+                              ->whereIn('character_infos.character_id', $slackUser->group->users->pluck('id')->toArray())
                               ->where('slack_channels.is_general', (int) false)
                               ->select('channel_id')
             )->union(

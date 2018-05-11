@@ -26,7 +26,7 @@ use Seat\Eveapi\Models\Corporation\CorporationInfo;
 use Seat\Eveapi\Models\Corporation\CorporationTitle;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\Acl\Role;
-use Seat\Web\Models\User;
+use Seat\Web\Models\Group;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Http\Validation\AddRelation;
 use Warlof\Seat\Slackbot\Http\Validation\UserChannel;
@@ -93,7 +93,7 @@ class SlackbotJsonController extends Controller
         $channelTitles = SlackChannelTitle::all();
         $channelAlliances = SlackChannelAlliance::all();
 
-        $users = User::with('groups')->orderBy('name')->get();
+        $groups = Group::with('main_character')->get();
         $roles = Role::orderBy('title')->get();
         $corporations = CorporationInfo::orderBy('name')->get();
         $alliances = Alliance::orderBy('name')->get();
@@ -101,7 +101,7 @@ class SlackbotJsonController extends Controller
 
         return view('slackbot::access.list',
             compact('channelPublic', 'channelGroups', 'channelRoles', 'channelCorporations', 'channelTitles',
-                'channelAlliances', 'users', 'roles', 'corporations', 'alliances', 'channels'));
+                'channelAlliances', 'groups', 'roles', 'corporations', 'alliances', 'channels'));
     }
 
     //
@@ -204,7 +204,7 @@ class SlackbotJsonController extends Controller
 
     public function postRelation(AddRelation $request)
     {
-        $userId = $request->input('slack-user-id');
+        $groupId = $request->input('slack-group-id');
         $roleId = $request->input('slack-role-id');
         $corporationId = $request->input('slack-corporation-id');
         $titleId = $request->input('slack-title-id');
@@ -217,7 +217,7 @@ class SlackbotJsonController extends Controller
             case 'public':
                 return $this->postPublicRelation($channelId);
             case 'user':
-                return $this->postUserRelation($channelId, $userId);
+                return $this->postGroupRelation($channelId, $groupId);
             case 'role':
                 return $this->postRoleRelation($channelId, $roleId);
             case 'corporation':
@@ -252,15 +252,15 @@ class SlackbotJsonController extends Controller
             ->with('error', 'This relation already exists');
     }
 
-    private function postUserRelation($channelId, $userId)
+    private function postGroupRelation($channelId, $groupId)
     {
         $relation = SlackChannelUser::where('channel_id', '=', $channelId)
-            ->where('group_id', '=', $userId)
+            ->where('group_id', '=', $groupId)
             ->get();
 
         if ($relation->count() == 0) {
             SlackChannelUser::create([
-                'group_id' => $userId,
+                'group_id' => $groupId,
                 'channel_id' => $channelId,
                 'enable' => true
             ]);

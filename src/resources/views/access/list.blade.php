@@ -27,12 +27,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="slack-user-id">{{ trans('slackbot::seat.username') }}</label>
-                        <select name="slack-user-id" id="slack-user-id" class="form-control">
-                            @foreach($users as $user)
-                            @if($user->groups->count() > 0)
-                            <option value="{{ $user->groups->first()->id }}">{{ $user->name }}</option>
-                            @endif
+                        <label for="slack-group-id">{{ trans('slackbot::seat.username') }}</label>
+                        <select name="slack-group-id" id="slack-group-id" class="form-control">
+                            @foreach($groups->sortBy('main_character.name') as $group)
+                            <option value="{{ $group->id }}">{{ $group->main_character->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -170,7 +168,7 @@
                         <tbody>
                         @foreach($channelGroups as $channel)
                             <tr>
-                                <td>{{ $channel->group->users->first()->name }}</td>
+                                <td>{{ $channel->group->main_character->name }}</td>
                                 <td>{{ $channel->channel->name }}</td>
                                 <td>{{ $channel->created_at }}</td>
                                 <td>{{ $channel->updated_at }}</td>
@@ -342,7 +340,7 @@
         }
 
         $('#slack-type').change(function(){
-            $.each(['slack-user-id', 'slack-role-id', 'slack-corporation-id', 'slack-title-id', 'slack-alliance-id'], function(key, value){
+            $.each(['slack-group-id', 'slack-role-id', 'slack-corporation-id', 'slack-title-id', 'slack-alliance-id'], function(key, value){
                 if (value === ('slack-' + $('#slack-type').val() + '-id')) {
                     $(('#' + value)).prop('disabled', false);
                 } else {
@@ -359,7 +357,7 @@
             getCorporationTitle();
         });
 
-        $('#slack-user-id, #slack-role-id, #slack-corporation-id, #slack-title-id, #slack-alliance-id, #slack-channel-id').select2();
+        $('#slack-group-id, #slack-role-id, #slack-corporation-id, #slack-title-id, #slack-alliance-id, #slack-channel-id').select2();
 
         $('#slack-tabs').find('a').click(function(e){
             e.preventDefault();

@@ -100,10 +100,10 @@ class SlackbotController extends Controller
                 return $row->group_id;
             })
             ->addColumn('user_id', function($row){
-                return $row->group->users->first()->id;
+                return $row->group->main_character->id;
             })
             ->addColumn('user_name', function($row){
-                return $row->group->users->first()->name;
+                return $row->group->main_character->name;
             })
             ->addColumn('slack_id', function($row){
                 return $row->slack_id;
