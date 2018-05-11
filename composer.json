@@ -28,5 +28,12 @@
             "email": "loic.leuilliot@gmail.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Warlof\\Seat\\Slackbot\\SlackbotServiceProvider"
+            ]
+        }
+    }
 }
