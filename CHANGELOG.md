@@ -1,3 +1,6 @@
+# Version 3.0.1
+* Introduce `slack:user:terminator` command which allow you to kick everyone
+
 # Version 3.0.0
 * Upgrade slackbot for SeAT 3
 * Make some improvements on commands so you can either call them with user or group id

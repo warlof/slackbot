@@ -124,6 +124,19 @@
                     </span>
                 </div>
             </div>
+
+            <div class="form-group">
+                <div class="col-md-12">
+                    @if(setting('warlof.slackbot.credentials.access_token', true) == '')
+                        <a href="#" type="button" class="btn btn-danger btn-md col-md-12 disabled" role="button">Kick everybody</a>
+                    @else
+                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:user:terminator']) }}" type="button" class="btn btn-danger btn-md col-md-12" role="button">Kick everybody</a>
+                    @endif
+                    <span class="help-block">
+                        This will kick every user from every conversations into the connected Slack Team. Please proceed carefully.
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 @stop

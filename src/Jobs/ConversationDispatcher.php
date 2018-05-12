@@ -33,6 +33,24 @@ class ConversationDispatcher extends SlackJobBase {
     protected $tags = ['dispatcher'];
 
     /**
+     * @var bool
+     */
+    private $terminator;
+
+    /**
+     * ConversationDispatcher constructor.
+     * @param bool $terminator Determine if the dispatcher must run a massive kick
+     */
+    public function __construct(bool $terminator = false)
+    {
+        $this->terminator = $terminator;
+
+        // in case terminator mode is active, append terminator to tags
+        if ($this->terminator)
+            array_push($this->tags, 'terminator');
+    }
+
+    /**
      * @throws \Seat\Services\Exceptions\SettingException
      * @throws \Warlof\Seat\Slackbot\Exceptions\SlackSettingException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\InvalidConfigurationException
@@ -51,10 +69,12 @@ class ConversationDispatcher extends SlackJobBase {
         // retrieve information related to the current token
         // so we can remove the user owner from process since we're not able to do things on ourselves
         $token_info = $this->getConnector()->invoke('get', '/auth.test');
+
         logger()->debug('Slack Receptionist - Checking token', [
             'owner' => $token_info->user_id,
         ]);
 
+        // retrieving all conversation from Slack team
         $conversations = $this->fetchSlackConversations();
 
         foreach ($conversations as $conversation) {
@@ -63,8 +83,15 @@ class ConversationDispatcher extends SlackJobBase {
             if ($conversation->is_general)
                 continue;
 
+            // preparing a new orchestrator tied to the current conversation
+            $job = new ConversationOrchestrator($conversation->id, $token_info);
+
+            // in case the dispatcher is running with massive kick flag, forward it to the orchestrator
+            if ($this->terminator)
+                $job->setTerminatorFlag();
+
             // queuing a new orchestrator for that conversation which will handle delay between kick and invitation
-            dispatch(new ConversationOrchestrator($conversation->id, $token_info));
+            dispatch($job);
         }
     }
 }
