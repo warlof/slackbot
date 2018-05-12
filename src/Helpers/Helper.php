@@ -87,7 +87,7 @@ class Helper
                         DB::table('group_role')->join('slack_channel_roles', 'slack_channel_roles.role_id', '=',
                             'group_role.role_id')
                           ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
-                          ->whereIn('group_role.group_id', $slackUser->group->id)
+                          ->where('group_role.group_id', $slackUser->group_id)
                           ->where('slack_channels.is_general', (int) false)
                           ->select('channel_id')
                     )->union(

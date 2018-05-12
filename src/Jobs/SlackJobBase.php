@@ -32,12 +32,6 @@ abstract class SlackJobBase implements ShouldQueue
 
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-
-    /**
-     * @var SlackResponse
-     */
-    protected $owner;
-
     /**
      * @var array
      */
@@ -49,14 +43,6 @@ abstract class SlackJobBase implements ShouldQueue
      * @var int
      */
     public $tries = 1;
-
-    /**
-     * @param SlackResponse $owner
-     */
-    public function setOwner(SlackResponse $owner)
-    {
-        $this->owner = $owner;
-    }
 
     /**
      * Assign this job a tag so that Horizon can categorize and allow

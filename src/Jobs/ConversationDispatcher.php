@@ -64,7 +64,7 @@ class ConversationDispatcher extends SlackJobBase {
                 continue;
 
             // queuing a new orchestrator for that conversation which will handle delay between kick and invitation
-            dispatch(new ConversationOrchestrator($conversation->id));
+            dispatch(new ConversationOrchestrator($conversation->id, $token_info));
         }
     }
 }

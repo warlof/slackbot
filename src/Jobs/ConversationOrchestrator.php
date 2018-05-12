@@ -24,10 +24,16 @@ use Illuminate\Support\Facades\Cache;
 use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackUser;
+use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
 
 class ConversationOrchestrator extends SlackJobBase {
 
     use SlackApiConnector;
+
+    /**
+     * @var SlackResponse
+     */
+    protected $owner;
 
     /**
      * @var string
@@ -43,11 +49,12 @@ class ConversationOrchestrator extends SlackJobBase {
      * ConversationHandler constructor.
      * @param string $conversation_id
      */
-    public function __construct(string $conversation_id)
+    public function __construct(string $conversation_id, SlackResponse $token_info)
     {
         logger()->debug('Initialising conversation orchestrator for ' . $conversation_id);
 
         $this->conversation_id = $conversation_id;
+        $this->owner = $token_info;
 
         array_push($this->tags, 'conversation_id:' . $conversation_id);
     }
