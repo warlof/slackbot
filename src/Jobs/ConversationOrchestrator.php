@@ -96,14 +96,38 @@ class ConversationOrchestrator extends SlackJobBase {
 
         // spacing invitation job with a list of 40 IDs every minute in order to avoid API threshold
         // references : https://api.slack.com/docs/rate-limits#tier_t3 | https://api.slack.com/methods/conversations.invite
-        $pending_invitations->chunk(40)->each(function ($slack_users) {
-            dispatch(new Receptionist($this->conversation_id, $slack_users))->delay(60);
+        $batches = $pending_invitations->chunk(40);
+        $chained_jobs = collect();
+
+        // prepare chained jobs
+        $batches->splice(1)->each(function ($slack_users) use ($chained_jobs) {
+            $chained_jobs->push(new Receptionist($this->conversation_id, $slack_users));
         });
+
+        // if we have at least 1 element for which queuing a job, spawn the main job
+        if ($batches->count() > 0)
+            $queued_job = dispatch(new Receptionist($this->conversation_id, $batches->first()))->delay(0);
+
+        // append every other chained job in queue of the main job
+        if ($batches->count() > 1)
+            $queued_job->chain($chained_jobs->toArray());
 
         // spacing kick job with a batch of 40 every minute in order to avoid API threshold
         // references : https://api.slack.com/docs/rate-limits#tier_t3 | https://api.slack.com/methods/conversations.kick
-        $pending_kicks->chunk(40)->each(function ($slack_users) {
-            dispatch(new AssKicker($this->conversation_id, $slack_users))->delay(60);
+        $batches = $pending_kicks->chunk(40);
+        $chained_jobs = collect();
+
+        // prepare chained jobs
+        $batches->splice(1)->each(function ($slack_users) use ($chained_jobs) {
+            $chained_jobs->push(new AssKicker($this->conversation_id, $slack_users));
         });
+
+        // if we have at least 1 element for which queuing a job, spawn the main job
+        if ($batches->count() > 0)
+            $queued_job = dispatch(new AssKicker($this->conversation_id, $batches->first()))->delay(0);
+
+        // append every other chained job in queue of the main job
+        if ($batches->count() > 1)
+            $queued_job->chain($chained_jobs->toArray());
     }
 }

@@ -30,6 +30,11 @@ class Receptionist extends SlackJobBase {
     use SlackApiConnector;
 
     /**
+     * @var int
+     */
+    public $delay = 60;
+
+    /**
      * @var string
      */
     private $conversation_id;
