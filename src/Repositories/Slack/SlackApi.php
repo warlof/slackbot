@@ -224,7 +224,7 @@ class SlackApi {
      * @return UriInterface
      * @throws UriDataMissingException
      */
-    private function buildDataUri(string $uri, array $data) : UriInterface
+    public function buildDataUri(string $uri, array $data = []) : UriInterface
     {
         $query_params = $this->getQueryString();
 

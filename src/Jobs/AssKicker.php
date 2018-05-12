@@ -20,8 +20,7 @@
 
 namespace Warlof\Seat\Slackbot\Jobs;
 
-use Illuminate\Support\Facades\Cache;
-use Warlof\Seat\Slackbot\Helpers\Helper;
+use Illuminate\Support\Collection;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
@@ -33,14 +32,33 @@ class AssKicker extends SlackJobBase {
     use SlackApiConnector;
 
     /**
+     * @var string
+     */
+    private $conversation_id;
+
+    /**
+     * @var Collection
+     */
+    private $pending_kicks;
+
+    /**
      * @var array
      */
     protected $tags = ['ass-kicker'];
 
     /**
-     * @var array
+     * AssKicker constructor.
+     * @param string $conversation_id
      */
-    private $seat_group_ids = [];
+    public function __construct(string $conversation_id, Collection $slack_users)
+    {
+        logger()->debug('Instancing conversation ass-kick for ' . $conversation_id, ['kicking' => $slack_users->toArray()]);
+
+        $this->conversation_id = $conversation_id;
+        $this->pending_kicks = $slack_users;
+
+        array_push($this->tags, 'conversation_id:' . $conversation_id);
+    }
 
     /**
      * @throws RequestFailedException
@@ -54,101 +72,38 @@ class AssKicker extends SlackJobBase {
     public function handle()
     {
 
-        $token_info = $this->getConnector()->invoke('get', '/auth.test');
-        logger()->debug('Slack Receptionist - Checking token', [
-            'owner' => $token_info->user_id,
-        ]);
+        $slackChannel = SlackChannel::find($this->conversation_id);
 
-        $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
+        $this->pending_kicks->each(function ($user) use ($slackChannel) {
 
-        if (count($this->seat_group_ids) > 0) {
-            $query->whereIn('group_id', $this->seat_group_ids);
-            logger()->debug('Slack Ass Kicker - Restricting job to user groups : ' . $this->seat_group_ids);
-        }
+            try {
 
-        $users = $query->get();
+                $this->getConnector()->setBody([
+                    'channel' => $this->conversation_id,
+                    'user'    => $user->slack_id,
+                ])->invoke('post', '/conversations.kick');
 
-        $channels = $this->fetchSlackConversations();
+                $this->logKickEvent($slackChannel, $user);
+                sleep(1);
 
-        logger()->debug('Slack Kicker - channels list', $channels);
+            } catch (RequestFailedException $e) {
 
-        foreach ($channels as $channel) {
+                if ($e->getError() != 'invalid_membership')
+                    throw $e;
 
-            if ($channel->is_general)
-                continue;
+                $user->delete();
 
-            $members = $this->fetchSlackConversationMembers($channel->id);
-
-            logger()->debug('Slack Kicker - Channel members', [
-                'channel' => $channel->id,
-                'members' => $members
-            ]);
-
-            foreach ($users as $slack_user) {
-
-                logger()->debug('Slack Kicker - Checking user', [
-                    'user'    => $slack_user,
-                    'channel' => $channel->id,
-                    'members' => $members,
-                ]);
-
-                if (!in_array($slack_user->slack_id, $members))
-                    continue;
-
-                $granted_channels = Helper::allowedChannels($slack_user);
-
-                logger()->debug('Slack Kicker - Granted channels', [
-                    'user'     => [
-                        'seat'  => $slack_user->group_id,
-                        'slack' => $slack_user->slack_id,
-                    ],
-                    'channels' => $granted_channels,
-                ]);
-
-                if (! in_array($channel->id, $granted_channels)) {
-                    logger()->debug('Slack Kicker - Kicking user', [
-                        'user'    => [
-                            'seat'  => $slack_user->group_id,
-                            'slack' => $slack_user->slack_id
-                        ],
-                        'channel' => $channel->id
-                    ]);
-
-                    try {
-
-                        $this->getConnector()->setBody([
-                            'channel' => $channel->id,
-                            'user'    => $slack_user->slack_id,
-                        ])->invoke('post', '/conversations.kick');
-
-                    } catch (RequestFailedException $e) {
-
-                        // catch error related to unknown member
-                        if ($e->getError() == 'invalid_membership') {
-                            $slack_user->delete();
-                            continue;
-                        }
-
-                        // if error is not related to unknown member, just forward the initial exception
-                        throw $e;
-                    }
-
-                    $this->logKickEvent($channel->id, $slack_user->slack_id);
-                    sleep(1);
-                }
             }
 
-        }
-
-        logger()->debug('Slack kicker - clearing cached data');
-        Cache::tags(['conversations', 'members'])->flush();
+        });
     }
 
-    private function logKickEvent(string $channel_id, string $group_id)
+    /**
+     * @param SlackChannel $slackChannel
+     * @param SlackUser $slackUser
+     */
+    private function logKickEvent(SlackChannel $slackChannel, SlackUser $slackUser)
     {
-        $slackUser = SlackUser::where('slack_id', $group_id)->first();
-        $slackChannel = SlackChannel::find($channel_id);
-
         SlackLog::create([
             'event' => 'kick',
             'message' => sprintf('The user %s (%s) has been kicked from the following channel : %s',

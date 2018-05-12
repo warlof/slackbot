@@ -23,8 +23,7 @@ namespace Warlof\Seat\Slackbot;
 use Illuminate\Support\ServiceProvider;
 use Warlof\Seat\Slackbot\Commands\SlackConversationSync;
 use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
-use Warlof\Seat\Slackbot\Commands\SlackUserInvite;
-use Warlof\Seat\Slackbot\Commands\SlackUserKick;
+use Warlof\Seat\Slackbot\Commands\SlackUserPolicy;
 use Warlof\Seat\Slackbot\Commands\SlackUserSync;
 
 class SlackbotServiceProvider extends ServiceProvider
@@ -65,8 +64,7 @@ class SlackbotServiceProvider extends ServiceProvider
         $this->commands([
         	SlackLogsClear::class,
             SlackUserSync::class,
-	        SlackUserInvite::class,
-	        SlackUserKick::class,
+	        SlackUserPolicy::class,
 	        SlackConversationSync::class,
         ]);
     }

@@ -20,49 +20,42 @@
 
 namespace Warlof\Seat\Slackbot\Jobs;
 
-use Illuminate\Support\Facades\Cache;
-use Warlof\Seat\Slackbot\Helpers\Helper;
+use Illuminate\Support\Collection;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackChannel;
 use Warlof\Seat\Slackbot\Models\SlackLog;
-use Warlof\Seat\Slackbot\Models\SlackUser;
 
 class Receptionist extends SlackJobBase {
 
     use SlackApiConnector;
 
     /**
-     * @var array
+     * @var string
      */
-    private $seat_group_ids = [];
+    private $conversation_id;
 
     /**
-     * @var array
+     * @var Collection
      */
-    private $pending_invitations = [];
+    private $pending_invitations;
 
     /**
      * @var array
      */
     protected $tags = ['receptionist'];
 
-
     /**
      * SyncUser constructor.
      * @param int|null $group_id
      */
-    public function __construct(int $group_id = null)
+    public function __construct(string $conversation_id, Collection $slackUser)
     {
-        if (! is_null($group_id))
-            $this->seat_group_id = $group_id;
-    }
+        logger()->debug('Initialising conversation receptionist for ' . $conversation_id, ['inviting' => $slackUser->toArray()]);
 
-    /**
-     * @param array $group_ids
-     */
-    public function setSeatGroupId(array $group_ids)
-    {
-        $this->seat_group_ids = $group_ids;
+        $this->conversation_id = $conversation_id;
+        $this->pending_invitations = $slackUser;
+
+        array_push($this->tags, 'conversation_id:' . $conversation_id);
     }
 
     /**
@@ -74,89 +67,25 @@ class Receptionist extends SlackJobBase {
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\SlackScopeAccessDeniedException
      * @throws \Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\UriDataMissingException
      */
-    public function handle() {
+    public function handle()
+    {
 
-        logger()->debug('Slack Receptionist - Starting job...');
+        $this->getConnector()->setBody([
+            'channel' => $this->conversation_id,
+            'users'   => $this->pending_invitations->pluck('slack_id')->implode(','),
+        ])->invoke( 'post', '/conversations.invite');
 
-        // retrieve information related to the current token
-        // so we can remove the user owner from process since we're not able to do things on ourselves
-        $token_info = $this->getConnector()->invoke('get', '/auth.test');
-        logger()->debug('Slack Receptionist - Checking token', [
-            'owner' => $token_info->user_id,
-        ]);
-
-        $query = SlackUser::where('slack_id', '<>', $token_info->user_id);
-
-        if (count($this->seat_group_ids) > 0) {
-            $query->whereIn('group_id', $this->seat_group_ids);
-            logger()->debug('Slack Receptionist - Restricting job to user groups : ' . $this->seat_group_ids);
-        }
-
-        $users = $query->get();
-
-        foreach ($users as $user) {
-
-            $granted_channels = Helper::allowedChannels($user);
-
-            logger()->debug('Slack Receptionist - Retrieving granted channels list', [
-                'user'     => [
-                    'seat'  => $user->group_id,
-                    'slack' => $user->slack_id,
-                ],
-                'channels' => $granted_channels,
-            ]);
-
-            foreach ($granted_channels as $channel_id) {
-                $members = $this->fetchSlackConversationMembers($channel_id);
-
-                // if user is not already member of the channel, put Slack ID in queue
-                if (!in_array($user->slack_id, $members)) {
-                    logger()->debug('Slack reception - buffering invitation', [
-                        'user'     => [
-                            'seat'  => $user->group_id,
-                            'slack' => $user->slack_id,
-                        ],
-                        'channel_id'    => $channel_id,
-                    ]);
-
-                    if (!array_key_exists($channel_id, $this->pending_invitations)) {
-                        $this->pending_invitations[$channel_id] = [];
-                    }
-
-                    $this->pending_invitations[$channel_id][] = $user->slack_id;
-                }
-            }
-        }
-
-        logger()->debug('Receptionist - clearing cached data');
-        Cache::tags(['conversations', 'members'])->flush();
-
-        foreach ($this->pending_invitations as $channel_id => $user_list) {
-
-            logger()->debug('Slack Receptionist - Starting invitation', [
-                'channel' => $channel_id,
-                'users'   => $user_list,
-            ]);
-
-            // split user list into sub list of maximum 30 user ID
-            // in order to send less invitation queries as possible
-            foreach (collect($user_list)->chunk(30)->toArray() as $user_chunk) {
-                $this->getConnector()->setBody([
-                    'channel' => $channel_id,
-                    'users'   => implode( ',', $user_chunk ),
-                ])->invoke( 'post', '/conversations.invite');
-
-                $this->logInvitationEvents($channel_id, $user_chunk);
-                sleep(1);
-            }
-        }
+        $this->logInvitationEvents($this->pending_invitations);
     }
 
-    private function logInvitationEvents(string $channel_id, array $user_ids)
+    /**
+     * @param Collection $slackUsers
+     */
+    private function logInvitationEvents(Collection $slackUsers)
     {
-        foreach ($user_ids as $user) {
-            $slackUser = SlackUser::where('slack_id', $user)->first();
-            $slackChannel = SlackChannel::find($channel_id);
+        $slackChannel = SlackChannel::find($this->conversation_id);
+
+        foreach ($slackUsers as $slackUser) {
 
             SlackLog::create([
                 'event' => 'invite',

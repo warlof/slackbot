@@ -148,11 +148,11 @@ trait SlackApiConnector {
                 'exclude_archived' => true,
             ]);
 
-        $response = Cache::tags(['conversations'])->get(is_null($cursor) ? 'root' : $cursor);
+        $response = Cache::tags(['conversations'])->get($this->getConnector()->buildDataUri('/conversations.list'));
 
         if (is_null($response)) {
             $response = $this->getConnector()->invoke('get', '/conversations.list');
-            Cache::tags(['conversations'])->put(is_null($cursor) ? 'root' : $cursor, $response);
+            Cache::tags(['conversations'])->put($this->getConnector()->buildDataUri('/conversations.list'), $response, 1);
         }
 
         $channels = $response->channels;
@@ -193,11 +193,11 @@ trait SlackApiConnector {
                 'cursor' => $cursor,
             ]);
 
-        $response = Cache::tags(['conversations', 'members'])->get(is_null($cursor) ? 'root' : $cursor);
+        $response = Cache::tags(['conversations', 'members'])->get($this->getConnector()->buildDataUri('/conversations.members'));
 
         if (is_null($response)) {
             $response = $this->getConnector()->invoke('get', '/conversations.members');
-            Cache::tags(['conversations', 'members'])->put(is_null($cursor) ? 'root' : $cursor, $response);
+            Cache::tags(['conversations', 'members'])->put($this->getConnector()->buildDataUri('/conversations.members'), $response);
         }
 
         logger()->debug('Slack reception - channel members', [

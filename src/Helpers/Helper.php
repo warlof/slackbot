@@ -127,6 +127,16 @@ class Helper
         return $channels;
     }
 
+    /**
+     * @param string $channelId
+     * @param SlackUser $slackUser
+     * @return bool
+     */
+    public static function isAllowedChannel(string $channelId, SlackUser $slackUser)
+    {
+        return in_array($channelId, self::allowedChannels($slackUser));
+    }
+
     public static function getSlackRedisKey($table, $objectId)
     {
         return $table . '.' . $objectId;

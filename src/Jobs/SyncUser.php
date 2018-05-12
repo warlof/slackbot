@@ -75,16 +75,12 @@ class SyncUser extends SlackJobBase {
                    ->whereNull('group_id');
 
         // if command has been run for a specific user, restrict result on it
-        if (! is_null($this->seat_group_ids))
+        if (! empty($this->seat_group_ids))
             $query->whereIn('groups.id', $this->seat_group_ids);
 
-        $groups = $query->get();
+        $groups = $query->select('main_character_id')->get();
 
-        $user_ids = $groups->map(function ($group) {
-            return $group->users->first()->pluck('id');
-        })->toArray();
-
-        $users = User::whereIn('id', $user_ids)->whereNotNull('email')->with('groups')->get();
+        $users = User::whereIn('id', $groups->toArray())->whereNotNull('email')->get();
 
         $this->bindingSlackUser($users);
     }
@@ -111,7 +107,7 @@ class SyncUser extends SlackJobBase {
                 ]) ->invoke('get', '/users.lookupByEmail');
 
                 SlackUser::create([
-                    'group_id' => $user->groups->first()->id,
+                    'group_id' => $user->group_id,
                     'slack_id' => $response->user->id,
                     'name' => property_exists($response->user, 'name') ? $response->user->name : '',
                 ]);
