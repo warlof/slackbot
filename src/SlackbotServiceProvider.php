@@ -25,6 +25,7 @@ use Warlof\Seat\Slackbot\Commands\SlackConversationSync;
 use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
 use Warlof\Seat\Slackbot\Commands\SlackUserPolicy;
 use Warlof\Seat\Slackbot\Commands\SlackUserSync;
+use Warlof\Seat\Slackbot\Commands\SlackUserTerminator;
 
 class SlackbotServiceProvider extends ServiceProvider
 {
@@ -65,7 +66,8 @@ class SlackbotServiceProvider extends ServiceProvider
         	SlackLogsClear::class,
             SlackUserSync::class,
 	        SlackUserPolicy::class,
-	        SlackConversationSync::class,
+            SlackUserTerminator::class,
+            SlackConversationSync::class,
         ]);
     }
     
