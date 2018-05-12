@@ -80,7 +80,7 @@ class AssKicker extends SlackJobBase {
         $slackChannel = SlackChannel::find($this->conversation_id);
 
         $this->pending_kicks->each(function ($user) use ($slackChannel) {
-logger()->debug('AssKicker doing shit here', ['shit' => $user]);
+
             try {
 
                 $this->getConnector()->setBody([
