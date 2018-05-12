@@ -1,3 +1,8 @@
+# Version 3.0.0
+* Updating Slackbot for SeAT 3.0 compatibility
+* Improving jobs management
+* Implementing endpoint tiers according to Slack API change : https://api.slack.com/docs/rate-limits
+
 # Version 2.4.0
 * Address an issue related to log rotation
 * The sync user job will now only attempt to sync active SeAT account.
