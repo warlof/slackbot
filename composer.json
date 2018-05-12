@@ -1,0 +1,36 @@
+{
+    "name": "warlof/slackbot",
+    "description": "This plugin provide an extension to the standard SeAT character Job which handle automatic invitation to an existing Slack Team",
+    "type": "seat-plugin",
+    "autoload": {
+        "psr-4": {
+            "Warlof\\Seat\\Slackbot\\": "src/"
+        }
+    },
+    "require": {
+        "eveseat/services": "^3.0",
+        "eveseat/eveapi": "^3.0",
+        "eveseat/web": "^3.0",
+        "erusev/parsedown": "^1.7",
+        "predis/predis": "^1.1"
+    },
+    "require-dev": {
+        "satooshi/php-coveralls": "^1.0",
+        "codacy/coverage": "~1.0"
+    },
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Warlof Tutsimo",
+            "email": "loic.leuilliot@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Warlof\\Seat\\Slackbot\\SlackbotServiceProvider"
+            ]
+        }
+    }
+}

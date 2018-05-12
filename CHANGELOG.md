@@ -1,7 +1,11 @@
 # Version 3.0.0
-* Updating Slackbot for SeAT 3.0 compatibility
-* Improving jobs management
-* Implementing endpoint tiers according to Slack API change : https://api.slack.com/docs/rate-limits
+* Upgrade slackbot for SeAT 3
+* Make some improvements on commands so you can either call them with user or group id
+* Use the new `user.conversations` endpoint from Slack API on user list in order to show you in which channels an user is
+
+# Version 2.4.1
+* Address an issue which avoid job status to be updated when an exception occurred from api fetch flow
+* Address an issue which avoid sync:user job to be run when other Slack job were running (thanks @herpaderp)
 
 # Version 2.4.0
 * Address an issue related to log rotation
