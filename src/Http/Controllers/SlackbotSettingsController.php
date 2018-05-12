@@ -40,11 +40,12 @@ class SlackbotSettingsController extends Controller
         $acceptedCommands = [
             'slack:conversation:sync',
             'slack:user:sync',
+            'slack:user:terminator',
             'slack:logs:clear'
         ];
 
         if (!in_array($commandName, $acceptedCommands)) {
-            abort(401);
+            abort(400);
         }
 
         Artisan::call($commandName);
