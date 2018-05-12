@@ -37,6 +37,11 @@ class AssKicker extends SlackJobBase {
     public $delay = 60;
 
     /**
+     * @var array
+     */
+    protected $tags = ['ass-kicker'];
+
+    /**
      * @var string
      */
     private $conversation_id;
@@ -47,22 +52,28 @@ class AssKicker extends SlackJobBase {
     private $pending_kicks;
 
     /**
-     * @var array
+     * @var bool
      */
-    protected $tags = ['ass-kicker'];
+    private $terminator;
 
     /**
      * AssKicker constructor.
      * @param string $conversation_id
+     * @param Collection $slack_users
+     * @param bool $terminator Determine if the ass kicker must run a massive kick
      */
-    public function __construct(string $conversation_id, Collection $slack_users)
+    public function __construct(string $conversation_id, Collection $slack_users, bool $terminator = false)
     {
         logger()->debug('Instancing conversation ass-kick for ' . $conversation_id, ['kicking' => $slack_users->toArray()]);
 
+        $this->terminator = $terminator;
         $this->conversation_id = $conversation_id;
         $this->pending_kicks = $slack_users;
 
         array_push($this->tags, 'conversation_id:' . $conversation_id);
+
+        if ($this->terminator)
+            array_push($this->tags, 'terminator');
     }
 
     /**
@@ -88,15 +99,16 @@ class AssKicker extends SlackJobBase {
                     'user'    => $user->slack_id,
                 ])->invoke('post', '/conversations.kick');
 
-                $this->logKickEvent($slackChannel, $user);
-                sleep(1);
+                if (! $this->terminator)
+                    $this->logKickEvent($slackChannel, $user);
 
             } catch (RequestFailedException $e) {
 
                 if ($e->getError() != 'invalid_membership')
                     throw $e;
 
-                $user->delete();
+                if (! $this->terminator)
+                    $user->delete();
 
             }
 

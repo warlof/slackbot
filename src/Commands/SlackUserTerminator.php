@@ -17,32 +17,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 namespace Warlof\Seat\Slackbot\Commands;
 
 use Illuminate\Console\Command;
 use Warlof\Seat\Slackbot\Jobs\ConversationDispatcher;
 
-class SlackUserPolicy extends Command
+class SlackUserTerminator extends Command
 {
 
     /**
      * @var string
      */
-    protected $signature = 'slack:user:policy';
+    protected $signature = 'slack:user:terminator';
 
     /**
      * @var string
      */
-    protected $description = 'Fire a job which will invite or kick SeAT user into Slack channels according to your policy.';
+    protected $description = 'Fire a job which will kick all users from every channel on Slack.';
 
     /**
      * Execute the console command
      */
     public function handle()
     {
-        ConversationDispatcher::dispatch();
-        $this->info('A job has been queued in order to invite and kick user on granted channels.');
+        // queue the job and inform user
+        dispatch(new ConversationDispatcher(true));
+
+        $this->info('A synchronization job has been queued in order to update slack/seat user relation.');
     }
 
 }

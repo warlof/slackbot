@@ -23,7 +23,8 @@ namespace Warlof\Seat\Slackbot\Commands;
 use Illuminate\Console\Command;
 use Warlof\Seat\Slackbot\Jobs\SyncConversation;
 
-class SlackConversationSync extends Command {
+class SlackConversationSync extends Command
+{
 
     /**
      * @var string

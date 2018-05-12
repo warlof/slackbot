@@ -24,7 +24,8 @@ use Seat\Web\Models\Group;
 use Seat\Web\Models\User;
 use Warlof\Seat\Slackbot\Jobs\SyncUser;
 
-class SlackUserSync extends Command {
+class SlackUserSync extends Command
+{
 
     /**
      * @var string
