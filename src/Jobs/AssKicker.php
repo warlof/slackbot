@@ -96,7 +96,8 @@ class AssKicker extends SlackJobBase {
 
                 $this->getConnector()->setBody([
                     'channel' => $this->conversation_id,
-                    'user'    => $user->slack_id,
+                    // if we're in terminator mode, user is a user id instead a Slack User object
+                    'user'    => $this->terminator ? $user : $user->slack_id,
                 ])->invoke('post', '/conversations.kick');
 
                 if (! $this->terminator)
