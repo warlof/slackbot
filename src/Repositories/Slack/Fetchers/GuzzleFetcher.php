@@ -259,7 +259,7 @@ class GuzzleFetcher implements FetcherInterface
      * @param $response_body
      * @param $request_time
      */
-    private function logRequest(string $level, string $method, string $uri, string $request_body, ResponseInterface $response, $response_body, $request_time)
+    private function logRequest(string $level, string $method, string $uri, string $request_body = null, ResponseInterface $response, $response_body, $request_time)
     {
         $level = strtolower($level);
         $method = strtoupper($method);
@@ -291,7 +291,7 @@ class GuzzleFetcher implements FetcherInterface
      * @param $request_time
      * @return array
      */
-    private function getResponseContext(string $uri, string $request_body, ResponseInterface $response, $response_body, $request_time)
+    private function getResponseContext(string $uri, string $request_body = null, ResponseInterface $response, $response_body, $request_time)
     {
         return [
             'code' => $response->getStatusCode(),
