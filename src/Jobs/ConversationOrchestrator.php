@@ -168,7 +168,9 @@ class ConversationOrchestrator extends SlackJobBase {
     {
         // spacing kick job with a batch of 40 every minute in order to avoid API threshold
         // references : https://api.slack.com/docs/rate-limits#tier_t3 | https://api.slack.com/methods/conversations.kick
-        $batches = $pending_kicks->chunk(40);
+        $batches = $pending_kicks->reject(function ($value, $key) {
+            return $value == $this->owner->user_id;
+        })->chunk(40);
         $chained_jobs = collect();
 
         // prepare chained jobs
