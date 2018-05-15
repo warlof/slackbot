@@ -1,3 +1,6 @@
+# Version 3.0.4
+* Address an issue at `ConversationOrcherstrator` job which was not taking care about `token owner` in kick stage
+
 # Version 3.0.1
 * Introduce `slack:user:terminator` command which allow you to kick everyone
 
