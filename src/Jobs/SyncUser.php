@@ -70,17 +70,19 @@ class SyncUser extends SlackJobBase {
      */
     public function handle()
     {
-        // retrieve all unlinked SeAT users
-        $query = Group::leftJoin('slack_users', 'id', '=', 'group_id')
-                   ->whereNull('group_id');
+        // retrieve all group
+        $query = Group::select('id');
 
         // if command has been run for a specific user, restrict result on it
         if (! empty($this->seat_group_ids))
-            $query->whereIn('groups.id', $this->seat_group_ids);
+            $query->whereIn('id', $this->seat_group_ids);
 
-        $groups = $query->select('main_character_id')->get();
+        // excluding mapped group and group without email address
+        $groups = $query->get()->whereNotIn('id', SlackUser::select('group_id')->get()->toArray())->filter(function($group) {
+            return ! empty($group->email);
+        });
 
-        $users = User::whereIn('id', $groups->toArray())->whereNotNull('email')->get();
+        $users = User::whereIn('id', $groups->pluck('main_character_id')->toArray())->get();
 
         $this->bindingSlackUser($users);
     }

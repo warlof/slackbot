@@ -93,7 +93,7 @@ class SlackbotJsonController extends Controller
         $channelTitles = SlackChannelTitle::all();
         $channelAlliances = SlackChannelAlliance::all();
 
-        $groups = Group::with('main_character')->get();
+        $groups = Group::all();
         $roles = Role::orderBy('title')->get();
         $corporations = CorporationInfo::orderBy('name')->get();
         $alliances = Alliance::orderBy('name')->get();
