@@ -24,7 +24,7 @@
                     <label for="slack-group-id">{{ trans('slackbot::seat.username') }}</label>
                     <select name="slack-group-id" id="slack-group-id" class="form-control">
                         @foreach($groups->sortBy('main_character.name') as $group)
-                            <option value="{{ $group->id }}">{{ $group->main_character->name }}</option>
+                            <option value="{{ $group->id }}">{{ optional($group->main_character)->name ?: 'Unknown Character' }}</option>
                         @endforeach
                     </select>
                 </div>

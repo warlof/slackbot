@@ -12,7 +12,7 @@
     <tbody>
     @foreach($channelGroups as $channel)
         <tr>
-            <td>{{ $channel->group->main_character->name }}</td>
+            <td>{{ optional($channel->group->main_character)->name ?: 'Unknown Character' }}</td>
             <td>{{ $channel->channel->name }}</td>
             <td>{{ $channel->created_at }}</td>
             <td>{{ $channel->updated_at }}</td>
