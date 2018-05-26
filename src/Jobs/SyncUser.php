@@ -78,7 +78,9 @@ class SyncUser extends SlackJobBase {
             $query->whereIn('id', $this->seat_group_ids);
 
         // excluding mapped group and group without email address
-        $groups = $query->get()->whereNotIn('id', SlackUser::select('group_id')->get()->toArray())->filter(function($group) {
+        $groups = $query->whereNotIn('id', function($sub_query) {
+            $sub_query->select('group_id')->from('slack_users');
+        })->get()->filter(function($group) {
             return ! empty($group->email);
         });
 
