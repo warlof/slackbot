@@ -29,7 +29,7 @@ class SlackUser extends Model
         'group_id', 'slack_id', 'name'
     ];
 
-    protected $primaryKey = 'user_id';
+    protected $primaryKey = 'group_id';
     
     public function group()
     {
