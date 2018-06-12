@@ -22,7 +22,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Seat\Services\Models\Schedule;
 
-class ScheduleSeederV230 extends Migration
+class ScheduleSeederV300 extends Migration
 {
     protected $schedule = [
         [
