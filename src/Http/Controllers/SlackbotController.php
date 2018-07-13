@@ -24,7 +24,6 @@ use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Exceptions\RequestFailedException;
-use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotController extends Controller
 {
@@ -67,7 +66,7 @@ class SlackbotController extends Controller
     public function getUsersData()
     {
         if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
-            return Datatables::of(collect([]))->make(true);
+            return app('DataTables')::of(collect([]))->make(true);
 
         $users = SlackUser::whereNull('name')->get();
 
@@ -95,7 +94,7 @@ class SlackbotController extends Controller
 
         $users = SlackUser::all();
 
-        return Datatables::of($users)
+        return app('DataTables')::of($users)
             ->addColumn('group_id', function($row){
                 return $row->group_id;
             })
