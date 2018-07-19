@@ -16,9 +16,7 @@
 
                     <legend>Slack API</legend>
 
-                    <p class="callout callout-warning text-justify">It appears you already have a Slack API access setup.
-                        In order to prevent any mistakes, <code>Client ID</code> and <code>Client Secret</code> fields have been disabled.
-                        Please use the rubber in order to enable modifications.</p>
+                    <p class="callout callout-warning text-justify">{!! trans('slackbot::seat.existing_setup_disclaimer', ['client_id' => '<code>Client ID</code>', 'client_secret' => '<code>Client Secret</code>']) !!}</p>
 
                     <div class="form-group">
                         <label for="slack-configuration-client" class="col-md-4">Slack Client ID</label>
