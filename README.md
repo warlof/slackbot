@@ -5,5 +5,6 @@ This plugin write for [SeAT](https://github.com/eveseat/seat) is providing to yo
 [![Maintainability](https://api.codeclimate.com/v1/badges/5b98ea819e06e513003c/maintainability)](https://codeclimate.com/github/warlof/slackbot/maintainability)
 [![Coverage Status](https://img.shields.io/coveralls/warlof/slackbot.svg?style=flat-square)](https://coveralls.io/github/warlof/slackbot?branch=master)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg?style=flat-square)](https://raw.githubusercontent.com/warlof/slackbot/master/LICENSE)
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/slackbot/localized.svg)](https://crowdin.com/project/slackbot)
 
 You will find more information into the [Wiki](https://github.com/warlof/slackbot/wiki)
