@@ -43,5 +43,6 @@ return [
     'remove' => 'Supprimer',
     'enabled' => 'Activer',
     'settings' => 'Paramètres de Slackbot',
-    'user_list' => 'Liste des utilisateurs'
+    'user_list' => 'Liste des utilisateurs',
+    'existing_setup_disclaimer' => 'It appears you already have a Slack API access setup. In order to prevent any mistakes, :client_id and :client_secret fields have been disabled. Please use the rubber in order to enable modifications.',
 ];
