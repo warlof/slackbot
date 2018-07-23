@@ -44,5 +44,5 @@ return [
     'enabled' => 'Aktivieren',
     'settings' => 'Slackbot Einstellungen',
     'user_list' => 'Benutzerliste',
-    'existing_setup_disclaimer' => 'It appears you already have a Slack API access setup. In order to prevent any mistakes, :client_id and :client_secret fields have been disabled. Please use the rubber in order to enable modifications.',
+    'existing_setup_disclaimer' => 'Es scheint als ob du bereits ein Slack API Zugang eingerichtet hast. Um mögliche Fehler zu vermeiden wurden die :client_id: und :client_secret: Felder deaktiviert. Um die Felder zu bearbeiten, benutze den Radierer.',
 ];
