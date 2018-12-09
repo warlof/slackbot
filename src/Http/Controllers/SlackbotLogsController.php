@@ -22,7 +22,6 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 
 use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Models\SlackLog;
-use Yajra\Datatables\Facades\Datatables;
 
 class SlackbotLogsController extends Controller
 {
@@ -36,7 +35,7 @@ class SlackbotLogsController extends Controller
     {
         $logs = SlackLog::orderBy('created_at', 'desc')->get();
 
-        return Datatables::of($logs)
+        return app('DataTables')::of($logs)
             ->editColumn('created_at', function($row){
                 return view('slackbot::logs.partial.date', compact('row'));
             })
