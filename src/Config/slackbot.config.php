@@ -22,7 +22,7 @@
  * TODO: lazy coder, remember to edit this file before TAG ! DAMMIT !
  */
 return [
-    'version'   => '3.0.8',
+    'version'   => '3.0.9',
     'loggly'    => [
         'key' => 'b4aa3599-add7-4afc-aeb0-a9906b39f316',
         'tag' => 'seat-slackbot',
