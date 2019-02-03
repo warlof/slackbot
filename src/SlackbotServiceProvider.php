@@ -20,14 +20,14 @@
 
 namespace Warlof\Seat\Slackbot;
 
-use Illuminate\Support\ServiceProvider;
+use Seat\Services\AbstractSeatPlugin;
 use Warlof\Seat\Slackbot\Commands\SlackConversationSync;
 use Warlof\Seat\Slackbot\Commands\SlackLogsClear;
 use Warlof\Seat\Slackbot\Commands\SlackUserPolicy;
 use Warlof\Seat\Slackbot\Commands\SlackUserSync;
 use Warlof\Seat\Slackbot\Commands\SlackUserTerminator;
 
-class SlackbotServiceProvider extends ServiceProvider
+class SlackbotServiceProvider extends AbstractSeatPlugin
 {
     /**
      * Bootstrap the application services.
@@ -94,5 +94,63 @@ class SlackbotServiceProvider extends ServiceProvider
             __DIR__ . '/database/migrations/' => database_path('migrations'),
 	        __DIR__ . '/resources/assets/css/' => public_path('web/css'),
         ]);
+    }
+
+    /**
+     * Return the plugin public name as it should be displayed into settings.
+     *
+     * @example SeAT Web
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'Slackbot Connector';
+    }
+
+    /**
+     * Return the plugin repository address.
+     *
+     * @example https://github.com/eveseat/web
+     *
+     * @return string
+     */
+    public function getPackageRepositoryUrl(): string
+    {
+        return 'https://github.com/warlof/slackbot';
+    }
+
+    /**
+     * Return the plugin technical name as published on package manager.
+     *
+     * @example web
+     *
+     * @return string
+     */
+    public function getPackagistPackageName(): string
+    {
+        return 'slackbot';
+    }
+
+    /**
+     * Return the plugin vendor tag as published on package manager.
+     *
+     * @example eveseat
+     *
+     * @return string
+     */
+    public function getPackagistVendorName(): string
+    {
+        return 'warlof';
+    }
+
+    /**
+     * Return the plugin installed version.
+     *
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return config('slackbot.config.version');
     }
 }
