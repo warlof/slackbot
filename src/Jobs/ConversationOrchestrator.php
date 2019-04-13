@@ -149,12 +149,14 @@ class ConversationOrchestrator extends SlackJobBase {
 
         // prepare chained jobs
         $batches->splice(1)->each(function ($slack_users) use ($chained_jobs) {
-            $chained_jobs->push(new Receptionist($this->conversation_id, $slack_users));
+            $chained_jobs->push((new Receptionist($this->conversation_id, $slack_users))->onQueue($this->queue));
         });
 
         // if we have at least 1 element for which queuing a job, spawn the main job
         if ($batches->count() > 0)
-            $queued_job = dispatch(new Receptionist($this->conversation_id, $batches->first()))->delay(0);
+            $queued_job = dispatch(new Receptionist($this->conversation_id, $batches->first()))
+                ->onQueue($this->queue)
+                ->delay(0);
 
         // append every other chained job in queue of the main job
         if ($batches->count() > 1)
@@ -175,12 +177,15 @@ class ConversationOrchestrator extends SlackJobBase {
 
         // prepare chained jobs
         $batches->splice(1)->each(function ($slack_users) use ($chained_jobs) {
-            $chained_jobs->push(new AssKicker($this->conversation_id, $slack_users, $this->terminator));
+            $chained_jobs->push(
+                (new AssKicker($this->conversation_id, $slack_users, $this->terminator))->onQueue($this->queue));
         });
 
         // if we have at least 1 element for which queuing a job, spawn the main job
         if ($batches->count() > 0)
-            $queued_job = dispatch(new AssKicker($this->conversation_id, $batches->first(), $this->terminator))->delay(0);
+            $queued_job = dispatch(new AssKicker($this->conversation_id, $batches->first(), $this->terminator))
+                ->onQueue($this->queue)
+                ->delay(0);
 
         // append every other chained job in queue of the main job
         if ($batches->count() > 1)

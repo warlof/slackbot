@@ -41,7 +41,8 @@ class SlackUserPolicy extends Command
      */
     public function handle()
     {
-        ConversationDispatcher::dispatch();
+        ConversationDispatcher::dispatch()->onQueue('high');
+
         $this->info('A job has been queued in order to invite and kick user on granted channels.');
     }
 

@@ -91,7 +91,7 @@ class ConversationDispatcher extends SlackJobBase {
                 $job->setTerminatorFlag();
 
             // queuing a new orchestrator for that conversation which will handle delay between kick and invitation
-            dispatch($job);
+            dispatch($job)->onQueue($this->queue);
         }
     }
 }

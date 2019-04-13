@@ -41,7 +41,7 @@ class SlackUserTerminator extends Command
     public function handle()
     {
         // queue the job and inform user
-        dispatch(new ConversationDispatcher(true));
+        dispatch(new ConversationDispatcher(true))->onQueue('high');
 
         $this->info('A synchronization job has been queued in order to update slack/seat user relation.');
     }

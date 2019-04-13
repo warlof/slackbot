@@ -86,7 +86,7 @@ class SlackUserSync extends Command
         }
 
         // queue the job and inform user
-        $job::dispatch();
+        $job::dispatch()->onQueue('high');
 
         $this->info('A synchronization job has been queued in order to update slack/seat user relation.');
     }

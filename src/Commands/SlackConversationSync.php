@@ -41,8 +41,7 @@ class SlackConversationSync extends Command
      */
     public function handle()
     {
-
-        SyncConversation::dispatch();
+        SyncConversation::dispatch()->onQueue('high');
 
         $this->info('A synchronization job has been queued in order to update slack conversations.');
 
