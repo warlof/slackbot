@@ -24,7 +24,7 @@ Route::group([
 ], function(){
 
     Route::group([
-        'middleware' => 'web'
+        'middleware' => ['web', 'auth', 'locale'],
     ], function() {
 
         // Endpoints with Configuration Permission
@@ -69,43 +69,36 @@ Route::group([
             Route::get('/public/{channel_id}/remove', [
                 'as' => 'slackbot.public.remove',
                 'uses' => 'SlackbotJsonController@getRemovePublic',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/users/{group_id}/{channel_id}/remove', [
                 'as' => 'slackbot.user.remove',
                 'uses' => 'SlackbotJsonController@getRemoveUser',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/roles/{role_id}/{channel_id}/remove', [
                 'as' => 'slackbot.role.remove',
                 'uses' => 'SlackbotJsonController@getRemoveRole',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/corporations/{corporation_id}/{channel_id}/remove', [
                 'as' => 'slackbot.corporation.remove',
                 'uses' => 'SlackbotJsonController@getRemoveCorporation',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::get('/corporation/{corporation_id}/{title_id}/{channel_id}/remove', [
                 'as' => 'slackbot.title.remove',
                 'uses' => 'SlackbotJsonController@getRemoveTitle',
-                'middleware' => 'bouncer:slackbot:create'
             ]);
 
             Route::get('/alliances/{alliance_id}/{channel_id}/remove', [
                 'as' => 'slackbot.alliance.remove',
                 'uses' => 'SlackbotJsonController@getRemoveAlliance',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
             Route::post('/', [
                 'as' => 'slackbot.add',
                 'uses' => 'SlackbotJsonController@postRelation',
-                'middleware' => 'bouncer:slackbot.create'
             ]);
 
         });
