@@ -55,9 +55,4 @@ class SlackChannelTitle extends Model
     {
         return $this->belongsTo(CorporationInfo::class, 'corporation_id', 'corporation_id');
     }
-/*
-    public function title()
-    {
-        return $this->belongsTo(CorporationTitle::class, 'title_surrogate_key', ['corporation_id', 'title_id']);
-    }*/
 }

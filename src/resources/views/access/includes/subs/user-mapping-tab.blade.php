@@ -12,16 +12,24 @@
     <tbody>
     @foreach($channelGroups as $channel)
         <tr>
-            <td>{{ optional($channel->group->main_character)->name ?: 'Unknown Character' }}</td>
+            <td>
+                @if(is_null($channel->group) || is_null($channel->group->main_character))
+                Unknown Character
+                @else
+                {{ $channel->group->main_character->name }}
+                @endif
+            </td>
             <td>{{ $channel->channel->name }}</td>
             <td>{{ $channel->created_at }}</td>
             <td>{{ $channel->updated_at }}</td>
             <td>{{ $channel->enable }}</td>
             <td>
                 <div class="btn-group">
-                    <a href="{{ route('slackbot.user.remove', ['group_id' => $channel->group_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                        {{ trans('web::seat.remove') }}
-                    </a>
+                    <form method="post" action="{{ route('slackbot.user.remove', ['group_id' => $channel->group_id, 'channel_id' => $channel->channel_id]) }}">
+                        {{ csrf_field() }}
+                        {{ method_field('DELETE') }}
+                        <button type="submit" class="btn btn-danger btn-xs col-xs-12">{{ trans('web::seat.remove') }}</button>
+                    </form>
                 </div>
             </td>
         </tr>

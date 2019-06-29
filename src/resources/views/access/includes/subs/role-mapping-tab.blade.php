@@ -19,9 +19,11 @@
             <td>{{ $channel->enable }}</td>
             <td>
                 <div class="btn-group">
-                    <a href="{{ route('slackbot.role.remove', ['role_id' => $channel->role_id, 'channel_id' => $channel->channel_id]) }}" type="button" class="btn btn-danger btn-xs col-xs-12">
-                        {{ trans('web::seat.remove') }}
-                    </a>
+                    <form method="post" action="{{ route('slackbot.role.remove', ['role_id' => $channel->role_id, 'channel_id' => $channel->channel_id]) }}">
+                        {{ csrf_field() }}
+                        {{ method_field('DELETE') }}
+                        <button type="submit" class="btn btn-danger btn-xs col-xs-12">{{ trans('web::seat.remove') }}</button>
+                    </form>
                 </div>
             </td>
         </tr>

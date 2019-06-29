@@ -20,6 +20,8 @@
 
 namespace Warlof\Seat\Slackbot\Http\Controllers;
 
+use Seat\Eveapi\Models\Character\CharacterInfo;
+use Seat\Services\Models\UserSetting;
 use Seat\Web\Http\Controllers\Controller;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackUser;
@@ -34,24 +36,24 @@ class SlackbotController extends Controller
         return view('slackbot::users.list');
     }
 
-    public function postRemoveUserMapping()
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeUserMapping()
     {
-        $slackId = request()->input('slack_id');
+        $slack_id = request()->input('slack_id');
 
-        if ($slackId != '') {
+        if ($slack_id == '')
+            return redirect()->back('error', 'An error occurred while processing the request.');
 
-            if (($slackUser = SlackUser::where('slack_id', $slackId)->first()) != null) {
-                $slackUser->delete();
-
-                return redirect()->back()->with('success', 'System successfully remove the mapping between SeAT (' .
-                    $slackUser->user->name . ') and Slack (' . $slackUser->name . ').');
-            }
-
+        if (($slack_user = SlackUser::with('group')->where('slack_id', $slack_id)->first()) == null)
             return redirect()->back()->with('error', sprintf(
-                'System cannot find any suitable mapping for Slack (%s).', $slackId));
-        }
+                'System cannot find any suitable mapping for Slack (%s).', $slack_id));
 
-        return redirect()->back('error', 'An error occurred while processing the request.');
+        $slack_user->delete();
+
+        return redirect()->back()->with('success', 'System successfully remove the mapping between SeAT (' .
+            $slack_user->group->name . ') and Slack (' . $slack_user->name . ').');
     }
 
     /**
@@ -68,7 +70,27 @@ class SlackbotController extends Controller
         if (is_null(setting('warlof.slackbot.credentials.access_token', true)))
             return app('DataTables')::of(collect([]))->make(true);
 
-        $users = SlackUser::whereNull('name')->get();
+        $this->refreshSlackUsername();
+
+        $users = SlackUser::query()
+            ->leftJoin((new UserSetting())->getTable(), function ($join) {
+                $join->on((new SlackUser())->getTable() . '.group_id', '=', (new UserSetting())->getTable() . '.group_id')
+                     ->where((new UserSetting())->getTable() . '.name', '=', 'main_character_id');
+            })
+            ->leftJoin((new CharacterInfo())->getTable(), 'character_id', '=', 'value')
+            ->select(
+                (new SlackUser())->getTable() . '.*',
+                (new UserSetting())->getTable() . '.value AS user_id',
+                (new CharacterInfo())->getTable() . '.name AS user_name'
+            );
+
+        return app('DataTables')::of($users)
+            ->make(true);
+    }
+
+    private function refreshSlackUsername()
+    {
+        $users = SlackUser::with('group')->whereNull('name')->get();
 
         if ($users->count() > 0) {
 
@@ -76,14 +98,15 @@ class SlackbotController extends Controller
 
                 try {
                     $response = $this->getConnector()->setQueryString([
-                        'email' => $slackUser->user->email,
+                        'email' => $slackUser->group->email,
                     ])->invoke( 'get', '/users.lookupByEmail' );
-                    $slackUser->update( [
-                        'name' => property_exists( $response->user, 'name' ) ? $response->user->name : '',
-                    ] );
 
-                    if ( $users->count() > 1 ) {
-                        sleep( 1 );
+                    $slackUser->update([
+                        'name' => property_exists($response->user, 'name') ? $response->user->name : '',
+                    ]);
+
+                    if ($users->count() > 1) {
+                        sleep(1);
                     }
                 } catch (RequestFailedException $e) {
 
@@ -91,26 +114,6 @@ class SlackbotController extends Controller
 
             }
         }
-
-        $users = SlackUser::all();
-
-        return app('DataTables')::of($users)
-            ->addColumn('group_id', function($row){
-                return $row->group_id;
-            })
-            ->addColumn('user_id', function($row){
-                return $row->group->main_character_id;
-            })
-            ->addColumn('user_name', function($row){
-                return optional($row->group->main_character)->name ?: 'Unknown Character';
-            })
-            ->addColumn('slack_id', function($row){
-                return $row->slack_id;
-            })
-            ->addColumn('slack_name', function($row){
-                return $row->name;
-            })
-            ->make(true);
     }
 
 }

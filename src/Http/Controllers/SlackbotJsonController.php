@@ -86,12 +86,12 @@ class SlackbotJsonController extends Controller
 
     public function getRelations()
     {
-        $channelPublic = SlackChannelPublic::all();
-        $channelGroups = SlackChannelUser::all();
-        $channelRoles = SlackChannelRole::all();
-        $channelCorporations = SlackChannelCorporation::all();
-        $channelTitles = SlackChannelTitle::all();
-        $channelAlliances = SlackChannelAlliance::all();
+        $channelPublic = SlackChannelPublic::with('channel')->get();
+        $channelGroups = SlackChannelUser::with('channel', 'group')->get();
+        $channelRoles = SlackChannelRole::with('channel', 'role')->get();
+        $channelCorporations = SlackChannelCorporation::with('channel', 'corporation')->get();
+        $channelTitles = SlackChannelTitle::with('channel', 'corporation')->get();
+        $channelAlliances = SlackChannelAlliance::with('channel', 'alliance')->get();
 
         $groups = Group::all();
         $roles = Role::orderBy('title')->get();
@@ -108,9 +108,13 @@ class SlackbotJsonController extends Controller
     // Remove access
     //
 
-    public function getRemovePublic($channelId)
+    /**
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removePublic($channel_id)
     {
-        $channelPublic = SlackChannelPublic::where('channel_id', $channelId);
+        $channelPublic = SlackChannelPublic::where('channel_id', $channel_id);
 
         if ($channelPublic != null) {
             $channelPublic->delete();
@@ -122,7 +126,12 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurs while trying to remove the public Slack relation.');
     }
 
-    public function getRemoveUser($group_id, $channel_id)
+    /**
+     * @param $group_id
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeUser($group_id, $channel_id)
     {
         $channelUser = SlackChannelUser::where('group_id', $group_id)
             ->where('channel_id', $channel_id);
@@ -137,10 +146,15 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurs while trying to remove the Slack relation for the user.');
     }
 
-    public function getRemoveRole($roleId, $channelId)
+    /**
+     * @param $role_id
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeRole($role_id, $channel_id)
     {
-        $channelRole = SlackChannelRole::where('role_id', $roleId)
-            ->where('channel_id', $channelId);
+        $channelRole = SlackChannelRole::where('role_id', $role_id)
+            ->where('channel_id', $channel_id);
 
         if ($channelRole != null) {
             $channelRole->delete();
@@ -152,10 +166,15 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurs while trying to remove the Slack relation for the role.');
     }
 
-    public function getRemoveCorporation($corporationId, $channelId)
+    /**
+     * @param $corporation_id
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeCorporation($corporation_id, $channel_id)
     {
-        $channelCorporation = SlackChannelCorporation::where('corporation_id', $corporationId)
-            ->where('channel_id', $channelId);
+        $channelCorporation = SlackChannelCorporation::where('corporation_id', $corporation_id)
+            ->where('channel_id', $channel_id);
 
         if ($channelCorporation != null) {
             $channelCorporation->delete();
@@ -167,11 +186,17 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurs while trying to remove the Slack relation for the corporation.');
     }
 
-    public function getRemoveTitle($corporationId, $titleId, $channelId)
+    /**
+     * @param $corporation_id
+     * @param $title_id
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeTitle($corporation_id, $title_id, $channel_id)
     {
-        $channelTitle = SlackChannelTitle::where('corporation_id', $corporationId)
-            ->where('title_id', $titleId)
-            ->where('channel_id', $channelId);
+        $channelTitle = SlackChannelTitle::where('corporation_id', $corporation_id)
+            ->where('title_id', $title_id)
+            ->where('channel_id', $channel_id);
 
         if ($channelTitle != null) {
             $channelTitle->delete();
@@ -183,10 +208,15 @@ class SlackbotJsonController extends Controller
             ->with('error', 'An error occurred while trying to remove the Slack relation for the title.');
     }
 
-    public function getRemoveAlliance($allianceId, $channelId)
+    /**
+     * @param $alliance_id
+     * @param $channel_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeAlliance($alliance_id, $channel_id)
     {
-        $channelAlliance = SlackChannelAlliance::where('alliance_id', $allianceId)
-            ->where('channel_id', $channelId);
+        $channelAlliance = SlackChannelAlliance::where('alliance_id', $alliance_id)
+            ->where('channel_id', $channel_id);
 
         if ($channelAlliance != null) {
             $channelAlliance->delete();

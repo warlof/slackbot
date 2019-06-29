@@ -29,6 +29,7 @@
             </table>
             <form method="post" id="user-remove" action="{{ route('slackbot.json.user.remove') }}" class="hidden">
                 {{ csrf_field() }}
+                {{ method_field('DELETE') }}
                 <input type="hidden" name="slack_id" />
             </form>
         </div>
@@ -101,7 +102,7 @@
                 {data: 'user_id'},
                 {data: 'user_name'},
                 {data: 'slack_id'},
-                {data: 'slack_name'},
+                {data: 'name'},
                 @if (auth()->user()->has('slackbot.security'))
                 {
                     data: null,
@@ -121,8 +122,8 @@
         $('#users-table').find('tbody')
             .on('click', 'button.btn-info', function(){
                 var row = table.row($(this).parents('tr')).data();
-                $('#slack_username').text(row.slack_name);
-                $('#seat_username').text(row.user_name);
+                $('#slack_username').text(row.name);
+                $('#seat_username').text(row.name);
                 $('#channels, #groups').find('tbody tr').remove();
                 modal.find('.overlay').show();
 
