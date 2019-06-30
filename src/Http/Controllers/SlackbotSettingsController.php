@@ -22,6 +22,7 @@ namespace Warlof\Seat\Slackbot\Http\Controllers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Parsedown;
 use Seat\Web\Http\Controllers\Controller;
@@ -35,8 +36,18 @@ class SlackbotSettingsController extends Controller
         return view('slackbot::configuration', compact('changelog'));
     }
 
-    public function getSubmitJob($commandName)
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postJob(Request $request)
     {
+        $request->validate([
+            'command_name' => 'required|string',
+        ]);
+
+        $command_name = $request->input('command_name');
+
         $acceptedCommands = [
             'slack:conversation:sync',
             'slack:user:sync',
@@ -44,11 +55,11 @@ class SlackbotSettingsController extends Controller
             'slack:logs:clear'
         ];
 
-        if (!in_array($commandName, $acceptedCommands)) {
+        if (!in_array($command_name, $acceptedCommands)) {
             abort(400);
         }
 
-        Artisan::call($commandName);
+        Artisan::call($command_name);
 
         return redirect()->back()
             ->with('success', 'The command has been run.');

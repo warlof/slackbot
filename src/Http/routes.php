@@ -37,9 +37,9 @@ Route::group([
                 'uses' => 'SlackbotSettingsController@getConfiguration',
             ]);
 
-            Route::get('/run/{commandName}', [
-                'as' => 'slackbot.command.run',
-                'uses' => 'SlackbotSettingsController@getSubmitJob',
+            Route::post('/run', [
+                'as'   => 'slackbot.command.run',
+                'uses' => 'SlackbotSettingsController@postJob',
             ]);
 
             // OAuth

@@ -52,11 +52,13 @@
         </div>
         <div class="panel-footer clearfix">
             @if($logCount == 0)
-                <a href="#" type="button" class="btn btn-danger btn-sm pull-right disabled" role="button">
-                    Clear</a>
+                <button type="button" class="btn btn-danger btn-sm pull-right disabled" role="button">Clear</button>
             @else
-                <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:logs:clear']) }}" type="button"
-                   class="btn btn-danger btn-sm pull-right" role="button">Clear</a>
+                <form method="post" action="{{ route('slackbot.command.run') }}">
+                    {{ csrf_field() }}
+                    <input name="command_name" type="text" value="slack:logs:clear" class="hidden" />
+                    <button type="submit" class="btn btn-sm btn-danger pull-right" role="button">Clear</button>
+                </form>
             @endif
         </div>
     </div>

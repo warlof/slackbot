@@ -100,9 +100,13 @@
             <div class="form-group">
                 <div class="col-md-12">
                     @if(setting('warlof.slackbot.credentials.access_token', true) == '')
-                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack channels and groups</a>
+                        <button type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack channels and groups</button>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:conversation:sync']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</a>
+                        <form method="post" action="{{ route('slackbot.command.run') }}">
+                            {{ csrf_field() }}
+                            <input name="command_name" type="text" value="slack:conversation:sync" class="hidden" />
+                            <button type="submit" class="btn btn-success btn-md col-md-12" role="button">Update Slack channels and groups</button>
+                        </form>
                     @endif
                     <span class="help-block">
                         This will update known channels and groups from Slack.
@@ -113,9 +117,13 @@
             <div class="form-group">
                 <div class="col-md-12">
                     @if(setting('warlof.slackbot.credentials.access_token', true) == '')
-                        <a href="#" type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack users</a>
+                        <button type="button" class="btn btn-success btn-md col-md-12 disabled" role="button">Update Slack users</button>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:user:sync']) }}" type="button" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</a>
+                        <form method="post" action="{{ route('slackbot.command.run') }}">
+                            {{ csrf_field() }}
+                            <input name="command_name" type="text" value="slack:user:sync" class="hidden" />
+                            <button type="submit" class="btn btn-success btn-md col-md-12" role="button">Update Slack users</button>
+                        </form>
                     @endif
                     <span class="help-block">
                         This will try to update known users from Slack Team based on both Slack user email and SeAT user email.
@@ -126,9 +134,13 @@
             <div class="form-group">
                 <div class="col-md-12">
                     @if(setting('warlof.slackbot.credentials.access_token', true) == '')
-                        <a href="#" type="button" class="btn btn-danger btn-md col-md-12 disabled" role="button">Kick everybody</a>
+                        <button type="button" class="btn btn-danger btn-md col-md-12 disabled" role="button">Kick everybody</button>
                     @else
-                        <a href="{{ route('slackbot.command.run', ['commandName' => 'slack:user:terminator']) }}" type="button" class="btn btn-danger btn-md col-md-12" role="button">Kick everybody</a>
+                        <form method="post" action="{{ route('slackbot.command.run') }}">
+                            {{ csrf_field() }}
+                            <input name="command_name" type="text" value="slack:user:terminator" class="hidden" />
+                            <button type="submit" class="btn btn-danger btn-md col-md-12" role="button">Kick everybody</button>
+                        </form>
                     @endif
                     <span class="help-block">
                         This will kick every user from every conversations into the connected Slack Team. Please proceed carefully.
