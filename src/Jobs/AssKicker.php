@@ -117,15 +117,15 @@ class AssKicker extends SlackJobBase {
     }
 
     /**
-     * @param SlackChannel $slackChannel
-     * @param SlackUser $slackUser
+     * @param SlackChannel $slack_channel
+     * @param SlackUser $slack_user
      */
-    private function logKickEvent(SlackChannel $slackChannel, SlackUser $slackUser)
+    private function logKickEvent(SlackChannel $slack_channel, SlackUser $slack_user)
     {
         SlackLog::create([
             'event' => 'kick',
             'message' => sprintf('The user %s (%s) has been kicked from the following channel : %s',
-                $slackUser->name, optional($slackUser->group->main_character)->name ?: 'Unknown Character', $slackChannel->name),
+                $slack_user->name, optional($slack_user->group->main_character)->name ?: 'Unknown Character', $slack_channel->name),
         ]);
     }
 

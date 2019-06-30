@@ -22,7 +22,6 @@ namespace Warlof\Seat\Slackbot\Jobs;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Warlof\Seat\Slackbot\Helpers\Helper;
 use Warlof\Seat\Slackbot\Http\Controllers\Services\Traits\SlackApiConnector;
 use Warlof\Seat\Slackbot\Models\SlackUser;
 use Warlof\Seat\Slackbot\Repositories\Slack\Containers\SlackResponse;
@@ -120,15 +119,17 @@ class ConversationOrchestrator extends SlackJobBase {
         $pending_invitations = collect();
 
         // retrieving mapped user list
-        $users = SlackUser::where('slack_id', '<>', $this->owner->user_id)->get();
+        $users = SlackUser::with('group')
+            ->where('slack_id', '<>', $this->owner->user_id)
+            ->get();
 
         // checking for each user who have to be invite and kick
         foreach ($users as $user) {
 
-            if (Helper::isAllowedChannel($this->conversation_id, $user) && ! in_array($user->slack_id, $members))
+            if ($user->isAllowedChannel($this->conversation_id) && ! in_array($user->slack_id, $members))
                 $pending_invitations->push($user);
 
-            if (! Helper::isAllowedChannel($this->conversation_id, $user) && in_array($user->slack_id, $members))
+            if ($user->isAllowedChannel($this->conversation_id) && in_array($user->slack_id, $members))
                 $pending_kicks->push($user);
 
         }

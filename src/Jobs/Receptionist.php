@@ -53,12 +53,12 @@ class Receptionist extends SlackJobBase {
      * SyncUser constructor.
      * @param int|null $group_id
      */
-    public function __construct(string $conversation_id, Collection $slackUser)
+    public function __construct(string $conversation_id, Collection $slack_user)
     {
-        logger()->debug('Initialising conversation receptionist for ' . $conversation_id, ['inviting' => $slackUser->toArray()]);
+        logger()->debug('Initialising conversation receptionist for ' . $conversation_id, ['inviting' => $slack_user->toArray()]);
 
         $this->conversation_id = $conversation_id;
-        $this->pending_invitations = $slackUser;
+        $this->pending_invitations = $slack_user;
 
         array_push($this->tags, 'conversation_id:' . $conversation_id);
     }
