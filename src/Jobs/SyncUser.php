@@ -84,7 +84,9 @@ class SyncUser extends SlackJobBase {
             return ! empty($group->email);
         });
 
-        $users = User::whereIn('id', $groups->pluck('main_character_id')->toArray())->get();
+        $users = User::whereIn('id', $groups->pluck('main_character_id')->toArray())
+            ->where('name', '<>', 'admin')
+            ->get();
 
         $this->bindingSlackUser($users);
     }
