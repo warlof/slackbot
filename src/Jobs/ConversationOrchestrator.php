@@ -129,7 +129,7 @@ class ConversationOrchestrator extends SlackJobBase {
             if ($user->isAllowedChannel($this->conversation_id) && ! in_array($user->slack_id, $members))
                 $pending_invitations->push($user);
 
-            if ($user->isAllowedChannel($this->conversation_id) && in_array($user->slack_id, $members))
+            if (! $user->isAllowedChannel($this->conversation_id) && in_array($user->slack_id, $members))
                 $pending_kicks->push($user);
 
         }
