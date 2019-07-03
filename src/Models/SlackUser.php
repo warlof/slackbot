@@ -111,7 +111,7 @@ class SlackUser extends Model
     public function getChannelsUserBased(bool $get)
     {
         $channels = SlackChannelUser::join('groups', 'slack_channel_users.group_id', '=', 'groups.id')
-            ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.channel_id')
+            ->join('slack_channels', 'slack_channel_users.channel_id', '=', 'slack_channels.id')
             ->where('groups.id', $this->group_id)
             ->where('slack_channels.is_general', false)
             ->select('channel_id');
@@ -128,7 +128,7 @@ class SlackUser extends Model
     public function getChannelsRoleBased(bool $get)
     {
         $channels = SlackChannelRole::join('group_role', 'slack_channel_roles.role_id', '=', 'group_role.role_id')
-            ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.channel_id')
+            ->join('slack_channels', 'slack_channel_roles.channel_id', '=', 'slack_channels.id')
             ->where('group_role.group_id', $this->group_id)
             ->where('slack_channels.is_general', false)
             ->select('channel_id');
@@ -186,7 +186,7 @@ class SlackUser extends Model
     {
         $channels = SlackChannelAlliance::join('character_infos',
               'slack_channel_alliances.alliance_id', '=', 'character_infos.alliance_id')
-            ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.channel_id')
+            ->join('slack_channels', 'slack_channel_alliances.channel_id', '=', 'slack_channels.id')
             ->whereIn('character_infos.character_id', $this->group->pluck('id')->toArray())
             ->where('slack_channels.is_general', false)
             ->select('channel_id');
