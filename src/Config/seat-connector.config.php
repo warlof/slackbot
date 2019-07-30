@@ -2,7 +2,7 @@
 /**
  * This file is part of slackbot and provide user synchronization between both SeAT and a Slack Team
  *
- * Copyright (C) 2016, 2017, 2018, 2019  Loïc Leuilliot <loic.leuilliot@gmail.com>
+ * Copyright (C) 2016, 2017, 2018  Loïc Leuilliot <loic.leuilliot@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,26 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-Route::group([
-    'namespace'  => 'Warlof\Seat\Connector\Drivers\Slack\Http\Controllers',
-    'prefix'     => 'seat-connector',
-    'middleware' => ['web', 'auth', 'locale'],
-], function () {
-
-    Route::group([
-        'prefix' => 'registration',
-    ], function () {
-
-        Route::get('/slack', [
-            'as'   => 'seat-connector.drivers.slack.registration',
-            'uses' => 'RegistrationController@redirectToProvider',
-        ]);
-
-        Route::get('/slack/callback', [
-            'as'   => 'seat-connector.drivers.slack.callback',
-            'uses' => 'RegistrationController@handleProviderCallback',
-        ]);
-
-    });
-
-});
+return [
+    'name' => 'slack',
+    'icon' => 'fa-slack',
+    'client' => \Warlof\Seat\Connector\Drivers\Slack\Driver\SlackClient::class,
+];

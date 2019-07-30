@@ -4,15 +4,13 @@
     "type": "seat-plugin",
     "autoload": {
         "psr-4": {
-            "Warlof\\Seat\\Slackbot\\": "src/"
+            "Warlof\\Seat\\Connector\\Drivers\\Slack\\": "src/"
         }
     },
     "require": {
-        "eveseat/services": "^3.0",
-        "eveseat/eveapi": "^3.0",
-        "eveseat/web": "^3.0",
-        "erusev/parsedown": "^1.7",
-        "predis/predis": "^1.1"
+        "ext-json": "*",
+        "warlof/seat-connector": "^1.0",
+        "socialiteproviders/slack": "v3.0.3"
     },
     "require-dev": {
         "satooshi/php-coveralls": "^1.0",
