@@ -39,6 +39,7 @@ class SlackConnectorServiceProvider extends AbstractSeatPlugin
     public function boot()
     {
         $this->addRoutes();
+        $this->addTranslations();
     }
 
     /**
@@ -81,6 +82,11 @@ class SlackConnectorServiceProvider extends AbstractSeatPlugin
         if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
+    }
+
+    private function addTranslations()
+    {
+        $this->loadTranslationsFrom(__DIR__ . '/lang', 'seat-connector-slack');
     }
 
     /**

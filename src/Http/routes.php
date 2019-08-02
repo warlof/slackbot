@@ -40,4 +40,16 @@ Route::group([
 
     });
 
+    Route::group([
+        'prefix' => 'settings',
+        'middleware' => 'bouncer:superuser',
+    ], function () {
+
+        Route::post('/slack', [
+            'as' => 'seat-connector.drivers.slack.setup',
+            'uses' => 'SettingsController@store',
+        ]);
+
+    });
+
 });

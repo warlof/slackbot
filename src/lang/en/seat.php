@@ -19,24 +19,7 @@
  */
 
 return [
-    'name'     => 'slack',
-    'icon'     => 'fa-slack',
-    'client'   => \Warlof\Seat\Connector\Drivers\Slack\Driver\SlackClient::class,
-    'settings' => [
-        [
-            'name'  => 'client_id',
-            'label' => 'client_id',
-            'type'  => 'text',
-        ],
-        [
-            'name'  => 'client_secret',
-            'label' => 'client_secret',
-            'type'  => 'text',
-        ],
-        [
-            'name'  => 'invitation_link',
-            'label' => 'invitation_link',
-            'type'  => 'url',
-        ],
-    ],
+    'client_id'       => 'Client ID',
+    'client_secret'   => 'Client Secret',
+    'invitation_link' => 'Invitation Link',
 ];
