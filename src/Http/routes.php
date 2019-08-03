@@ -34,7 +34,7 @@ Route::group([
         ]);
 
         Route::get('/slack/callback', [
-            'as'   => 'seat-connector.drivers.slack.callback',
+            'as'   => 'seat-connector.drivers.slack.registration.callback',
             'uses' => 'RegistrationController@handleProviderCallback',
         ]);
 
