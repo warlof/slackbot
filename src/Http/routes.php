@@ -46,8 +46,13 @@ Route::group([
     ], function () {
 
         Route::post('/slack', [
-            'as' => 'seat-connector.drivers.slack.setup',
+            'as'   => 'seat-connector.drivers.slack.settings',
             'uses' => 'SettingsController@store',
+        ]);
+
+        Route::get('/slack/callback', [
+            'as'   => 'seat-connector.drivers.slack.settings.callback',
+            'uses' => 'SettingsController@handleProviderCallback',
         ]);
 
     });
