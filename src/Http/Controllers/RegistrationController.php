@@ -75,7 +75,11 @@ class RegistrationController
         if (! property_exists($settings, 'invitation_link') || is_null($settings->invitation_link) || $settings->invitation_link == '')
             throw new DriverSettingsException('Parameter invitation_link is missing.');
 
-        $socialite_user = Socialite::driver('slack')->user();
+        $redirect_uri = route('seat-connector.drivers.slack.registration.callback');
+
+        $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
+
+        $socialite_user = Socialite::driver('slack')->setConfig($config)->user();
 
         User::updateOrCreate([
             'connector_type' => 'slack',
