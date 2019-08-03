@@ -57,7 +57,7 @@ class RegistrationController
 
         $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
 
-        return Socialite::with('slack')->setConfig($config)->setScopes(['identity.basic', 'identity.email'])->redirect();
+        return Socialite::driver('slack')->setConfig($config)->setScopes(['identity.basic', 'identity.email'])->redirect();
     }
 
     /**

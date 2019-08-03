@@ -57,23 +57,11 @@ class SlackConnectorServiceProvider extends AbstractSeatPlugin
 
         $slack = $this->app->make('Laravel\Socialite\Contracts\Factory');
         $slack->extend('slack', function() use ($slack) {
-            $config = [
+            return $slack->buildProvider(Provider::class, [
                 'client_id'     => '',
                 'client_secret' => '',
                 'redirect'      => '',
-            ];
-
-            try {
-                $settings = setting('seat-connector.drivers.slack', true);
-
-                if (! is_null($settings)) {
-                    $config['client_id']     = $settings->client_id;
-                    $config['client_secret'] = $settings->client_secret;
-                    $config['redirect']      = route('seat-connector.drivers.slack.callback');
-                }
-            } catch (SettingException $e) { }
-
-            return $slack->buildProvider(Provider::class, $config);
+            ]);
         });
     }
 
