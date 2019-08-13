@@ -162,11 +162,12 @@ class SlackUser extends Model
      */
     public function getChannelsCorporationTitleBased(bool $get)
     {
-        $channels = CharacterInfo::join('character_titles',
-              'character_infos.character_id', '=', 'character_titles.character_id')
+        $channels = CharacterInfo::join('character_info_corporation_title',
+              'character_infos.character_id', '=', 'character_info_corporation_title.character_info_character_id')
+            ->join('corporation_titles', 'character_info_corporation_title.corporation_title_id', '=', 'corporation_titles.id')
             ->join('slack_channel_titles', function ($join) {
-                $join->on('slack_channel_titles.title_id', '=', 'character_titles.title_id');
-                $join->on('slack_channel_titles.corporation_id', '=', 'character_infos.corporation_id');
+                $join->on('slack_channel_titles.title_id', '=', 'corporation_titles.title_id');
+                $join->on('slack_channel_titles.corporation_id', '=', 'corporation_titles.corporation_id');
             })
             ->join('slack_channels', 'slack_channel_titles.channel_id', '=', 'slack_channels.id')
             ->whereIn('character_infos.character_id', $this->group->users->pluck('id')->toArray())
