@@ -20,9 +20,12 @@
 
 namespace Warlof\Seat\Connector\Drivers\Slack\Http\Controllers;
 
+use Exception;
 use Laravel\Socialite\Facades\Socialite;
 use SocialiteProviders\Manager\Config;
+use Warlof\Seat\Connector\Drivers\Slack\Driver\SlackClient;
 use Warlof\Seat\Connector\Exceptions\DriverSettingsException;
+use Warlof\Seat\Connector\Models\Log;
 use Warlof\Seat\Connector\Models\User;
 
 /**
@@ -39,25 +42,33 @@ class RegistrationController
      */
     public function redirectToProvider()
     {
-        $settings = setting('seat-connector.drivers.slack', true);
+        try {
+            $settings = setting('seat-connector.drivers.slack', true);
 
-        if (is_null($settings) || ! is_object($settings))
-            throw new DriverSettingsException('The Driver has not been configured yet.');
+            if (is_null($settings) || !is_object($settings))
+                throw new DriverSettingsException('The Driver has not been configured yet.');
 
-        if (! property_exists($settings, 'client_id') || is_null($settings->client_id) || $settings->client_id == '')
-            throw new DriverSettingsException('Parameter client_id is missing.');
+            if (!property_exists($settings, 'client_id') || is_null($settings->client_id) || $settings->client_id == '')
+                throw new DriverSettingsException('Parameter client_id is missing.');
 
-        if (! property_exists($settings, 'client_secret') || is_null($settings->client_secret) || $settings->client_secret == '')
-            throw new DriverSettingsException('Parameter client_secret is missing.');
+            if (!property_exists($settings, 'client_secret') || is_null($settings->client_secret) || $settings->client_secret == '')
+                throw new DriverSettingsException('Parameter client_secret is missing.');
 
-        if (! property_exists($settings, 'invitation_link') || is_null($settings->invitation_link) || $settings->invitation_link == '')
-            throw new DriverSettingsException('Parameter invitation_link is missing.');
+            if (!property_exists($settings, 'invitation_link') || is_null($settings->invitation_link) || $settings->invitation_link == '')
+                throw new DriverSettingsException('Parameter invitation_link is missing.');
 
-        $redirect_uri = route('seat-connector.drivers.slack.registration.callback');
+            $redirect_uri = route('seat-connector.drivers.slack.registration.callback');
 
-        $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
+            $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
 
-        return Socialite::driver('slack')->setConfig($config)->setScopes(['identity.basic', 'identity.email'])->redirect();
+            return Socialite::driver('slack')->setConfig($config)->setScopes(['identity.basic', 'identity.email'])->redirect();
+        } catch (Exception $e) {
+            logger()->error($e->getMessage());
+            $this->log('critical', 'registration', $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -67,29 +78,92 @@ class RegistrationController
      */
     public function handleProviderCallback()
     {
-        $settings = setting('seat-connector.drivers.slack', true);
+        try {
+            $settings = setting('seat-connector.drivers.slack', true);
 
-        if (is_null($settings) || ! is_object($settings))
-            throw new DriverSettingsException('The Driver has not been configured yet.');
+            if (is_null($settings) || ! is_object($settings))
+                throw new DriverSettingsException('The Driver has not been configured yet.');
 
-        if (! property_exists($settings, 'invitation_link') || is_null($settings->invitation_link) || $settings->invitation_link == '')
-            throw new DriverSettingsException('Parameter invitation_link is missing.');
+            if (! property_exists($settings, 'invitation_link') || is_null($settings->invitation_link) || $settings->invitation_link == '')
+                throw new DriverSettingsException('Parameter invitation_link is missing.');
 
-        $redirect_uri = route('seat-connector.drivers.slack.registration.callback');
+            $redirect_uri = route('seat-connector.drivers.slack.registration.callback');
 
-        $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
+            $config = new Config($settings->client_id, $settings->client_secret, $redirect_uri);
 
-        $socialite_user = Socialite::driver('slack')->setConfig($config)->user();
+            $socialite_user = Socialite::driver('slack')->setConfig($config)->user();
 
-        User::updateOrCreate([
+            $nickname = $socialite_user->nickname ?: $socialite_user->name;
+            $identity = $this->coupleUser(auth()->user()->group_id, $nickname, $socialite_user->id, $socialite_user->email);
+
+            $client = SlackClient::getInstance();
+            $user = $client->getUser($socialite_user->id);
+
+            foreach ($identity->allowedSets() as $set_id) {
+                $set = $client->getSet($set_id);
+
+                if (is_null($set)) {
+                    logger()->error(sprintf('Unable to retrieve Slack Channel with ID %s', $set_id));
+                    $this->log('error', 'registration', sprintf('Unable to retrieve Slack Channel with ID %s', $set_id));
+
+                    continue;
+                }
+
+                $user->addSet($set);
+            }
+
+            $expected_nickname = $identity->buildConnectorNickname();
+            $user->setName($expected_nickname);
+
+            $identity->connector_name = $expected_nickname;
+            $identity->save();
+
+            return redirect()->to($settings->invitation_link);
+        } catch (Exception $e) {
+            logger()->error($e->getMessage());
+            $this->log('critical', 'registration', $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * @param int $group_id
+     * @param string $nickname
+     * @param \Warlof\Seat\Connector\Drivers\IUser $user
+     * @return \Warlof\Seat\Connector\Models\User
+     */
+    private function coupleUser(int $group_id, string $nickname, string $id, string $uid): User
+    {
+        $identity = User::updateOrCreate([
             'connector_type' => 'slack',
-            'connector_id' => $socialite_user->id,
+            'connector_id' => $id,
         ], [
-            'connector_name' => $socialite_user->nickname ?: $socialite_user->name,
+            'connector_name' => $nickname,
             'group_id'       => auth()->user()->group_id,
-            'unique_id'      => $socialite_user->email,
+            'unique_id'      => $uid,
         ]);
 
-        return redirect()->to($settings->invitation_link);
+        $this->log('notice', 'registration',
+            sprintf('User %s (%d) has been registered with ID %s and UID %s',
+                $nickname, $group_id, $id, $uid));
+
+        return $identity;
+    }
+
+    /**
+     * @param string $level
+     * @param string $category
+     * @param string $message
+     */
+    private function log(string $level, string $category, string $message)
+    {
+        Log::create([
+            'connector_type' => 'slack',
+            'level'          => $level,
+            'category'       => $category,
+            'message'        => $message,
+        ]);
     }
 }
