@@ -88,9 +88,10 @@ class SlackChatter implements IUser
 
     /**
      * @param string $name
+     * @return bool
      * @throws \Warlof\Seat\Connector\Exceptions\DriverSettingsException
      */
-    public function setName(string $name)
+    public function setName(string $name): bool
     {
         $nickname = Str::limit($name, 32, '');
 
@@ -101,6 +102,8 @@ class SlackChatter implements IUser
         ]);
 
         $this->name = $nickname;
+
+        return true;
     }
 
     /**
