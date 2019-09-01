@@ -24,8 +24,8 @@ use Exception;
 use Laravel\Socialite\Facades\Socialite;
 use SocialiteProviders\Manager\Config;
 use Warlof\Seat\Connector\Drivers\Slack\Driver\SlackClient;
+use Warlof\Seat\Connector\Events\EventLogger;
 use Warlof\Seat\Connector\Exceptions\DriverSettingsException;
-use Warlof\Seat\Connector\Models\Log;
 use Warlof\Seat\Connector\Models\User;
 
 /**
@@ -64,7 +64,7 @@ class RegistrationController
             return Socialite::driver('slack')->setConfig($config)->setScopes(['identity.basic', 'identity.email'])->redirect();
         } catch (Exception $e) {
             logger()->error($e->getMessage());
-            $this->log('critical', 'registration', $e->getMessage());
+            event(new EventLogger('slack', 'critical', 'registration', $e->getMessage()));
 
             return redirect()->back()
                 ->with('error', $e->getMessage());
@@ -104,7 +104,8 @@ class RegistrationController
 
                 if (is_null($set)) {
                     logger()->error(sprintf('Unable to retrieve Slack Channel with ID %s', $set_id));
-                    $this->log('error', 'registration', sprintf('Unable to retrieve Slack Channel with ID %s', $set_id));
+                    event(new EventLogger('slack', 'error', 'registration',
+                        sprintf('Unable to retrieve Slack Channel with ID %s', $set_id)));
 
                     continue;
                 }
@@ -121,7 +122,7 @@ class RegistrationController
             return redirect()->to($settings->invitation_link);
         } catch (Exception $e) {
             logger()->error($e->getMessage());
-            $this->log('critical', 'registration', $e->getMessage());
+            event(new EventLogger('slack', 'critical', 'registration', $e->getMessage()));
 
             return redirect()->back()
                 ->with('error', $e->getMessage());
@@ -145,25 +146,10 @@ class RegistrationController
             'unique_id'      => $uid,
         ]);
 
-        $this->log('notice', 'registration',
+        event(new EventLogger('slack', 'notice', 'registration',
             sprintf('User %s (%d) has been registered with ID %s and UID %s',
-                $nickname, $group_id, $id, $uid));
+                $nickname, $group_id, $id, $uid)));
 
         return $identity;
-    }
-
-    /**
-     * @param string $level
-     * @param string $category
-     * @param string $message
-     */
-    private function log(string $level, string $category, string $message)
-    {
-        Log::create([
-            'connector_type' => 'slack',
-            'level'          => $level,
-            'category'       => $category,
-            'message'        => $message,
-        ]);
     }
 }
